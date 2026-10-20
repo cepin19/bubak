@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="96" viewBox="0 0 64 96">
+<defs><linearGradient id="se8505b" x1="0" y1="0" x2="0.25" y2="1"><stop offset="0" stop-color="#ed767f"/><stop offset="0.5" stop-color="#e8505b"/><stop offset="1" stop-color="#cc4650"/></linearGradient><linearGradient id="sf3cf7a" x1="0" y1="0" x2="0.25" y2="1"><stop offset="0" stop-color="#f6da97"/><stop offset="0.5" stop-color="#f3cf7a"/><stop offset="1" stop-color="#d6b66b"/></linearGradient></defs>
+<path d="M18.0,40 l-10,52 l10,-8 l8,10 l2,-46z" fill="url(#se8505b)" stroke="#4f3d33" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M46.0,40 l10,52 l-10,-8 l-8,10 l-2,-46z" fill="url(#se8505b)" stroke="#4f3d33" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="60.0,30.0 54.2,36.0 56.2,44.0 48.3,46.3 46.0,54.2 38.0,52.2 32.0,58.0 26.0,52.2 18.0,54.2 15.7,46.3 7.8,44.0 9.8,36.0 4.0,30.0 9.8,24.0 7.8,16.0 15.7,13.7 18.0,5.8 26.0,7.8 32.0,2.0 38.0,7.8 46.0,5.8 48.3,13.7 56.2,16.0 54.2,24.0" fill="#e8505b" stroke="#4f3d33" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="32.0" cy="30" r="15" fill="url(#sf3cf7a)" stroke="#4f3d33" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="28.0" cy="25" r="4" fill="#fff" opacity="0.6"/>
+</svg>

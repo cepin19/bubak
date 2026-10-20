@@ -1,0 +1,1820 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Bubák\n"
+"Language: cs\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
+
+msgid "boop!"
+msgstr "ťuk!"
+
+msgid "THUMP!"
+msgstr "DUP!"
+
+msgid "Hey! No chewing cables!"
+msgstr "Hej! Kabely se nekoušou!"
+
+msgid "purr~"
+msgstr "vrrr~"
+
+msgid "Blurry"
+msgstr "Rozmazané"
+
+msgid "Shy"
+msgstr "Plachý"
+
+msgid "Curious"
+msgstr "Zvědavý"
+
+msgid "Friendly"
+msgstr "Přátelský"
+
+msgid "Bonded"
+msgstr "Oddaný"
+
+msgid "Best buds"
+msgstr "Nejlepší kámoši"
+
+msgid "Pellets"
+msgstr "Granule"
+
+msgid "5 bowls of crunchy pellets."
+msgstr "5 misek křupavých granulí."
+
+msgid "Meadow hay"
+msgstr "Luční seno"
+
+msgid "5 armfuls of hay. Bunnies should always have hay!"
+msgstr "5 náručí sena. Králíci by měli mít seno pořád!"
+
+msgid "Parsley"
+msgstr "Petržel"
+
+msgid "Healthy green snack."
+msgstr "Zdravá zelená svačinka."
+
+msgid "Carrot"
+msgstr "Mrkev"
+
+msgid "Crunchy and sweet. Don't overdo it."
+msgstr "Křupavá a sladká. Nepřeháněj to."
+
+msgid "Apple slice"
+msgstr "Plátek jablka"
+
+msgid "His absolute favourite! Sweet, so just a slice now and then."
+msgstr "Jeho úplně nejoblíbenější! Je sladký, takže jen občas plátek."
+
+msgid "Leafy branch"
+msgstr "Větvička s listím"
+
+msgid "Fresh branch with leaves. He eats the lot, leaves first. Keeps him off cables."
+msgstr "Čerstvá větvička s listy. Sní ji celou, listí jako první. Odvede ho od kabelů."
+
+msgid "Willow ball"
+msgstr "Proutěný míček"
+
+msgid "To nudge, toss and chase."
+msgstr "Na šťouchání, házení a honění."
+
+msgid "Cardboard castle"
+msgstr "Kartonový hrad"
+
+msgid "A hideout. Very important bunny business."
+msgstr "Úkryt. Velmi důležitá králičí záležitost."
+
+msgid "Play tunnel"
+msgstr "Tunel na hraní"
+
+msgid "Zoom in one end, out the other."
+msgstr "Jedním koncem dovnitř, druhým ven."
+
+msgid "Cushy bed"
+msgstr "Měkký pelíšek"
+
+msgid "Naps here restore energy faster."
+msgstr "Šlofík tady doplní energii rychleji."
+
+msgid "Cozy rug"
+msgstr "Útulný koberec"
+
+msgid "Soft paws, happy bunny."
+msgstr "Měkké tlapky, šťastný králík."
+
+msgid "Potted fern"
+msgstr "Kapradina v květináči"
+
+msgid "Makes photos look fancier."
+msgstr "Fotky s ní vypadají parádněji."
+
+msgid "Floor lamp"
+msgstr "Stojací lampa"
+
+msgid "Warm light in the evening."
+msgstr "Večer hřejivé světlo."
+
+msgid "Balcony netting"
+msgstr "Síť na balkon"
+
+msgid "Makes the balcony bunny-safe, so Bubák can go out and enjoy the fresh air."
+msgstr "Zabezpečí balkon, aby mohl Bubák ven na čerstvý vzduch."
+
+msgid "Cable cover"
+msgstr "Kryt na kabel"
+
+msgid "Protects the laptop charger from Bubák's teeth. Forever."
+msgstr "Ochrání nabíječku od notebooku před Bubákovými zuby. Navždy."
+
+msgid "Food bowl"
+msgstr "Miska na jídlo"
+
+msgid "Water bowl"
+msgstr "Miska na vodu"
+
+msgid "Hay rack"
+msgstr "Jesličky na seno"
+
+msgid "Litter box"
+msgstr "Záchodek"
+
+msgid "Herb planter"
+msgstr "Truhlík s bylinkami"
+
+msgid "Sunny spot"
+msgstr "Sluníčkové místečko"
+
+msgid "Hop hop"
+msgstr "Hop hop"
+
+msgid "Just getting around."
+msgstr "Jen se tak přesouvá."
+
+msgid "Sitting pretty"
+msgstr "Spořádaně sedí"
+
+msgid "Nose going a mile a minute."
+msgstr "Čumáček jede jako o závod."
+
+msgid "Nom nom"
+msgstr "Mňam mňam"
+
+msgid "Pellets from the bowl. Every last one."
+msgstr "Granule z misky. Do poslední."
+
+msgid "Hay muncher"
+msgstr "Senožrout"
+
+msgid "Hay keeps teeth and tummy healthy."
+msgstr "Seno udržuje zdravé zuby i bříško."
+
+msgid "Slurp"
+msgstr "Srk srk"
+
+msgid "Staying hydrated."
+msgstr "Pitný režim dodržen."
+
+msgid "Litter pro"
+msgstr "Záchodový profík"
+
+msgid "Good bunny, uses the litter box!"
+msgstr "Hodný králík, chodí na záchodek!"
+
+msgid "Bunny loaf"
+msgstr "Králičí bochníček"
+
+msgid "Paws tucked in. Perfectly baked."
+msgstr "Tlapky schované. Dokonale upečený."
+
+msgid "Nap time"
+msgstr "Šlofík"
+
+msgid "Rabbits nap a lot in the middle of the day."
+msgstr "Králíci přes poledne hodně podřimují."
+
+msgid "Face wash"
+msgstr "Umývání"
+
+msgid "Licks paws, washes ears. Very thorough."
+msgstr "Olízne tlapky, umyje si uši. Velmi důkladně."
+
+msgid "Treat time"
+msgstr "Pamlsek"
+
+msgid "Eating a treat from your hand."
+msgstr "Jí pamlsek z tvé ruky."
+
+msgid "Box fort"
+msgstr "Krabicová pevnost"
+
+msgid "Somewhere in there is a bunny."
+msgstr "Někde tam uvnitř je králík."
+
+msgid "Ball toss"
+msgstr "Hod míčkem"
+
+msgid "Nudge, flip, chase!"
+msgstr "Šťouchnout, přehodit, honit!"
+
+msgid "Tunnel dash"
+msgstr "Tunelový sprint"
+
+msgid "In one end, out the other."
+msgstr "Tam a zpátky tunelem!"
+
+msgid "Branch muncher"
+msgstr "Větvožrout"
+
+msgid "Leaves first, then the bark. Great for his teeth."
+msgstr "Nejdřív listí, potom kůra. Skvělé na zuby."
+
+msgid "Cozy bed nap"
+msgstr "Šlofík v pelíšku"
+
+msgid "Snoozing in his very own bed."
+msgstr "Podřimuje ve svém vlastním pelíšku."
+
+msgid "Fresh air"
+msgstr "Čerstvý vzduch"
+
+msgid "His first trip out onto the balcony."
+msgstr "Jeho první výlet na balkon."
+
+msgid "Sunbathing"
+msgstr "Opalování"
+
+msgid "Stretched out in a warm patch of sun."
+msgstr "Natažený na teplém sluníčku."
+
+msgid "Bird watching"
+msgstr "Pozorování ptáků"
+
+msgid "Up on his hind legs, very interested in that pigeon."
+msgstr "Na zadních, velmi zaujatý tím holubem."
+
+msgid "Herb thief"
+msgstr "Zloděj bylinek"
+
+msgid "Those herbs were for cooking. Were."
+msgstr "Ty bylinky byly na vaření. Byly."
+
+msgid "A warning stomp. Something scared him."
+msgstr "Varovné dupnutí. Něco ho vylekalo."
+
+msgid "Cable crime"
+msgstr "Kabelový zločin"
+
+msgid "Caught red-pawed. Naughty!"
+msgstr "Přistižen při činu. Zlobidlo!"
+
+msgid "Chinning"
+msgstr "Značkování"
+
+msgid "Rubs his chin on things: \"this is MINE.\""
+msgstr "Otírá si bradu o věci: \"tohle je MOJE.\""
+
+msgid "Begging"
+msgstr "Škemrání"
+
+msgid "Stands tall when he knows you have treats."
+msgstr "Staví se na zadní, když ví, že máš pamlsky."
+
+msgid "Bowl flip"
+msgstr "Převrácená miska"
+
+msgid "Empty bowl? Unacceptable!"
+msgstr "Prázdná miska? Nepřijatelné!"
+
+msgid "Binky!"
+msgstr "Binky!"
+
+msgid "A happy jump-twist. Pure joy."
+msgstr "Radostný skok s otočkou. Čistá radost."
+
+msgid "Zoomies"
+msgstr "Bláznivá kolečka"
+
+msgid "Sudden laps around the flat at full speed."
+msgstr "Najednou kolečka po bytě v plné rychlosti."
+
+msgid "Flop"
+msgstr "Plácnutí"
+
+msgid "Falls over on his side. Total trust."
+msgstr "Svalí se na bok. Naprostá důvěra."
+
+msgid "Nose bonk"
+msgstr "Ťuk čumáčkem"
+
+msgid "Boop! He only does this to his favourite people."
+msgstr "Ťuk! To dělá jen svým nejoblíbenějším lidem."
+
+msgid "Selfie together"
+msgstr "Společné selfie"
+
+msgid "Cheek to cheek. Your followers can't get enough."
+msgstr "Tvářička na tvářičku. Sledující se nemůžou nabažit."
+
+msgid "Tooth purr"
+msgstr "Cvakání zoubky"
+
+msgid "Soft teeth-clicking while petted. Bliss."
+msgstr "Tiché cvakání zoubky při hlazení. Blaženost."
+
+msgid "Food"
+msgstr "Jídlo"
+
+msgid "Toys"
+msgstr "Hračky"
+
+msgid "Home"
+msgstr "Domov"
+
+msgid "Meet Bubák!\n\nHe's new here and a little shy. Keep his bowls full, clean his litter box and hold your finger on him to pet him gently.\n\nTake photos of the cute things he does to earn coins."
+msgstr "Seznam se s Bubákem!\n\nJe tu nový a trochu plachý. Udržuj jeho misky plné, uklízej mu záchodek, a když ho chceš pohladit, jemně na něm podrž prst.\n\nFoť roztomilé věci, které dělá, a vydělávej mince."
+
+msgid "Not enough coins."
+msgstr "Nemáš dost mincí."
+
+msgid "You already have enough of those."
+msgstr "Těch už máš dost."
+
+msgid "Already installed."
+msgstr "Už je nainstalováno."
+
+msgid "Not yet! Bubák needs to trust you more and get more followers."
+msgstr "Ještě ne! Bubák ti musí víc důvěřovat a potřebuje víc sledujících."
+
+msgid "munched through some hay"
+msgstr "spořádal trochu sena"
+
+msgid "had a good long nap"
+msgstr "dal si pořádného šlofíka"
+
+msgid "%d h %d min"
+msgstr "%d h %d min"
+
+msgid "%d min"
+msgstr "%d min"
+
+msgid "Welcome back! You were away %s.\n\nMeanwhile Bubák %s."
+msgstr "Vítej zpátky! Nebylo tě tu %s.\n\nBubák mezitím %s."
+
+msgid "He's looking at his empty bowls rather pointedly..."
+msgstr "Dost významně se dívá na své prázdné misky..."
+
+msgid "Food: tap the bowl to add pellets, the hay rack to add hay. Treats help too."
+msgstr "Jídlo: ťukni na misku a přidej granule, na jesličky a přidej seno. Pomůžou i pamlsky."
+
+msgid "Water: tap the water bowl to refill it."
+msgstr "Voda: ťukni na misku s vodou a dolij ji."
+
+msgid "Fun: pet Bubák, give him toys from the shop, or toss his ball."
+msgstr "Zábava: pohlaď Bubáka, kup mu hračky v obchodě nebo mu hoď míček."
+
+msgid "Clean: tap the litter box to clean it, and pick up any droppings."
+msgstr "Čistota: ťukni na záchodek a ukliď ho. A posbírej bobky."
+
+msgid "Treats"
+msgstr "Pamlsky"
+
+msgid "Shop"
+msgstr "Obchod"
+
+msgid "Photo"
+msgstr "Foto"
+
+msgid "Journal"
+msgstr "Deník"
+
+msgid "Move"
+msgstr "Přesunout"
+
+msgid "No treats left. The shop has some!"
+msgstr "Pamlsky došly. V obchodě nějaké mají!"
+
+msgid "Pick a treat to hand-feed:"
+msgstr "Vyber pamlsek a nakrm ho z ruky:"
+
+msgid "Done"
+msgstr "Hotovo"
+
+msgid "Snap!"
+msgstr "Cvak!"
+
+msgid "Close"
+msgstr "Zavřít"
+
+msgid "Selfie"
+msgstr "Selfie"
+
+msgid "Catch Bubák doing something cute!\nSparkles mean a rare moment."
+msgstr "Vyfoť Bubáka, když dělá něco roztomilého!\nJiskřičky znamenají vzácnou chvíli."
+
+msgid "Patience left"
+msgstr "Zbývající trpělivost"
+
+msgid "Put him down"
+msgstr "Postavit na zem"
+
+msgid "Trust: %s"
+msgstr "Důvěra: %s"
+
+msgid "Drag furniture and toys to rearrange the room."
+msgstr "Přetahuj nábytek a hračky a uspořádej si pokoj."
+
+msgid "Tap the floor to offer the %s."
+msgstr "Ťukni na podlahu a nabídni mu: %s."
+
+msgid "Cancel"
+msgstr "Zrušit"
+
+msgid "New behaviour: %s  (see Journal)"
+msgstr "Nové chování: %s  (viz Deník)"
+
+msgid "Milestone reached!"
+msgstr "Milník splněn!"
+
+msgid "Bubák trusts you and %d people follow his adventures. Time for some fresh air!"
+msgstr "Bubák ti důvěřuje a jeho dobrodružství sleduje %d lidí. Je čas na čerstvý vzduch!"
+
+msgid "Make the balcony bunny-safe with Balcony netting (Shop, Home tab), and the door to the balcony will open."
+msgstr "Zabezpeč balkon sítí (Obchod, záložka Domov) a dveře na balkon se otevřou."
+
+msgid "Can't wait!"
+msgstr "Už se nemůžu dočkat!"
+
+msgid "Bubák trusts you more!"
+msgstr "Bubák ti víc důvěřuje!"
+
+msgid "He now feels %s with you."
+msgstr "Nová úroveň důvěry: %s."
+
+msgid "He'll let you pick him up now! Drag him upwards (or tap Selfie in Photo mode) and snap a selfie together."
+msgstr "Teď už se nechá vzít do náruče! Táhni ho prstem nahoru (nebo ťukni na Selfie v režimu Foto) a vyfoťte si společné selfie."
+
+msgid "Aww!"
+msgstr "Ňuňu!"
+
+msgid "Let's go!"
+msgstr "Jdeme na to!"
+
+msgid "You have %d"
+msgstr "Máš: %d"
+
+msgid "Owned %d/%d"
+msgstr "Vlastníš %d/%d"
+
+msgid "Locked: needs %s trust + %d followers"
+msgstr "Zamčeno: důvěra %s + %d sledujících"
+
+msgid "Unlocked!"
+msgstr "Odemčeno!"
+
+msgid "Installed"
+msgstr "Nainstalováno"
+
+msgid "The balcony door is open! Bubák will pop out when he feels like it.\nTap the door to go out yourself."
+msgstr "Dveře na balkon jsou otevřené! Bubák si tam vyběhne, kdy se mu zachce.\nŤukni na dveře a jdi ven taky."
+
+msgid "%s is in the room now. Use Move to arrange it."
+msgstr "%s už je v pokoji. Uspořádat můžeš přes Přesunout."
+
+msgid "Bought %s (x%d)!"
+msgstr "Koupeno: %s (x%d)!"
+
+msgid "Bought %s!"
+msgstr "Koupeno: %s!"
+
+msgid "Discovered %d of %d"
+msgstr "Objeveno %d z %d"
+
+msgid "Needs: %s"
+msgstr "Potřeba: %s"
+
+msgid "the balcony"
+msgstr "balkon"
+
+msgid "Needs trust: %s"
+msgstr "Potřebná důvěra: %s"
+
+msgid "Keep watching..."
+msgstr "Pozoruj ho dál..."
+
+msgid "No photos yet. Tap Photo and catch Bubák doing something cute!"
+msgstr "Zatím žádné fotky. Ťukni na Foto a vyfoť Bubáka při něčem roztomilém!"
+
+msgid "Bubák, a lilac-grey bunny with one perky ear and one floppy one."
+msgstr "Bubák, šedofialový králíček s jedním ouškem vztyčeným a druhým plandavým."
+
+msgid "Personality: cheeky, curious, very food-motivated."
+msgstr "Povaha: drzý, zvědavý, hodně motivovaný jídlem."
+
+msgid "Day %d together"
+msgstr "Den %d spolu"
+
+msgid "Trust: %s (%d%%)"
+msgstr "Důvěra: %s (%d%%)"
+
+msgid "Followers: %d"
+msgstr "Sledující: %d"
+
+msgid "Photos taken: %d"
+msgstr "Pořízené fotky: %d"
+
+msgid "Treats given: %d"
+msgstr "Rozdané pamlsky: %d"
+
+msgid "Cuddle sessions: %d"
+msgstr "Mazlení: %d"
+
+msgid "Work shifts: %d"
+msgstr "Pracovní směny: %d"
+
+msgid "Oops, missed him!"
+msgstr "Jejda, utekl ti ze záběru!"
+
+msgid "NEW!"
+msgstr "NOVÉ!"
+
+msgid "Your followers have seen this one a lot lately."
+msgstr "Tohle tví sledující poslední dobou viděli už mockrát."
+
+msgid "Nice!"
+msgstr "Paráda!"
+
+msgid "Language"
+msgstr "Jazyk"
+
+msgid "Settings"
+msgstr "Nastavení"
+
+msgid "Coffee break! Back to work in %d s. Go hang out with Bubák."
+msgstr "Pauza na kafe! Zpátky do práce za %d s. Zatím se věnuj Bubákovi."
+
+msgid "Remote work"
+msgstr "Práce z domova"
+
+msgid "A new charger arrived. Keep an eye on Bubák!"
+msgstr "Dorazila nová nabíječka. Dávej na Bubáka pozor!"
+
+msgid "The balcony"
+msgstr "Balkon"
+
+msgid "The living room"
+msgstr "Obývák"
+
+msgid "The bowl is full."
+msgstr "Miska je plná."
+
+msgid "+ pellets"
+msgstr "+ granule"
+
+msgid "Out of pellets! Buy more in the shop."
+msgstr "Granule došly! Kup další v obchodě."
+
+msgid "Plenty of hay in there already."
+msgstr "Sena je tam ještě dost."
+
+msgid "+ hay"
+msgstr "+ seno"
+
+msgid "Out of hay! Bunnies need lots of it. Visit the shop."
+msgstr "Seno došlo! Králíci ho potřebují hodně. Zajdi do obchodu."
+
+msgid "fresh water!"
+msgstr "čerstvá voda!"
+
+msgid "Already spotless."
+msgstr "Už je čisťoučký."
+
+msgid "sparkly clean!"
+msgstr "blýská se čistotou!"
+
+msgid "Almost! Make the balcony bunny-safe first: Balcony netting is in the Shop (Home)."
+msgstr "Skoro! Nejdřív balkon zabezpeč: síť na balkon najdeš v Obchodě (Domov)."
+
+msgid "The balcony door is locked. It opens once Bubák trusts you (%s) and he has %d followers.\nNow: %s, %d followers."
+msgstr "Dveře na balkon jsou zamčené. Otevřou se, až ti Bubák bude důvěřovat (%s) a bude mít %d sledujících.\nTeď: %s, sledujících: %d."
+
+msgid "Parsley and dandelions. They grow back... if a certain bunny lets them."
+msgstr "Petržel a pampelišky. Dorostou... pokud je jistý králík nechá."
+
+msgid "Nibbled down to stubs. They'll grow back in a while."
+msgstr "Ohryzané na pahýlky. Za chvíli zase dorostou."
+
+msgid "Safe and sound under its cover."
+msgstr "V bezpečí pod krytem."
+
+msgid "Chewed through... A cable cover from the shop would prevent this."
+msgstr "Překousnutý... Kryt na kabel z obchodu by tomu zabránil."
+
+msgid "Bubák eyes this cable a little too often..."
+msgstr "Bubák po tomhle kabelu pokukuje nějak moc často..."
+
+msgid "Comfy. Bubák is not allowed up here. (He disagrees.)"
+msgstr "Pohodlné. Bubák sem nahoru nesmí. (On s tím nesouhlasí.)"
+
+msgid "You find a hay stalk between the cushions. How?"
+msgstr "Mezi polštáři najdeš stéblo sena. Jak?"
+
+msgid "The sofa has suspicious nibble marks on one leg."
+msgstr "Gauč má na jedné noze podezřelé stopy po zoubcích."
+
+msgid "Bubák isn't here. He's %s."
+msgstr "Bubák tu není. Je %s."
+
+msgid "out on the balcony"
+msgstr "venku na balkoně"
+
+msgid "inside"
+msgstr "uvnitř"
+
+msgid "You're out of those."
+msgstr "Ty ti došly."
+
+
+msgid "aww, a paw!"
+msgstr "ňuňu, tlapka!"
+
+msgid "Shift over!"
+msgstr "Konec směny!"
+
+
+msgid "Back to Bubák"
+msgstr "Zpátky k Bubákovi"
+
+msgid "Behaviours"
+msgstr "Chování"
+
+msgid "Photos"
+msgstr "Fotky"
+
+msgid "Bubák"
+msgstr "Bubák"
+
+msgid "ate %d bowl of pellets"
+msgid_plural "ate %d bowls of pellets"
+msgstr[0] "snědl %d misku granulí"
+msgstr[1] "snědl %d misky granulí"
+msgstr[2] "snědl %d misek granulí"
+
+msgid "used the litter box %d time"
+msgid_plural "used the litter box %d times"
+msgstr[0] "použil záchodek %d×"
+msgstr[1] "použil záchodek %d×"
+msgstr[2] "použil záchodek %d×"
+
+msgid "%d new behaviour to discover. Keep watching!"
+msgid_plural "%d new behaviours to discover. Keep watching!"
+msgstr[0] "Můžeš objevit %d nové chování. Pozoruj ho!"
+msgstr[1] "Můžeš objevit %d nová chování. Pozoruj ho!"
+msgstr[2] "Můžeš objevit %d nových chování. Pozoruj ho!"
+
+msgid "%d like"
+msgid_plural "%d likes"
+msgstr[0] "%d lajk"
+msgstr[1] "%d lajky"
+msgstr[2] "%d lajků"
+
+msgid "+%d follower"
+msgid_plural "+%d followers"
+msgstr[0] "+%d sledující"
+msgstr[1] "+%d sledující"
+msgstr[2] "+%d sledujících"
+
+msgid "Dig box"
+msgstr "Krabice na hrabání"
+
+msgid "A box of sand for very important digging."
+msgstr "Krabice s pískem na velmi důležité hrabání."
+
+msgid "Treat puzzle"
+msgstr "Pamlskový hlavolam"
+
+msgid "Hides little snacks under the lids. Makes him think."
+msgstr "Schovává pod víčky malé pamlsky. Musí přemýšlet."
+
+msgid "Wooden hut"
+msgstr "Dřevěný domeček"
+
+msgid "A hideaway that smells like a forest."
+msgstr "Úkryt, který voní jako les."
+
+msgid "Bunny castle"
+msgstr "Králičí hrad"
+
+msgid "Two floors of castle. He rules from the top."
+msgstr "Hrad o dvou patrech. Bubák vládne z vršku."
+
+msgid "Teepee tent"
+msgstr "Týpí"
+
+msgid "A tent for very cozy naps."
+msgstr "Stan na velmi útulné šlofíky."
+
+msgid "Bean bag"
+msgstr "Sedací vak"
+
+msgid "He flops on it like he owns it. He does."
+msgstr "Svalí se na něj, jako by mu patřil. Taky že patří."
+
+msgid "Paper lantern"
+msgstr "Papírová lucerna"
+
+msgid "A soft glow for the evenings."
+msgstr "Jemné světlo na večery."
+
+msgid "Flower pot"
+msgstr "Květináč s kytičkami"
+
+msgid "Pretty. Not for eating. Probably."
+msgstr "Hezké. Ne k jídlu. Asi."
+
+msgid "Big food bowl"
+msgstr "Velká miska na jídlo"
+
+msgid "Holds 5 portions instead of 3."
+msgstr "Vejde se do ní 5 porcí místo 3."
+
+msgid "Royal food bowl"
+msgstr "Královská miska"
+
+msgid "Holds 8 portions. Fit for a bunny king."
+msgstr "Vejde se do ní 8 porcí. Pro králíka krále."
+
+msgid "Big water bowl"
+msgstr "Velká miska na vodu"
+
+msgid "Holds more water, so it lasts longer."
+msgstr "Vejde se do ní víc vody, takže déle vydrží."
+
+msgid "Water fountain"
+msgstr "Pítko s fontánkou"
+
+msgid "Fresh running water. Lasts ages, and drinking is fun."
+msgstr "Čerstvá tekoucí voda. Vydrží dlouho a pití je zábava."
+
+msgid "Big hay rack"
+msgstr "Velké jesličky"
+
+msgid "Holds more hay, and each refill lasts longer."
+msgstr "Vejde se do nich víc sena a každé doplnění vydrží déle."
+
+msgid "Hay house"
+msgstr "Senný domeček"
+
+msgid "A hay rack with a roof. Holds a whole bale."
+msgstr "Jesličky se stříškou. Vejde se do nich celý balík."
+
+msgid "Corner litter box"
+msgstr "Rohový záchodek"
+
+msgid "High back, less mess. Stays clean longer."
+msgstr "Vysoká zadní stěna, méně nepořádku. Déle vydrží čistý."
+
+msgid "Luxury litter box"
+msgstr "Luxusní záchodek"
+
+msgid "Stays clean much longer. Has ears!"
+msgstr "Vydrží čistý mnohem déle. Má ouška!"
+
+msgid "Comfy office chair"
+msgstr "Pohodlná kancelářská židle"
+
+msgid "Shorter breaks between work shifts."
+msgstr "Kratší pauzy mezi pracovními směnami."
+
+msgid "Second monitor"
+msgstr "Druhý monitor"
+
+msgid "+25% pay for remote work."
+msgstr "+25 % k výplatě za práci z domova."
+
+msgid "Coffee machine"
+msgstr "Kávovar"
+
+msgid "Work shifts last 5 seconds longer."
+msgstr "Pracovní směny trvají o 5 sekund déle."
+
+msgid "Noise-cancelling headphones"
+msgstr "Sluchátka s potlačením hluku"
+
+msgid "Another +25% pay for remote work."
+msgstr "Dalších +25 % k výplatě za práci z domova."
+
+msgid "Red bow"
+msgstr "Červená mašle"
+
+msgid "A classic. Photos with an outfit get more likes."
+msgstr "Klasika. Fotky s doplňkem mají víc lajků."
+
+msgid "Round glasses"
+msgstr "Kulaté brýle"
+
+msgid "Very smart. Very scholarly."
+msgstr "Velmi chytré. Velmi učené."
+
+msgid "Flower crown"
+msgstr "Věneček z kytiček"
+
+msgid "Spring, all year round."
+msgstr "Jaro po celý rok."
+
+msgid "Tiny top hat"
+msgstr "Malý cylindr"
+
+msgid "For a bunny of distinction."
+msgstr "Pro králíka s noblesou."
+
+msgid "Digging"
+msgstr "Hrabání"
+
+msgid "Sand everywhere. Worth it."
+msgstr "Písek všude. Stálo to za to."
+
+msgid "Puzzle solver"
+msgstr "Luštitel hlavolamů"
+
+msgid "Flips the lids with his nose to find the snacks."
+msgstr "Čumáčkem odklápí víčka a hledá pamlsky."
+
+msgid "King of the castle"
+msgstr "Pán hradu"
+
+msgid "Surveying his kingdom from the top floor."
+msgstr "Shlíží na své království z horního patra."
+
+msgid "Bare"
+msgstr "Holé zdi"
+
+msgid "Homey"
+msgstr "Domov"
+
+msgid "Comfy"
+msgstr "Pohodlí"
+
+msgid "Cozy"
+msgstr "Útulno"
+
+msgid "Snug"
+msgstr "Hnízdečko"
+
+msgid "Bunny paradise"
+msgstr "Králičí ráj"
+
+msgid "Intern"
+msgstr "Stážista"
+
+msgid "Junior assistant"
+msgstr "Mladší asistent"
+
+msgid "Specialist"
+msgstr "Specialista"
+
+msgid "Senior specialist"
+msgstr "Starší specialista"
+
+msgid "Team lead"
+msgstr "Vedoucí týmu"
+
+msgid "Director of Carrots"
+msgstr "Ředitel pro mrkev"
+
+msgid "Inbox zero"
+msgstr "Prázdná schránka"
+
+
+msgid "Bug hunt"
+msgstr "Lov na bugy"
+
+
+msgid "Pair programming"
+msgstr "Párové programování"
+
+
+msgid "Video call"
+msgstr "Videohovor"
+
+msgid "React in the meeting. Bubák may photobomb."
+msgstr "Reaguj na poradě. Bubák se může vloudit do záběru."
+
+msgid "Take %d photos"
+msgstr "Pořiď fotky: %d"
+
+msgid "Discover %d behaviours"
+msgstr "Objev chování: %d"
+
+msgid "Work %d shifts"
+msgstr "Odpracuj směny: %d"
+
+msgid "Reach %d followers"
+msgstr "Získej sledující: %d"
+
+msgid "Reach trust: %s"
+msgstr "Dosáhni důvěry: %s"
+
+msgid "Reach Cozy level %d"
+msgstr "Dosáhni útulnosti %d"
+
+msgid "Buy your first upgrade"
+msgstr "Kup své první vylepšení"
+
+msgid "Buy an accessory for Bubák"
+msgstr "Kup Bubákovi doplněk"
+
+msgid "Get promoted to %s"
+msgstr "Získej povýšení: %s"
+
+msgid "Open the balcony"
+msgstr "Otevři balkon"
+
+msgid "Buy %d upgrades"
+msgstr "Kup vylepšení: %d"
+
+msgid "Collect all %d accessories"
+msgstr "Sesbírej všechny doplňky (%d)"
+
+msgid "Turn the flat into a bunny paradise"
+msgstr "Proměň byt v králičí ráj"
+
+msgid "Discover every behaviour"
+msgstr "Objev všechna chování"
+
+msgid "Upgrades"
+msgstr "Vylepšení"
+
+msgid "Style"
+msgstr "Styl"
+
+msgid "Goals"
+msgstr "Cíle"
+
+msgid "Needs Cozy level %d"
+msgstr "Potřeba útulnost %d"
+
+msgid "Needs career: %s"
+msgstr "Potřeba kariéra: %s"
+
+msgid "Needs the previous upgrade"
+msgstr "Nejdřív předchozí vylepšení"
+
+msgid "Coziness grows with furniture, toys and upgrades. Higher levels make Bubák happier, bring more followers and unlock new things in the shop."
+msgstr "Útulnost roste s nábytkem, hračkami a vylepšeními. Vyšší úroveň Bubáka víc potěší, přinese víc sledujících a odemkne nové věci v obchodě."
+
+msgid "Cozy level %d: %s"
+msgstr "Útulnost %d: %s"
+
+msgid "Goal complete: %s! Claim the reward in the Journal."
+msgstr "Cíl splněn: %s! Vyzvedni si odměnu v Deníku."
+
+msgid "Sponsor deal!"
+msgstr "Sponzorská smlouva!"
+
+msgid "A pet shop loved Bubák's posts and paid you %d coins."
+msgstr "Zverimexu se líbily Bubákovy příspěvky a zaplatil ti %d mincí."
+
+msgid "Daily streak: %d days in a row!"
+msgstr "Denní série: už %d. den v řadě!"
+
+msgid "Come back tomorrow for another deal. More followers and a cozier home mean bigger deals."
+msgstr "Zítra se vrať pro další smlouvu. Víc sledujících a útulnější domov znamenají větší smlouvy."
+
+msgid "Thanks!"
+msgstr "Díky!"
+
+msgid "Wearing"
+msgstr "Má na sobě"
+
+msgid "Owned"
+msgstr "Vlastníš"
+
+msgid "Take off"
+msgstr "Sundat"
+
+msgid "Wear"
+msgstr "Nasadit"
+
+msgid "Goals completed: %d of %d"
+msgstr "Splněné cíle: %d z %d"
+
+msgid "Claim"
+msgstr "Vyzvednout"
+
+msgid "Goal reward: +%d coins!"
+msgstr "Odměna za cíl: +%d mincí!"
+
+msgid "Career: %s"
+msgstr "Kariéra: %s"
+
+msgid "Not the ladybug!"
+msgstr "Berušku ne!"
+
+msgid "Nod"
+msgstr "Kývnout"
+
+msgid "Unmute"
+msgstr "Mikrofon"
+
+msgid "Laugh"
+msgstr "Smát se"
+
+msgid "The meeting is starting..."
+msgstr "Porada začíná..."
+
+msgid "Too slow!"
+msgstr "Moc pomalé!"
+
+msgid "\"Does everyone agree?\""
+msgstr "\"Souhlasí všichni?\""
+
+msgid "\"Hello? You're on mute!\""
+msgstr "\"Haló? Máš vypnutý mikrofon!\""
+
+msgid "The boss made a joke."
+msgstr "Šéf udělal vtip."
+
+msgid "Awkward..."
+msgstr "Trapas..."
+
+msgid "Colleagues love Bubák!"
+msgstr "Kolegové Bubáka milují!"
+
+msgid "Board cleared!"
+msgstr "Všechny páry!"
+
+msgid "Next promotion: %d/%d XP"
+msgstr "Další povýšení: %d/%d XP"
+
+msgid "Pay: x%.2f"
+msgstr "Plat: x%.2f"
+
+msgid "Unlocks at: %s"
+msgstr "Odemkne se na pozici: %s"
+
+
+msgid "PROMOTION! You're now: %s"
+msgstr "POVÝŠENÍ! Tvoje nová pozice: %s"
+
+msgid "New job unlocked: %s"
+msgstr "Nová práce odemčena: %s"
+
+msgid "Clicker"
+msgstr "Klikr"
+
+msgid "Click at just the right moment so he knows what he did right. Tricks are learned 50% faster."
+msgstr "Klikni přesně ve správnou chvíli, ať ví, co udělal dobře. Triky se učí o 50 % rychleji."
+
+msgid "Treat pouch"
+msgstr "Ledvinka na pamlsky"
+
+msgid "Tiny training treats on your belt: 3 more tries in every training session."
+msgstr "Malé výcvikové pamlsky po ruce: o 3 pokusy víc v každém tréninku."
+
+msgid "Agility hoop"
+msgstr "Agility obruč"
+
+msgid "Teaches the Hoop jump trick. Judges love it."
+msgstr "Naučí ho trik Skok obručí. Rozhodčí ho milují."
+
+msgid "Soft brush"
+msgstr "Měkký kartáč"
+
+msgid "Brushes out loose fur. Needed for grooming."
+msgstr "Vyčeše uvolněnou srst. Bez něj to s péčí o srst nepůjde."
+
+msgid "Fine comb"
+msgstr "Jemný hřeben"
+
+msgid "Gets twice as much loose fur with every stroke."
+msgstr "Každým tahem vyčeše dvakrát víc srsti."
+
+msgid "Nail clippers"
+msgstr "Kleštičky na drápky"
+
+msgid "Keeps his nails short. Long nails cost points at shows."
+msgstr "Udrží mu drápky krátké. Za dlouhé drápky se na výstavách strhávají body."
+
+msgid "Show-off"
+msgstr "Předváděčka"
+
+msgid "Does a trick nobody asked for. Then waits for applause."
+msgstr "Předvede trik, o který nikdo nežádal. Pak čeká na potlesk."
+
+msgid "Teach Bubák his first trick"
+msgstr "Nauč Bubáka první trik"
+
+msgid "Earn %d trick stars"
+msgstr "Získej %d hvězdiček za triky"
+
+msgid "Master every trick"
+msgstr "Dotáhni všechny triky k dokonalosti"
+
+msgid "Groom Bubák %d times"
+msgstr "Učeš Bubáka %dkrát"
+
+msgid "Win a ribbon at a show"
+msgstr "Získej rozetu na výstavě"
+
+msgid "Win the Neighbourhood show"
+msgstr "Vyhraj Sousedskou výstavu"
+
+msgid "Win in all %d categories"
+msgstr "Vyhraj ve všech %d kategoriích"
+
+msgid "Win the Regional show"
+msgstr "Vyhraj Krajskou výstavu"
+
+msgid "Become National champion"
+msgstr "Staň se národním šampionem"
+
+msgid "Come"
+msgstr "Ke mně"
+
+msgid "Hops over when called."
+msgstr "Na zavolání přihopsá."
+
+msgid "Stand up"
+msgstr "Panáček"
+
+msgid "Up on his hind legs, paws tucked."
+msgstr "Na zadních, tlapky u sebe."
+
+msgid "Spin"
+msgstr "Otočka"
+
+msgid "A full twirl on the spot."
+msgstr "Celá otočka na místě."
+
+msgid "Hoop jump"
+msgstr "Skok obručí"
+
+msgid "Sails through the hoop."
+msgstr "Proletí obručí."
+
+msgid "Best in Show"
+msgstr "Krása"
+
+msgid "Coat, nails, outfit and how calm he is with the judge."
+msgstr "Srst, drápky, doplňky a jak klidně vydrží u rozhodčího."
+
+msgid "Tricks"
+msgstr "Triky"
+
+msgid "Perform a routine. Reward him at the right moment!"
+msgstr "Předveďte sestavu. Odměň ho ve správnou chvíli!"
+
+msgid "Photogenic"
+msgstr "Fotogenie"
+
+msgid "Your best photo goes in front of the judges."
+msgstr "Tvoje nejlepší fotka jde před porotu."
+
+msgid "Neighbourhood show"
+msgstr "Sousedská výstava"
+
+msgid "Regional show"
+msgstr "Krajská výstava"
+
+msgid "National championship"
+msgstr "Národní šampionát"
+
+msgid "Duchess Fluffington"
+msgstr "Vévodkyně Načechraná"
+
+msgid "A snooty white lop. Has never been seen without a bow."
+msgstr "Nafoukaná bílá beranice. Bez mašle ji ještě nikdo neviděl."
+
+msgid "Pepík"
+msgstr "Pepík"
+
+msgid "A scrappy little dwarf with a mighty jump."
+msgstr "Malý zakrslý rváč s obrovským odrazem."
+
+msgid "Marshmallow"
+msgstr "Pusinka"
+
+msgid "Fluffy, sweet, and the internet adores her."
+msgstr "Chlupatá, sladká a internet ji zbožňuje."
+
+msgid "Baron von Hop"
+msgstr "Baron von Hop"
+
+msgid "Dapper and serious. Takes every show personally."
+msgstr "Elegantní a vážný. Každou výstavu bere osobně."
+
+msgid "Clover"
+msgstr "Jetelinka"
+
+msgid "A cheerful ginger lop. Everyone's friend."
+msgstr "Veselá zrzavá beranice. Kamarádka všech."
+
+msgid "Club"
+msgstr "Klub"
+
+msgid "Unlocks later in the show club"
+msgstr "Odemkne se později v klubu"
+
+msgid "Bubák kicked and squirmed away. He needs to trust you more for this.\n(Trust went down.)"
+msgstr "Bubák kopal a vykroutil se. Na tohle ti musí víc důvěřovat.\n(Důvěra klesla.)"
+
+msgid "Locked"
+msgstr "Zamčeno"
+
+msgid "Next show in %s"
+msgstr "Další výstava za %s"
+
+msgid "He doesn't know any tricks yet."
+msgstr "Zatím neumí žádný trik."
+
+msgid "Take some photos first."
+msgstr "Nejdřív nafoť nějaké fotky."
+
+msgid "Loaded \"%s\". Welcome back!"
+msgstr "Načteno „%s“. Vítej zpátky!"
+
+msgid "Coat"
+msgstr "Srst"
+
+msgid "Nails"
+msgstr "Drápky"
+
+msgid "Trim nails"
+msgstr "Zastřihnout drápky"
+
+msgid "He's molting! Loose fur everywhere: brush him often for a few days."
+msgstr "Líná! Všude chlupy: pár dní ho často vyčesávej."
+
+msgid "You'll need a Soft brush first. It's in the Shop, on the Club tab."
+msgstr "Nejdřív potřebuješ Měkký kartáč. Najdeš ho v Obchodě na kartě Klub."
+
+msgid "His coat is already gleaming. Come back in a while."
+msgstr "Srst se mu už leskne. Přijď zase za chvíli."
+
+msgid "Swipe over the loose fur to brush it out, before he runs out of patience."
+msgstr "Přejížděj prstem po chomáčcích srsti a vyčeš je, než mu dojde trpělivost."
+
+msgid "All brushed! His coat is soft and glossy."
+msgstr "Hotovo! Srst má hebkou a lesklou."
+
+msgid "snip snip"
+msgstr "cvak cvak"
+
+msgid "Neat little nails. The judges will approve."
+msgstr "Úhledné drápky. Rozhodčí budou spokojení."
+
+msgid "Bubák has had enough and hops off. Good job anyway!"
+msgstr "Bubák už má dost a odhopsal. I tak dobrá práce!"
+
+msgid "Bubák is molting! Brush him often and pick up the fur he leaves around."
+msgstr "Bubák líná! Často ho vyčesávej a sbírej chlupy, které nechává kolem."
+
+msgid "Needs: a trick with 2 stars"
+msgstr "Potřebuje: trik se 2 hvězdičkami"
+
+msgid "Trick stars: %d of %d"
+msgstr "Hvězdičky za triky: %d z %d"
+
+msgid "Coat: %d%%"
+msgstr "Srst: %d %%"
+
+msgid "Ribbons: %d"
+msgstr "Rozety: %d"
+
+msgid "Saved games"
+msgstr "Uložené hry"
+
+msgid "Name of the save"
+msgstr "Název uložené hry"
+
+msgid "Bubák, day %d"
+msgstr "Bubák, den %d"
+
+msgid "Save"
+msgstr "Uložit"
+
+msgid "Give the save a name first."
+msgstr "Nejdřív hru pojmenuj."
+
+msgid "Overwrite?"
+msgstr "Přepsat?"
+
+msgid "Saved as \"%s\"."
+msgstr "Uloženo jako „%s“."
+
+msgid "No saved games yet."
+msgstr "Zatím žádné uložené hry."
+
+msgid "Day %d  ·  %s  ·  %d coins  ·  %s"
+msgstr "Den %d  ·  %s  ·  %d mincí  ·  %s"
+
+msgid "Load"
+msgstr "Načíst"
+
+msgid "Sure?"
+msgstr "Opravdu?"
+
+msgid "Loading replaces the game you're playing now. Save it first if you want to keep it."
+msgstr "Načtení nahradí hru, kterou právě hraješ. Jestli ji chceš zachovat, nejdřív ji ulož."
+
+msgid "Delete"
+msgstr "Smazat"
+
+msgid "Start a new game"
+msgstr "Začít novou hru"
+
+msgid "Sure? Unsaved progress is lost"
+msgstr "Opravdu? Neuložený postup se ztratí"
+
+msgid "Show club"
+msgstr "Králičí klub"
+
+msgid "No ribbons yet. Enter a show and bring one home!"
+msgstr "Zatím žádné rozety. Přihlas se na výstavu a nějakou přivez!"
+
+msgid "Entry %d coins  ·  1st prize %d coins, %d followers"
+msgstr "Startovné %d mincí  ·  1. cena %d mincí, %d sledujících"
+
+msgid "Win the %s %d times to enter."
+msgstr "Postup: %s, potřebné výhry: %d."
+
+msgid "Bunny Show Club!"
+msgstr "Králičí klub!"
+
+msgid "A flyer came through the door: the local Bunny Show Club is looking for new members!\n\nYou can now teach Bubák tricks. Tap Club to start training. The Shop has training gear on the new Club tab."
+msgstr "Do schránky přišel leták: místní Králičí klub hledá nové členy!\n\nTeď můžeš Bubáka učit triky. Klepni na Klub a začni trénovat. Výcvikové vybavení najdeš v Obchodě na nové kartě Klub."
+
+msgid "Grooming"
+msgstr "Péče o srst"
+
+msgid "Bubák learned his first trick! Show bunnies need a glossy coat too.\n\nGet a Soft brush from the Shop (Club tab) and groom him in the Club. Clippers keep his nails neat."
+msgstr "Bubák se naučil první trik! Výstavní králík ale potřebuje i lesklou srst.\n\nKup v Obchodě (karta Klub) Měkký kartáč a češ ho v Klubu. Kleštičky mu udrží úhledné drápky."
+
+msgid "Show time!"
+msgstr "Čas na výstavu!"
+
+msgid "Bubák knows his tricks and looks smart. He's ready for his first show!\n\nEnter the Neighbourhood show in the Club. Win ribbons, beat the rivals and work your way up to the National championship."
+msgstr "Bubák umí triky a vypadá skvěle. Je připravený na svou první výstavu!\n\nPřihlas ho v Klubu na Sousedskou výstavu. Vyhrávej rozety, poraz soupeře a probojuj se až na Národní šampionát."
+
+msgid "Later"
+msgstr "Později"
+
+msgid "Judges' table"
+msgstr "Stůl rozhodčích"
+
+msgid "Reward!"
+msgstr "Odměnit!"
+
+msgid "Welcome to the %s! Today's category: %s."
+msgstr "Vítejte! %s, dnešní kategorie: %s."
+
+msgid "Glossy coat! The judge nods."
+msgstr "Lesklá srst! Rozhodčí přikyvuje."
+
+msgid "A decent coat."
+msgstr "Slušná srst."
+
+msgid "Scruffy fur... the judge frowns."
+msgstr "Rozcuchaná srst... rozhodčí se mračí."
+
+msgid "Neat nails."
+msgstr "Úhledné drápky."
+
+msgid "Those nails are a bit long."
+msgstr "Drápky jsou trochu dlouhé."
+
+msgid "What a lovely %s!"
+msgstr "To je ale krása: %s!"
+
+msgid "No outfit today."
+msgstr "Dnes bez doplňků."
+
+msgid "He sits calmly for the judge."
+msgstr "U rozhodčího sedí klidně."
+
+msgid "A little fidgety."
+msgstr "Trochu se vrtí."
+
+msgid "He tries to hide behind you!"
+msgstr "Snaží se schovat za tebe!"
+
+msgid "The judges study your photo..."
+msgstr "Porota si prohlíží tvoji fotku..."
+
+msgid "The judge asks for: %s!"
+msgstr "Rozhodčí chce vidět: %s!"
+
+msgid "Perfect! The crowd goes \"aww\"."
+msgstr "Dokonalé! Publikum vydechne „ááá“."
+
+msgid "He did it! The reward came a little late."
+msgstr "Povedlo se! Odměna ale přišla trochu pozdě."
+
+msgid "He did it! But you forgot to reward him."
+msgstr "Povedlo se! Jen chyběla odměna."
+
+msgid "Oops! Rewarding a mistake... the judge makes a note."
+msgstr "Jejda! Odměna za chybu... rozhodčí si to poznamenává."
+
+msgid "He got distracted. Happens to the best of us."
+msgstr "Nechal se rozptýlit. Stane se i nejlepším."
+
+msgid "The judges add up the scores..."
+msgstr "Porota sčítá body..."
+
+msgid "1st place! Bubák wins the %s!"
+msgstr "1. místo! Bubák vyhrál: %s!"
+
+msgid "%s place! A ribbon for Bubák."
+msgstr "%s místo! Bubák má rozetu."
+
+msgid "4th place. No ribbon this time."
+msgstr "4. místo. Tentokrát bez rozety."
+
+msgid "+%d coins, +%d followers"
+msgstr "+%d mincí, +%d sledujících"
+
+msgid "Tip: brush him, trim his nails and dress him up."
+msgstr "Tip: vyčesej ho, zastřihni mu drápky a dej mu doplněk."
+
+msgid "Tip: practise to earn more stars, and reward him right on time."
+msgstr "Tip: trénuj, ať má víc hvězdiček, a odměňuj ho přesně včas."
+
+msgid "Tip: photos of rare moments get the most likes."
+msgstr "Tip: nejvíc lajků mají fotky vzácných chvil."
+
+msgid "The %s is now open to Bubák!"
+msgstr "Nově se Bubák může přihlásit: %s!"
+
+msgid "Continue"
+msgstr "Pokračovat"
+
+msgid "Focus"
+msgstr "Soustředění"
+
+msgid "Pick a trick to practise."
+msgstr "Vyber trik k tréninku."
+
+msgid "Pick a trick. The moment Bubák does it, tap Reward! Don't reward him if he gets distracted."
+msgstr "Vyber trik. Jakmile ho Bubák předvede, klepni na Odměnit! Když se nechá rozptýlit, neodměňuj ho."
+
+msgid "Practise"
+msgstr "Trénovat"
+
+msgid "Teach"
+msgstr "Naučit"
+
+msgid "Bubák has had enough training for now. Let him rest a bit."
+msgstr "Bubák už má tréninku dost. Nech ho chvíli odpočinout."
+
+msgid "\"Bubák... %s!\""
+msgstr "„Bubáku... %s!“"
+
+msgid "Perfect timing! He's getting it."
+msgstr "Perfektní načasování! Už to chápe."
+
+msgid "A bit off. He's not sure what the treat was for."
+msgstr "Trochu vedle. Neví, za co ten pamlsek byl."
+
+msgid "He did it, but you missed the moment to reward him."
+msgstr "Povedlo se mu to, ale chvíle na odměnu utekla."
+
+msgid "Oops! That rewarded him for getting distracted."
+msgstr "Jejda! Tohle byla odměna za rozptýlení."
+
+msgid "Right call: no treat for getting distracted."
+msgstr "Správně: za rozptýlení pamlsek nedostane."
+
+msgid "%s: %d of 3 stars!"
+msgstr "%s: %d ze 3 hvězdiček!"
+
+msgid "Bubák has mastered %s!"
+msgstr "Bubák dokonale ovládá: %s!"
+
+msgid "+1 in %s"
+msgstr "+1 za %s"
+
+msgid "Training"
+msgstr "Výcvik"
+
+msgid "Shows"
+msgstr "Výstavy"
+
+msgid "Trophies"
+msgstr "Trofeje"
+
+msgid "1st"
+msgstr "1."
+
+msgid "2nd"
+msgstr "2."
+
+msgid "3rd"
+msgstr "3."
+
+msgid "4th"
+msgstr "4."
+
+msgid "%d like! The judges are charmed."
+msgid_plural "%d likes! The judges are charmed."
+msgstr[0] "%d lajk! Porota je okouzlená."
+msgstr[1] "%d lajky! Porota je okouzlená."
+msgstr[2] "%d lajků! Porota je okouzlená."
+
+msgid "%d like. Sweet, but they've seen cuter."
+msgid_plural "%d likes. Sweet, but they've seen cuter."
+msgstr[0] "%d lajk. Milé, ale viděli už roztomilejší."
+msgstr[1] "%d lajky. Milé, ale viděli už roztomilejší."
+msgstr[2] "%d lajků. Milé, ale viděli už roztomilejší."
+
+msgid "The laptop charger is chewed through! Culprit: %s. A new one cost 25 coins.\nA cable cover from the shop would stop this for good."
+msgstr "Nabíječka od notebooku je překousaná! Viník: %s. Nová stála 25 mincí.\nKryt na kabel z obchodu tomu jednou provždy zabrání."
+
+msgid "Too many pokes! %s is scared now.\nTry gently holding your finger on the bunny instead."
+msgstr "Moc šťouchání! %s se teď bojí.\nZkus radši na králíčkovi jemně podržet prst."
+
+msgid "%s has had enough cuddles for now."
+msgstr "%s už má mazlení dost."
+
+msgid "%s doesn't quite trust you yet..."
+msgstr "%s ti ještě úplně nevěří..."
+
+msgid "%s is hiding out of reach."
+msgstr "%s se schovává, nedosáhneš."
+
+msgid "%s wriggles free and runs off. Almost! Build a bit more trust first.\n(Trust went down.)"
+msgstr "%s se vykrucuje a utíká. Skoro! Nejdřív si získej trochu víc důvěry.\n(Důvěra klesla.)"
+
+msgid "%s panics, kicks and bolts! Too soon to be picked up.\n(Trust went down.)"
+msgstr "%s panikaří, kope a utíká! Na zvedání je ještě brzo.\n(Důvěra klesla.)"
+
+msgid "Too many sweets... %s has a tummy ache.\nParsley and hay are kinder to a bunny's tummy."
+msgstr "Moc sladkého... %s má bolavé bříško.\nPetržel a seno jsou pro králičí bříško šetrnější."
+
+msgid "Snatched it and ran! %s will get braver."
+msgstr "Čapnout a utéct! %s se časem osmělí."
+
+msgid "Snuggle buddies"
+msgstr "Mazlíci"
+
+msgid "Two bunnies, one fluffy loaf."
+msgstr "Dva králíci, jeden chlupatý bochník."
+
+msgid "Adopt a friend for Bubák"
+msgstr "Adoptuj Bubákovi kamaráda"
+
+msgid "Make them best friends"
+msgstr "Ať jsou z nich nejlepší přátelé"
+
+msgid "Luna"
+msgstr "Luna"
+
+msgid "A gentle cream bunny. Shy at first, but oh so sweet."
+msgstr "Jemná krémová králičice. Zpočátku plachá, ale moc milá."
+
+msgid "Caramel"
+msgstr "Karamelka"
+
+msgid "Golden, bouncy and friendly with everyone."
+msgstr "Zlatavá, skotačivá a kamarádí se všemi."
+
+msgid "Hazel"
+msgstr "Oříšek"
+
+msgid "Chocolate brown with a white nose. Loves digging."
+msgstr "Čokoládově hnědý s bílým čumáčkem. Miluje hrabání."
+
+msgid "Shadow"
+msgstr "Stín"
+
+msgid "Sleek, black and a little mysterious. Bubák can't stop staring."
+msgstr "Uhlazený, černý a trochu tajemný. Bubák z něj nemůže spustit oči."
+
+msgid "Needs Bubák at trust %s and Cozy level %d"
+msgstr "Potřeba: Bubákova důvěra %s a útulnost %d"
+
+msgid "Bubák already has a friend."
+msgstr "Bubák už kamaráda má."
+
+msgid "Test play! Everything is unlocked and you have 10000 coins. Nothing here touches your real game.\n\nSettings > Back to my game returns to it."
+msgstr "Zkušební hra! Všechno je odemčené a máš 10000 mincí. Tvoje skutečná hra zůstane nedotčená.\n\nZpátky se dostaneš přes Nastavení > Zpět do mé hry."
+
+msgid "Back to your own game."
+msgstr "Zpátky ve tvé hře."
+
+msgid "%s trusts you more: %s"
+msgstr "%s ti víc důvěřuje: %s"
+
+msgid "TEST"
+msgstr "TEST"
+
+msgid "Bond"
+msgstr "Pouto"
+
+msgid "%s is in your arms! Cheek to cheek... now snap a selfie before the wriggling starts."
+msgstr "%s je v náručí! Tvářička k tvářičce... teď rychle selfie, než se začne vrtět."
+
+msgid "%s is getting wriggly. Back on the floor!"
+msgstr "%s se začíná vrtět. Hezky zpátky na zem!"
+
+msgid "Adopt a friend"
+msgstr "Adoptovat kamaráda"
+
+msgid "Needs: a friend for Bubák"
+msgstr "Potřebuje: kamaráda pro Bubáka"
+
+msgid "Back to my game"
+msgstr "Zpět do mé hry"
+
+msgid "Test play"
+msgstr "Zkušební hra"
+
+msgid "A sandbox with everything unlocked and 10000 coins. Your real game stays safe."
+msgstr "Pískoviště se vším odemčeným a 10000 mincemi. Tvoje skutečná hra zůstane v bezpečí."
+
+msgid "Bubák seems a little lonely..."
+msgstr "Bubák vypadá trochu osaměle..."
+
+msgid "Rabbits are happiest in pairs. The bunny rescue down the street has a few rabbits looking for a home.\n\nMaybe it's time to find Bubák a friend?"
+msgstr "Králíci jsou nejšťastnější ve dvou. V králičím útulku kousek odsud hledá domov pár králíků.\n\nNení čas najít Bubákovi kamaráda?"
+
+msgid "Visit the rescue"
+msgstr "Navštívit útulek"
+
+msgid "These rabbits are looking for a home. Tap one to meet them."
+msgstr "Tihle králíci hledají domov. Klepni na některého a seznam se."
+
+msgid "Bunny rescue"
+msgstr "Králičí útulek"
+
+msgid "Warms up to people quickly."
+msgstr "Rychle si zvyká na lidi."
+
+msgid "Takes a while to trust people."
+msgstr "Lidem začíná věřit jen pomalu."
+
+msgid "Gets used to people at an easy pace."
+msgstr "Na lidi si zvyká přiměřeně rychle."
+
+msgid "Adopt for %d"
+msgstr "Adoptovat za %d"
+
+msgid "%s is home!\n\nBubák is curious, and a little unsure. Give them time: when both are happy they grow closer, and best friends snuggle together.\n\nThe newcomer has their own needs and trust, so look after both."
+msgstr "%s je doma!\n\nBubák je zvědavý a trochu nejistý. Dej jim čas: když jsou oba spokojení, sbližují se, a nejlepší přátelé se k sobě tulí.\n\nNováček má vlastní potřeby i důvěru, tak se starej o oba."
+
+msgid "No bunny came this time. The treat went back in the bag."
+msgstr "Tentokrát nepřišel žádný králíček. Pamlsek jde zpátky do sáčku."
+
+msgid "%s hopped out onto the balcony. Tap the door to follow."
+msgstr "%s je venku na balkoně. Klepni na dveře a jdi taky ven."
+
+msgid "%s is back inside."
+msgstr "%s je zpátky uvnitř."
+
+msgid "The whole branch is eaten! Time for a fresh one."
+msgstr "Větvička je celá snědená! Čas na čerstvou."
+
+msgid "Uh oh! %s is nibbling the laptop cable! Tap to stop it."
+msgstr "Ale ne! %s okusuje kabel od notebooku! Klepni a zastav to."
+
+msgid "While the game is closed"
+msgstr "Když je hra zavřená"
+
+msgid "Life goes on"
+msgstr "Život jde dál"
+
+msgid "Time stops"
+msgstr "Čas se zastaví"
+
+msgid "Bubák keeps living: he eats from his bowls, uses the litter box and gets hungry."
+msgstr "Bubák žije dál: jí z misek, chodí na záchodek a dostává hlad."
+
+msgid "The game pauses: his needs, waits and timers stop until you come back."
+msgstr "Hra se pozastaví: jeho potřeby, čekání i odpočty stojí, dokud se nevrátíš."
+
+msgid "Welcome back! Time stood still while you were away, so everything is just as you left it."
+msgstr "Vítej zpátky! Čas mezitím stál, takže je všechno přesně tak, jak bylo."
+
+msgid "%d save"
+msgid_plural "%d saves"
+msgstr[0] "%d uložená hra"
+msgstr[1] "%d uložené hry"
+msgstr[2] "%d uložených her"
+
+msgid "Save or load"
+msgstr "Uložit nebo načíst"
+
+msgid "Back to settings"
+msgstr "Zpět do nastavení"
+
+msgid "Energy: Bubák naps when he's tired, and recovers fastest in a cozy bed. Let him sleep!"
+msgstr "Energie: Bubák si zdřímne, když je unavený, a nejrychleji si odpočine v útulném pelíšku. Nech ho spát!"
+
+msgid "Tap the tasks before they vanish. Urgent ones count double; leave the spam alone!"
+msgstr "Klepej na úkoly, než zmizí. Naléhavé se počítají dvakrát, spam nech být!"
+
+msgid "Squash the bugs, and tap big ones until they pop. Spare the ladybugs!"
+msgstr "Rozmačkej brouky, na ty velké klepej, dokud nepraskne. Berušky šetři!"
+
+msgid "Match the pairs as fast as you can. Each board gets bigger."
+msgstr "Najdi dvojice co nejrychleji. Každé další kolo je větší."
+
+msgid "Crate stacking"
+msgstr "Skládání beden"
+
+msgid "Drop the carrot crates neatly on the stack. Perfect drops keep it wide."
+msgstr "Pouštěj bedny s mrkví úhledně na sebe. Přesné pokládání udrží věž širokou."
+
+msgid "Get 3 stars in %d different jobs"
+msgstr "Získej 3 hvězdy v %d různých pracích"
+
+msgid "%d more!"
+msgstr "Ještě %d!"
+
+msgid "Wave"
+msgstr "Mávnout"
+
+msgid "\"Hi everyone!\""
+msgstr "\"Ahoj všichni!\""
+
+msgid "\"Bye, see you tomorrow!\""
+msgstr "\"Ahoj, uvidíme se zítra!\""
+
+msgid "That was spam!"
+msgstr "To byl spam!"
+
+msgid "Whoops!"
+msgstr "Jejda!"
+
+msgid "Perfect!"
+msgstr "Přesně!"
+
+msgid "New pallet!"
+msgstr "Nová paleta!"
+
+msgid "Boss's pick today: double XP!"
+msgstr "Dnes šéf chce tohle: dvojnásobné XP!"
+
+msgid "Best: %d points"
+msgstr "Rekord: %d bodů"
+
+msgid "Ready..."
+msgstr "Připravit..."
+
+msgid "Go!"
+msgstr "Start!"
+
+msgid "Nice streak! x%d"
+msgstr "Pěkná série! x%d"
+
+msgid "On fire! x%d"
+msgstr "Jedeš! x%d"
+
+msgid "Unstoppable! x%d"
+msgstr "Nezastavitelné! x%d"
+
+msgid "Streak lost"
+msgstr "Série přerušena"
+
+msgid "Points: %d     Streak: %d"
+msgstr "Body: %d     Série: %d"
+
+msgid "Final rush! Double points!"
+msgstr "Závěrečný finiš! Dvojnásobné body!"
+
+msgid "Keep practising!"
+msgstr "Cvič dál!"
+
+msgid "Good shift!"
+msgstr "Dobrá směna!"
+
+msgid "Great shift!"
+msgstr "Skvělá směna!"
+
+msgid "Outstanding!"
+msgstr "Vynikající!"
+
+msgid "%d points  ·  best streak %d"
+msgstr "%d bodů  ·  nejlepší série %d"
+
+msgid "New personal best!"
+msgstr "Nový osobní rekord!"
+
+msgid "You earned %d coins."
+msgstr "Výdělek: %d mincí."
+
+msgid "(+%d%% for stars)"
+msgstr "(+%d %% za hvězdy)"
+
+msgid "+%d XP (boss's pick: doubled!)"
+msgstr "+%d XP (šéfova volba: dvojnásobek!)"
+
+msgid "+%d XP"
+msgstr "+%d XP"
+
+msgid "Promotion bonus: %d coins"
+msgstr "Odměna za povýšení: %d mincí"
+
+msgid "New in the shop: %s"
+msgstr "Nově v obchodě: %s"

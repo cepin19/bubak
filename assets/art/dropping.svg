@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 18">
+<defs><linearGradient id="s6b4a33" x1="0" y1="0" x2="0.25" y2="1"><stop offset="0" stop-color="#8c7260"/><stop offset="0.5" stop-color="#6b4a33"/><stop offset="1" stop-color="#5e412d"/></linearGradient></defs>
+<ellipse cx="12" cy="10" rx="7" ry="6" fill="url(#s6b4a33)" stroke="#4f3d33" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+</svg>

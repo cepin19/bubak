@@ -1,0 +1,1801 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+
+msgid "The laptop charger is chewed through! Culprit: %s. A new one cost 25 coins.\nA cable cover from the shop would stop this for good."
+msgstr ""
+
+msgid "boop!"
+msgstr ""
+
+msgid "THUMP!"
+msgstr ""
+
+msgid "Too many pokes! %s is scared now.\nTry gently holding your finger on the bunny instead."
+msgstr ""
+
+msgid "Hey! No chewing cables!"
+msgstr ""
+
+msgid "%s has had enough cuddles for now."
+msgstr ""
+
+msgid "%s doesn't quite trust you yet..."
+msgstr ""
+
+msgid "purr~"
+msgstr ""
+
+msgid "%s is hiding out of reach."
+msgstr ""
+
+msgid "%s wriggles free and runs off. Almost! Build a bit more trust first.\n(Trust went down.)"
+msgstr ""
+
+msgid "%s panics, kicks and bolts! Too soon to be picked up.\n(Trust went down.)"
+msgstr ""
+
+msgid "Too many sweets... %s has a tummy ache.\nParsley and hay are kinder to a bunny's tummy."
+msgstr ""
+
+msgid "Snatched it and ran! %s will get braver."
+msgstr ""
+
+msgid "Blurry"
+msgstr ""
+
+msgid "Shy"
+msgstr ""
+
+msgid "Curious"
+msgstr ""
+
+msgid "Friendly"
+msgstr ""
+
+msgid "Bonded"
+msgstr ""
+
+msgid "Best buds"
+msgstr ""
+
+msgid "Pellets"
+msgstr ""
+
+msgid "5 bowls of crunchy pellets."
+msgstr ""
+
+msgid "Meadow hay"
+msgstr ""
+
+msgid "5 armfuls of hay. Bunnies should always have hay!"
+msgstr ""
+
+msgid "Parsley"
+msgstr ""
+
+msgid "Healthy green snack."
+msgstr ""
+
+msgid "Carrot"
+msgstr ""
+
+msgid "Crunchy and sweet. Don't overdo it."
+msgstr ""
+
+msgid "Apple slice"
+msgstr ""
+
+msgid "His absolute favourite! Sweet, so just a slice now and then."
+msgstr ""
+
+msgid "Leafy branch"
+msgstr ""
+
+msgid "Fresh branch with leaves. He eats the lot, leaves first. Keeps him off cables."
+msgstr ""
+
+msgid "Willow ball"
+msgstr ""
+
+msgid "To nudge, toss and chase."
+msgstr ""
+
+msgid "Cardboard castle"
+msgstr ""
+
+msgid "A hideout. Very important bunny business."
+msgstr ""
+
+msgid "Play tunnel"
+msgstr ""
+
+msgid "Zoom in one end, out the other."
+msgstr ""
+
+msgid "Cushy bed"
+msgstr ""
+
+msgid "Naps here restore energy faster."
+msgstr ""
+
+msgid "Cozy rug"
+msgstr ""
+
+msgid "Soft paws, happy bunny."
+msgstr ""
+
+msgid "Potted fern"
+msgstr ""
+
+msgid "Makes photos look fancier."
+msgstr ""
+
+msgid "Floor lamp"
+msgstr ""
+
+msgid "Warm light in the evening."
+msgstr ""
+
+msgid "Dig box"
+msgstr ""
+
+msgid "A box of sand for very important digging."
+msgstr ""
+
+msgid "Treat puzzle"
+msgstr ""
+
+msgid "Hides little snacks under the lids. Makes him think."
+msgstr ""
+
+msgid "Wooden hut"
+msgstr ""
+
+msgid "A hideaway that smells like a forest."
+msgstr ""
+
+msgid "Bunny castle"
+msgstr ""
+
+msgid "Two floors of castle. He rules from the top."
+msgstr ""
+
+msgid "Teepee tent"
+msgstr ""
+
+msgid "A tent for very cozy naps."
+msgstr ""
+
+msgid "Bean bag"
+msgstr ""
+
+msgid "He flops on it like he owns it. He does."
+msgstr ""
+
+msgid "Paper lantern"
+msgstr ""
+
+msgid "A soft glow for the evenings."
+msgstr ""
+
+msgid "Flower pot"
+msgstr ""
+
+msgid "Pretty. Not for eating. Probably."
+msgstr ""
+
+msgid "Big food bowl"
+msgstr ""
+
+msgid "Holds 5 portions instead of 3."
+msgstr ""
+
+msgid "Royal food bowl"
+msgstr ""
+
+msgid "Holds 8 portions. Fit for a bunny king."
+msgstr ""
+
+msgid "Big water bowl"
+msgstr ""
+
+msgid "Holds more water, so it lasts longer."
+msgstr ""
+
+msgid "Water fountain"
+msgstr ""
+
+msgid "Fresh running water. Lasts ages, and drinking is fun."
+msgstr ""
+
+msgid "Big hay rack"
+msgstr ""
+
+msgid "Holds more hay, and each refill lasts longer."
+msgstr ""
+
+msgid "Hay house"
+msgstr ""
+
+msgid "A hay rack with a roof. Holds a whole bale."
+msgstr ""
+
+msgid "Corner litter box"
+msgstr ""
+
+msgid "High back, less mess. Stays clean longer."
+msgstr ""
+
+msgid "Luxury litter box"
+msgstr ""
+
+msgid "Stays clean much longer. Has ears!"
+msgstr ""
+
+msgid "Comfy office chair"
+msgstr ""
+
+msgid "Shorter breaks between work shifts."
+msgstr ""
+
+msgid "Second monitor"
+msgstr ""
+
+msgid "+25% pay for remote work."
+msgstr ""
+
+msgid "Coffee machine"
+msgstr ""
+
+msgid "Work shifts last 5 seconds longer."
+msgstr ""
+
+msgid "Noise-cancelling headphones"
+msgstr ""
+
+msgid "Another +25% pay for remote work."
+msgstr ""
+
+msgid "Red bow"
+msgstr ""
+
+msgid "A classic. Photos with an outfit get more likes."
+msgstr ""
+
+msgid "Round glasses"
+msgstr ""
+
+msgid "Very smart. Very scholarly."
+msgstr ""
+
+msgid "Flower crown"
+msgstr ""
+
+msgid "Spring, all year round."
+msgstr ""
+
+msgid "Tiny top hat"
+msgstr ""
+
+msgid "For a bunny of distinction."
+msgstr ""
+
+msgid "Balcony netting"
+msgstr ""
+
+msgid "Makes the balcony bunny-safe, so Bubák can go out and enjoy the fresh air."
+msgstr ""
+
+msgid "Cable cover"
+msgstr ""
+
+msgid "Protects the laptop charger from Bubák's teeth. Forever."
+msgstr ""
+
+msgid "Clicker"
+msgstr ""
+
+msgid "Click at just the right moment so he knows what he did right. Tricks are learned 50% faster."
+msgstr ""
+
+msgid "Treat pouch"
+msgstr ""
+
+msgid "Tiny training treats on your belt: 3 more tries in every training session."
+msgstr ""
+
+msgid "Agility hoop"
+msgstr ""
+
+msgid "Teaches the Hoop jump trick. Judges love it."
+msgstr ""
+
+msgid "Soft brush"
+msgstr ""
+
+msgid "Brushes out loose fur. Needed for grooming."
+msgstr ""
+
+msgid "Fine comb"
+msgstr ""
+
+msgid "Gets twice as much loose fur with every stroke."
+msgstr ""
+
+msgid "Nail clippers"
+msgstr ""
+
+msgid "Keeps his nails short. Long nails cost points at shows."
+msgstr ""
+
+msgid "Food bowl"
+msgstr ""
+
+msgid "Water bowl"
+msgstr ""
+
+msgid "Hay rack"
+msgstr ""
+
+msgid "Litter box"
+msgstr ""
+
+msgid "Herb planter"
+msgstr ""
+
+msgid "Sunny spot"
+msgstr ""
+
+msgid "Hop hop"
+msgstr ""
+
+msgid "Just getting around."
+msgstr ""
+
+msgid "Sitting pretty"
+msgstr ""
+
+msgid "Nose going a mile a minute."
+msgstr ""
+
+msgid "Nom nom"
+msgstr ""
+
+msgid "Pellets from the bowl. Every last one."
+msgstr ""
+
+msgid "Hay muncher"
+msgstr ""
+
+msgid "Hay keeps teeth and tummy healthy."
+msgstr ""
+
+msgid "Slurp"
+msgstr ""
+
+msgid "Staying hydrated."
+msgstr ""
+
+msgid "Litter pro"
+msgstr ""
+
+msgid "Good bunny, uses the litter box!"
+msgstr ""
+
+msgid "Bunny loaf"
+msgstr ""
+
+msgid "Paws tucked in. Perfectly baked."
+msgstr ""
+
+msgid "Nap time"
+msgstr ""
+
+msgid "Rabbits nap a lot in the middle of the day."
+msgstr ""
+
+msgid "Face wash"
+msgstr ""
+
+msgid "Licks paws, washes ears. Very thorough."
+msgstr ""
+
+msgid "Treat time"
+msgstr ""
+
+msgid "Eating a treat from your hand."
+msgstr ""
+
+msgid "Box fort"
+msgstr ""
+
+msgid "Somewhere in there is a bunny."
+msgstr ""
+
+msgid "Ball toss"
+msgstr ""
+
+msgid "Nudge, flip, chase!"
+msgstr ""
+
+msgid "Tunnel dash"
+msgstr ""
+
+msgid "In one end, out the other."
+msgstr ""
+
+msgid "Branch muncher"
+msgstr ""
+
+msgid "Leaves first, then the bark. Great for his teeth."
+msgstr ""
+
+msgid "Digging"
+msgstr ""
+
+msgid "Sand everywhere. Worth it."
+msgstr ""
+
+msgid "Puzzle solver"
+msgstr ""
+
+msgid "Flips the lids with his nose to find the snacks."
+msgstr ""
+
+msgid "King of the castle"
+msgstr ""
+
+msgid "Surveying his kingdom from the top floor."
+msgstr ""
+
+msgid "Cozy bed nap"
+msgstr ""
+
+msgid "Snoozing in his very own bed."
+msgstr ""
+
+msgid "Fresh air"
+msgstr ""
+
+msgid "His first trip out onto the balcony."
+msgstr ""
+
+msgid "Sunbathing"
+msgstr ""
+
+msgid "Stretched out in a warm patch of sun."
+msgstr ""
+
+msgid "Bird watching"
+msgstr ""
+
+msgid "Up on his hind legs, very interested in that pigeon."
+msgstr ""
+
+msgid "Herb thief"
+msgstr ""
+
+msgid "Those herbs were for cooking. Were."
+msgstr ""
+
+msgid "A warning stomp. Something scared him."
+msgstr ""
+
+msgid "Cable crime"
+msgstr ""
+
+msgid "Caught red-pawed. Naughty!"
+msgstr ""
+
+msgid "Chinning"
+msgstr ""
+
+msgid "Rubs his chin on things: \"this is MINE.\""
+msgstr ""
+
+msgid "Begging"
+msgstr ""
+
+msgid "Stands tall when he knows you have treats."
+msgstr ""
+
+msgid "Bowl flip"
+msgstr ""
+
+msgid "Empty bowl? Unacceptable!"
+msgstr ""
+
+msgid "Binky!"
+msgstr ""
+
+msgid "A happy jump-twist. Pure joy."
+msgstr ""
+
+msgid "Zoomies"
+msgstr ""
+
+msgid "Sudden laps around the flat at full speed."
+msgstr ""
+
+msgid "Flop"
+msgstr ""
+
+msgid "Falls over on his side. Total trust."
+msgstr ""
+
+msgid "Nose bonk"
+msgstr ""
+
+msgid "Boop! He only does this to his favourite people."
+msgstr ""
+
+msgid "Selfie together"
+msgstr ""
+
+msgid "Cheek to cheek. Your followers can't get enough."
+msgstr ""
+
+msgid "Snuggle buddies"
+msgstr ""
+
+msgid "Two bunnies, one fluffy loaf."
+msgstr ""
+
+msgid "Show-off"
+msgstr ""
+
+msgid "Does a trick nobody asked for. Then waits for applause."
+msgstr ""
+
+msgid "Tooth purr"
+msgstr ""
+
+msgid "Soft teeth-clicking while petted. Bliss."
+msgstr ""
+
+msgid "Bare"
+msgstr ""
+
+msgid "Homey"
+msgstr ""
+
+msgid "Comfy"
+msgstr ""
+
+msgid "Cozy"
+msgstr ""
+
+msgid "Snug"
+msgstr ""
+
+msgid "Bunny paradise"
+msgstr ""
+
+msgid "Intern"
+msgstr ""
+
+msgid "Junior assistant"
+msgstr ""
+
+msgid "Specialist"
+msgstr ""
+
+msgid "Senior specialist"
+msgstr ""
+
+msgid "Team lead"
+msgstr ""
+
+msgid "Director of Carrots"
+msgstr ""
+
+msgid "Inbox zero"
+msgstr ""
+
+msgid "Tap the tasks before they vanish. Urgent ones count double; leave the spam alone!"
+msgstr ""
+
+msgid "Bug hunt"
+msgstr ""
+
+msgid "Squash the bugs, and tap big ones until they pop. Spare the ladybugs!"
+msgstr ""
+
+msgid "Pair programming"
+msgstr ""
+
+msgid "Match the pairs as fast as you can. Each board gets bigger."
+msgstr ""
+
+msgid "Video call"
+msgstr ""
+
+msgid "React in the meeting. Bubák may photobomb."
+msgstr ""
+
+msgid "Crate stacking"
+msgstr ""
+
+msgid "Drop the carrot crates neatly on the stack. Perfect drops keep it wide."
+msgstr ""
+
+msgid "Take %d photos"
+msgstr ""
+
+msgid "Discover %d behaviours"
+msgstr ""
+
+msgid "Work %d shifts"
+msgstr ""
+
+msgid "Reach %d followers"
+msgstr ""
+
+msgid "Reach trust: %s"
+msgstr ""
+
+msgid "Reach Cozy level %d"
+msgstr ""
+
+msgid "Buy your first upgrade"
+msgstr ""
+
+msgid "Buy an accessory for Bubák"
+msgstr ""
+
+msgid "Get promoted to %s"
+msgstr ""
+
+msgid "Open the balcony"
+msgstr ""
+
+msgid "Buy %d upgrades"
+msgstr ""
+
+msgid "Get 3 stars in %d different jobs"
+msgstr ""
+
+msgid "Collect all %d accessories"
+msgstr ""
+
+msgid "Turn the flat into a bunny paradise"
+msgstr ""
+
+msgid "Discover every behaviour"
+msgstr ""
+
+msgid "Teach Bubák his first trick"
+msgstr ""
+
+msgid "Earn %d trick stars"
+msgstr ""
+
+msgid "Master every trick"
+msgstr ""
+
+msgid "Groom Bubák %d times"
+msgstr ""
+
+msgid "Win a ribbon at a show"
+msgstr ""
+
+msgid "Win the Neighbourhood show"
+msgstr ""
+
+msgid "Win in all %d categories"
+msgstr ""
+
+msgid "Win the Regional show"
+msgstr ""
+
+msgid "Become National champion"
+msgstr ""
+
+msgid "Adopt a friend for Bubák"
+msgstr ""
+
+msgid "Make them best friends"
+msgstr ""
+
+msgid "Luna"
+msgstr ""
+
+msgid "A gentle cream bunny. Shy at first, but oh so sweet."
+msgstr ""
+
+msgid "Caramel"
+msgstr ""
+
+msgid "Golden, bouncy and friendly with everyone."
+msgstr ""
+
+msgid "Hazel"
+msgstr ""
+
+msgid "Chocolate brown with a white nose. Loves digging."
+msgstr ""
+
+msgid "Shadow"
+msgstr ""
+
+msgid "Sleek, black and a little mysterious. Bubák can't stop staring."
+msgstr ""
+
+msgid "Come"
+msgstr ""
+
+msgid "Hops over when called."
+msgstr ""
+
+msgid "Stand up"
+msgstr ""
+
+msgid "Up on his hind legs, paws tucked."
+msgstr ""
+
+msgid "Spin"
+msgstr ""
+
+msgid "A full twirl on the spot."
+msgstr ""
+
+msgid "Hoop jump"
+msgstr ""
+
+msgid "Sails through the hoop."
+msgstr ""
+
+msgid "Best in Show"
+msgstr ""
+
+msgid "Coat, nails, outfit and how calm he is with the judge."
+msgstr ""
+
+msgid "Tricks"
+msgstr ""
+
+msgid "Perform a routine. Reward him at the right moment!"
+msgstr ""
+
+msgid "Photogenic"
+msgstr ""
+
+msgid "Your best photo goes in front of the judges."
+msgstr ""
+
+msgid "Neighbourhood show"
+msgstr ""
+
+msgid "Regional show"
+msgstr ""
+
+msgid "National championship"
+msgstr ""
+
+msgid "Duchess Fluffington"
+msgstr ""
+
+msgid "A snooty white lop. Has never been seen without a bow."
+msgstr ""
+
+msgid "Pepík"
+msgstr ""
+
+msgid "A scrappy little dwarf with a mighty jump."
+msgstr ""
+
+msgid "Marshmallow"
+msgstr ""
+
+msgid "Fluffy, sweet, and the internet adores her."
+msgstr ""
+
+msgid "Baron von Hop"
+msgstr ""
+
+msgid "Dapper and serious. Takes every show personally."
+msgstr ""
+
+msgid "Clover"
+msgstr ""
+
+msgid "A cheerful ginger lop. Everyone's friend."
+msgstr ""
+
+msgid "Food"
+msgstr ""
+
+msgid "Toys"
+msgstr ""
+
+msgid "Home"
+msgstr ""
+
+msgid "Upgrades"
+msgstr ""
+
+msgid "Style"
+msgstr ""
+
+msgid "Club"
+msgstr ""
+
+msgid "Meet Bubák!\n\nHe's new here and a little shy. Keep his bowls full, clean his litter box and hold your finger on him to pet him gently.\n\nTake photos of the cute things he does to earn coins."
+msgstr ""
+
+msgid "Unlocks later in the show club"
+msgstr ""
+
+msgid "Needs Cozy level %d"
+msgstr ""
+
+msgid "Needs career: %s"
+msgstr ""
+
+msgid "Needs the previous upgrade"
+msgstr ""
+
+msgid "Already installed."
+msgstr ""
+
+msgid "Not enough coins."
+msgstr ""
+
+msgid "You already have enough of those."
+msgstr ""
+
+msgid "Not yet! Bubák needs to trust you more and get more followers."
+msgstr ""
+
+msgid "Needs trust: %s"
+msgstr ""
+
+msgid "Needs: %s"
+msgstr ""
+
+msgid "Bubák kicked and squirmed away. He needs to trust you more for this.\n(Trust went down.)"
+msgstr ""
+
+msgid "Locked"
+msgstr ""
+
+msgid "Next show in %s"
+msgstr ""
+
+msgid "He doesn't know any tricks yet."
+msgstr ""
+
+msgid "Take some photos first."
+msgstr ""
+
+msgid "%d h %d min"
+msgstr ""
+
+msgid "%d min"
+msgstr ""
+
+msgid "Needs Bubák at trust %s and Cozy level %d"
+msgstr ""
+
+msgid "Bubák already has a friend."
+msgstr ""
+
+msgid "Test play! Everything is unlocked and you have 10000 coins. Nothing here touches your real game.\n\nSettings > Back to my game returns to it."
+msgstr ""
+
+msgid "Back to your own game."
+msgstr ""
+
+msgid "Loaded \"%s\". Welcome back!"
+msgstr ""
+
+msgid "Welcome back! Time stood still while you were away, so everything is just as you left it."
+msgstr ""
+
+msgid "munched through some hay"
+msgstr ""
+
+msgid "had a good long nap"
+msgstr ""
+
+msgid "Welcome back! You were away %s.\n\nMeanwhile Bubák %s."
+msgstr ""
+
+msgid "He's looking at his empty bowls rather pointedly..."
+msgstr ""
+
+msgid "Coat"
+msgstr ""
+
+msgid "Nails"
+msgstr ""
+
+msgid "Patience left"
+msgstr ""
+
+msgid "Trim nails"
+msgstr ""
+
+msgid "He's molting! Loose fur everywhere: brush him often for a few days."
+msgstr ""
+
+msgid "You'll need a Soft brush first. It's in the Shop, on the Club tab."
+msgstr ""
+
+msgid "His coat is already gleaming. Come back in a while."
+msgstr ""
+
+msgid "Swipe over the loose fur to brush it out, before he runs out of patience."
+msgstr ""
+
+msgid "All brushed! His coat is soft and glossy."
+msgstr ""
+
+msgid "snip snip"
+msgstr ""
+
+msgid "Neat little nails. The judges will approve."
+msgstr ""
+
+msgid "Bubák has had enough and hops off. Good job anyway!"
+msgstr ""
+
+msgid "%s trusts you more: %s"
+msgstr ""
+
+msgid "Bubák is molting! Brush him often and pick up the fur he leaves around."
+msgstr ""
+
+msgid "TEST"
+msgstr ""
+
+msgid "Coziness grows with furniture, toys and upgrades. Higher levels make Bubák happier, bring more followers and unlock new things in the shop."
+msgstr ""
+
+msgid "Bond"
+msgstr ""
+
+msgid "Food: tap the bowl to add pellets, the hay rack to add hay. Treats help too."
+msgstr ""
+
+msgid "Water: tap the water bowl to refill it."
+msgstr ""
+
+msgid "Fun: pet Bubák, give him toys from the shop, or toss his ball."
+msgstr ""
+
+msgid "Energy: Bubák naps when he's tired, and recovers fastest in a cozy bed. Let him sleep!"
+msgstr ""
+
+msgid "Clean: tap the litter box to clean it, and pick up any droppings."
+msgstr ""
+
+msgid "Treats"
+msgstr ""
+
+msgid "Shop"
+msgstr ""
+
+msgid "Photo"
+msgstr ""
+
+msgid "Journal"
+msgstr ""
+
+msgid "Move"
+msgstr ""
+
+msgid "No treats left. The shop has some!"
+msgstr ""
+
+msgid "Pick a treat to hand-feed:"
+msgstr ""
+
+msgid "Done"
+msgstr ""
+
+msgid "Snap!"
+msgstr ""
+
+msgid "Close"
+msgstr ""
+
+msgid "Selfie"
+msgstr ""
+
+msgid "Catch Bubák doing something cute!\nSparkles mean a rare moment."
+msgstr ""
+
+msgid "Put him down"
+msgstr ""
+
+msgid "%s is in your arms! Cheek to cheek... now snap a selfie before the wriggling starts."
+msgstr ""
+
+msgid "%s is getting wriggly. Back on the floor!"
+msgstr ""
+
+msgid "Trust: %s"
+msgstr ""
+
+msgid "Cozy level %d: %s"
+msgstr ""
+
+msgid "Drag furniture and toys to rearrange the room."
+msgstr ""
+
+msgid "Tap the floor to offer the %s."
+msgstr ""
+
+msgid "Cancel"
+msgstr ""
+
+msgid "New behaviour: %s  (see Journal)"
+msgstr ""
+
+msgid "Goal complete: %s! Claim the reward in the Journal."
+msgstr ""
+
+msgid "Sponsor deal!"
+msgstr ""
+
+msgid "A pet shop loved Bubák's posts and paid you %d coins."
+msgstr ""
+
+msgid "Daily streak: %d days in a row!"
+msgstr ""
+
+msgid "Come back tomorrow for another deal. More followers and a cozier home mean bigger deals."
+msgstr ""
+
+msgid "Thanks!"
+msgstr ""
+
+msgid "Milestone reached!"
+msgstr ""
+
+msgid "Bubák trusts you and %d people follow his adventures. Time for some fresh air!"
+msgstr ""
+
+msgid "Make the balcony bunny-safe with Balcony netting (Shop, Home tab), and the door to the balcony will open."
+msgstr ""
+
+msgid "Can't wait!"
+msgstr ""
+
+msgid "Bubák trusts you more!"
+msgstr ""
+
+msgid "He now feels %s with you."
+msgstr ""
+
+msgid "He'll let you pick him up now! Drag him upwards (or tap Selfie in Photo mode) and snap a selfie together."
+msgstr ""
+
+msgid "Aww!"
+msgstr ""
+
+msgid "Let's go!"
+msgstr ""
+
+msgid "Adopt a friend"
+msgstr ""
+
+msgid "You have %d"
+msgstr ""
+
+msgid "Owned %d/%d"
+msgstr ""
+
+msgid "Wearing"
+msgstr ""
+
+msgid "Owned"
+msgstr ""
+
+msgid "Locked: needs %s trust + %d followers"
+msgstr ""
+
+msgid "Unlocked!"
+msgstr ""
+
+msgid "Installed"
+msgstr ""
+
+msgid "Take off"
+msgstr ""
+
+msgid "Wear"
+msgstr ""
+
+msgid "The balcony door is open! Bubák will pop out when he feels like it.\nTap the door to go out yourself."
+msgstr ""
+
+msgid "%s is in the room now. Use Move to arrange it."
+msgstr ""
+
+msgid "Bought %s (x%d)!"
+msgstr ""
+
+msgid "Bought %s!"
+msgstr ""
+
+msgid "Goals completed: %d of %d"
+msgstr ""
+
+msgid "Claim"
+msgstr ""
+
+msgid "Goal reward: +%d coins!"
+msgstr ""
+
+msgid "Discovered %d of %d"
+msgstr ""
+
+msgid "Needs: a trick with 2 stars"
+msgstr ""
+
+msgid "Needs: a friend for Bubák"
+msgstr ""
+
+msgid "the balcony"
+msgstr ""
+
+msgid "Keep watching..."
+msgstr ""
+
+msgid "No photos yet. Tap Photo and catch Bubák doing something cute!"
+msgstr ""
+
+msgid "Bubák, a lilac-grey bunny with one perky ear and one floppy one."
+msgstr ""
+
+msgid "Personality: cheeky, curious, very food-motivated."
+msgstr ""
+
+msgid "Day %d together"
+msgstr ""
+
+msgid "Trust: %s (%d%%)"
+msgstr ""
+
+msgid "Followers: %d"
+msgstr ""
+
+msgid "Photos taken: %d"
+msgstr ""
+
+msgid "Treats given: %d"
+msgstr ""
+
+msgid "Cuddle sessions: %d"
+msgstr ""
+
+msgid "Work shifts: %d"
+msgstr ""
+
+msgid "Career: %s"
+msgstr ""
+
+msgid "Trick stars: %d of %d"
+msgstr ""
+
+msgid "Coat: %d%%"
+msgstr ""
+
+msgid "Ribbons: %d"
+msgstr ""
+
+msgid "Oops, missed him!"
+msgstr ""
+
+msgid "NEW!"
+msgstr ""
+
+msgid "Your followers have seen this one a lot lately."
+msgstr ""
+
+msgid "Nice!"
+msgstr ""
+
+msgid "Language"
+msgstr ""
+
+msgid "While the game is closed"
+msgstr ""
+
+msgid "Bubák keeps living: he eats from his bowls, uses the litter box and gets hungry."
+msgstr ""
+
+msgid "The game pauses: his needs, waits and timers stop until you come back."
+msgstr ""
+
+msgid "Life goes on"
+msgstr ""
+
+msgid "Time stops"
+msgstr ""
+
+msgid "Saved games"
+msgstr ""
+
+msgid "Save or load"
+msgstr ""
+
+msgid "Back to my game"
+msgstr ""
+
+msgid "Test play"
+msgstr ""
+
+msgid "A sandbox with everything unlocked and 10000 coins. Your real game stays safe."
+msgstr ""
+
+msgid "Settings"
+msgstr ""
+
+msgid "Name of the save"
+msgstr ""
+
+msgid "Bubák, day %d"
+msgstr ""
+
+msgid "Save"
+msgstr ""
+
+msgid "Give the save a name first."
+msgstr ""
+
+msgid "Overwrite?"
+msgstr ""
+
+msgid "Saved as \"%s\"."
+msgstr ""
+
+msgid "No saved games yet."
+msgstr ""
+
+msgid "Day %d  ·  %s  ·  %d coins  ·  %s"
+msgstr ""
+
+msgid "Load"
+msgstr ""
+
+msgid "Sure?"
+msgstr ""
+
+msgid "Loading replaces the game you're playing now. Save it first if you want to keep it."
+msgstr ""
+
+msgid "Delete"
+msgstr ""
+
+msgid "Start a new game"
+msgstr ""
+
+msgid "Sure? Unsaved progress is lost"
+msgstr ""
+
+msgid "Back to settings"
+msgstr ""
+
+msgid "Show club"
+msgstr ""
+
+msgid "No ribbons yet. Enter a show and bring one home!"
+msgstr ""
+
+msgid "Entry %d coins  ·  1st prize %d coins, %d followers"
+msgstr ""
+
+msgid "Win the %s %d times to enter."
+msgstr ""
+
+msgid "Bunny Show Club!"
+msgstr ""
+
+msgid "A flyer came through the door: the local Bunny Show Club is looking for new members!\n\nYou can now teach Bubák tricks. Tap Club to start training. The Shop has training gear on the new Club tab."
+msgstr ""
+
+msgid "Grooming"
+msgstr ""
+
+msgid "Bubák learned his first trick! Show bunnies need a glossy coat too.\n\nGet a Soft brush from the Shop (Club tab) and groom him in the Club. Clippers keep his nails neat."
+msgstr ""
+
+msgid "Show time!"
+msgstr ""
+
+msgid "Bubák knows his tricks and looks smart. He's ready for his first show!\n\nEnter the Neighbourhood show in the Club. Win ribbons, beat the rivals and work your way up to the National championship."
+msgstr ""
+
+msgid "Later"
+msgstr ""
+
+msgid "Bubák seems a little lonely..."
+msgstr ""
+
+msgid "Rabbits are happiest in pairs. The bunny rescue down the street has a few rabbits looking for a home.\n\nMaybe it's time to find Bubák a friend?"
+msgstr ""
+
+msgid "Visit the rescue"
+msgstr ""
+
+msgid "These rabbits are looking for a home. Tap one to meet them."
+msgstr ""
+
+msgid "Bunny rescue"
+msgstr ""
+
+msgid "Warms up to people quickly."
+msgstr ""
+
+msgid "Takes a while to trust people."
+msgstr ""
+
+msgid "Gets used to people at an easy pace."
+msgstr ""
+
+msgid "Adopt for %d"
+msgstr ""
+
+msgid "%s is home!\n\nBubák is curious, and a little unsure. Give them time: when both are happy they grow closer, and best friends snuggle together.\n\nThe newcomer has their own needs and trust, so look after both."
+msgstr ""
+
+msgid "Coffee break! Back to work in %d s. Go hang out with Bubák."
+msgstr ""
+
+msgid "Remote work"
+msgstr ""
+
+msgid "Not the ladybug!"
+msgstr ""
+
+msgid "%d more!"
+msgstr ""
+
+msgid "Nod"
+msgstr ""
+
+msgid "Unmute"
+msgstr ""
+
+msgid "Laugh"
+msgstr ""
+
+msgid "Wave"
+msgstr ""
+
+msgid "The meeting is starting..."
+msgstr ""
+
+msgid "Too slow!"
+msgstr ""
+
+msgid "\"Does everyone agree?\""
+msgstr ""
+
+msgid "\"Hello? You're on mute!\""
+msgstr ""
+
+msgid "The boss made a joke."
+msgstr ""
+
+msgid "\"Hi everyone!\""
+msgstr ""
+
+msgid "\"Bye, see you tomorrow!\""
+msgstr ""
+
+msgid "Awkward..."
+msgstr ""
+
+msgid "Colleagues love Bubák!"
+msgstr ""
+
+msgid "aww, a paw!"
+msgstr ""
+
+msgid "That was spam!"
+msgstr ""
+
+msgid "Board cleared!"
+msgstr ""
+
+msgid "Whoops!"
+msgstr ""
+
+msgid "Perfect!"
+msgstr ""
+
+msgid "New pallet!"
+msgstr ""
+
+msgid "No bunny came this time. The treat went back in the bag."
+msgstr ""
+
+msgid "A new charger arrived. Keep an eye on Bubák!"
+msgstr ""
+
+msgid "The balcony"
+msgstr ""
+
+msgid "The living room"
+msgstr ""
+
+msgid "%s hopped out onto the balcony. Tap the door to follow."
+msgstr ""
+
+msgid "%s is back inside."
+msgstr ""
+
+msgid "The whole branch is eaten! Time for a fresh one."
+msgstr ""
+
+msgid "The bowl is full."
+msgstr ""
+
+msgid "+ pellets"
+msgstr ""
+
+msgid "Out of pellets! Buy more in the shop."
+msgstr ""
+
+msgid "Plenty of hay in there already."
+msgstr ""
+
+msgid "+ hay"
+msgstr ""
+
+msgid "Out of hay! Bunnies need lots of it. Visit the shop."
+msgstr ""
+
+msgid "fresh water!"
+msgstr ""
+
+msgid "Already spotless."
+msgstr ""
+
+msgid "sparkly clean!"
+msgstr ""
+
+msgid "Almost! Make the balcony bunny-safe first: Balcony netting is in the Shop (Home)."
+msgstr ""
+
+msgid "The balcony door is locked. It opens once Bubák trusts you (%s) and he has %d followers.\nNow: %s, %d followers."
+msgstr ""
+
+msgid "Parsley and dandelions. They grow back... if a certain bunny lets them."
+msgstr ""
+
+msgid "Nibbled down to stubs. They'll grow back in a while."
+msgstr ""
+
+msgid "Safe and sound under its cover."
+msgstr ""
+
+msgid "Chewed through... A cable cover from the shop would prevent this."
+msgstr ""
+
+msgid "Bubák eyes this cable a little too often..."
+msgstr ""
+
+msgid "Comfy. Bubák is not allowed up here. (He disagrees.)"
+msgstr ""
+
+msgid "You find a hay stalk between the cushions. How?"
+msgstr ""
+
+msgid "The sofa has suspicious nibble marks on one leg."
+msgstr ""
+
+msgid "Bubák isn't here. He's %s."
+msgstr ""
+
+msgid "out on the balcony"
+msgstr ""
+
+msgid "inside"
+msgstr ""
+
+msgid "You're out of those."
+msgstr ""
+
+msgid "Uh oh! %s is nibbling the laptop cable! Tap to stop it."
+msgstr ""
+
+msgid "Judges' table"
+msgstr ""
+
+msgid "Reward!"
+msgstr ""
+
+msgid "Welcome to the %s! Today's category: %s."
+msgstr ""
+
+msgid "Glossy coat! The judge nods."
+msgstr ""
+
+msgid "A decent coat."
+msgstr ""
+
+msgid "Scruffy fur... the judge frowns."
+msgstr ""
+
+msgid "Neat nails."
+msgstr ""
+
+msgid "Those nails are a bit long."
+msgstr ""
+
+msgid "What a lovely %s!"
+msgstr ""
+
+msgid "No outfit today."
+msgstr ""
+
+msgid "He sits calmly for the judge."
+msgstr ""
+
+msgid "A little fidgety."
+msgstr ""
+
+msgid "He tries to hide behind you!"
+msgstr ""
+
+msgid "The judges study your photo..."
+msgstr ""
+
+msgid "The judge asks for: %s!"
+msgstr ""
+
+msgid "Perfect! The crowd goes \"aww\"."
+msgstr ""
+
+msgid "He did it! The reward came a little late."
+msgstr ""
+
+msgid "He did it! But you forgot to reward him."
+msgstr ""
+
+msgid "Oops! Rewarding a mistake... the judge makes a note."
+msgstr ""
+
+msgid "He got distracted. Happens to the best of us."
+msgstr ""
+
+msgid "The judges add up the scores..."
+msgstr ""
+
+msgid "1st place! Bubák wins the %s!"
+msgstr ""
+
+msgid "%s place! A ribbon for Bubák."
+msgstr ""
+
+msgid "4th place. No ribbon this time."
+msgstr ""
+
+msgid "+%d coins, +%d followers"
+msgstr ""
+
+msgid "Tip: brush him, trim his nails and dress him up."
+msgstr ""
+
+msgid "Tip: practise to earn more stars, and reward him right on time."
+msgstr ""
+
+msgid "Tip: photos of rare moments get the most likes."
+msgstr ""
+
+msgid "The %s is now open to Bubák!"
+msgstr ""
+
+msgid "Continue"
+msgstr ""
+
+msgid "Focus"
+msgstr ""
+
+msgid "Pick a trick to practise."
+msgstr ""
+
+msgid "Pick a trick. The moment Bubák does it, tap Reward! Don't reward him if he gets distracted."
+msgstr ""
+
+msgid "Practise"
+msgstr ""
+
+msgid "Teach"
+msgstr ""
+
+msgid "Bubák has had enough training for now. Let him rest a bit."
+msgstr ""
+
+msgid "\"Bubák... %s!\""
+msgstr ""
+
+msgid "Perfect timing! He's getting it."
+msgstr ""
+
+msgid "A bit off. He's not sure what the treat was for."
+msgstr ""
+
+msgid "He did it, but you missed the moment to reward him."
+msgstr ""
+
+msgid "Oops! That rewarded him for getting distracted."
+msgstr ""
+
+msgid "Right call: no treat for getting distracted."
+msgstr ""
+
+msgid "%s: %d of 3 stars!"
+msgstr ""
+
+msgid "Bubák has mastered %s!"
+msgstr ""
+
+msgid "+1 in %s"
+msgstr ""
+
+msgid "Next promotion: %d/%d XP"
+msgstr ""
+
+msgid "Pay: x%.2f"
+msgstr ""
+
+msgid "Unlocks at: %s"
+msgstr ""
+
+msgid "Boss's pick today: double XP!"
+msgstr ""
+
+msgid "Best: %d points"
+msgstr ""
+
+msgid "Ready..."
+msgstr ""
+
+msgid "Go!"
+msgstr ""
+
+msgid "Nice streak! x%d"
+msgstr ""
+
+msgid "On fire! x%d"
+msgstr ""
+
+msgid "Unstoppable! x%d"
+msgstr ""
+
+msgid "Streak lost"
+msgstr ""
+
+msgid "Points: %d     Streak: %d"
+msgstr ""
+
+msgid "Final rush! Double points!"
+msgstr ""
+
+msgid "Shift over!"
+msgstr ""
+
+msgid "Keep practising!"
+msgstr ""
+
+msgid "Good shift!"
+msgstr ""
+
+msgid "Great shift!"
+msgstr ""
+
+msgid "Outstanding!"
+msgstr ""
+
+msgid "%d points  ·  best streak %d"
+msgstr ""
+
+msgid "New personal best!"
+msgstr ""
+
+msgid "You earned %d coins."
+msgstr ""
+
+msgid "(+%d%% for stars)"
+msgstr ""
+
+msgid "+%d XP (boss's pick: doubled!)"
+msgstr ""
+
+msgid "+%d XP"
+msgstr ""
+
+msgid "Back to Bubák"
+msgstr ""
+
+msgid "PROMOTION! You're now: %s"
+msgstr ""
+
+msgid "Promotion bonus: %d coins"
+msgstr ""
+
+msgid "New job unlocked: %s"
+msgstr ""
+
+msgid "New in the shop: %s"
+msgstr ""
+
+msgid "Goals"
+msgstr ""
+
+msgid "Behaviours"
+msgstr ""
+
+msgid "Photos"
+msgstr ""
+
+msgid "Bubák"
+msgstr ""
+
+msgid "Training"
+msgstr ""
+
+msgid "Shows"
+msgstr ""
+
+msgid "Trophies"
+msgstr ""
+
+msgid "1st"
+msgstr ""
+
+msgid "2nd"
+msgstr ""
+
+msgid "3rd"
+msgstr ""
+
+msgid "4th"
+msgstr ""
+
+msgid "ate %d bowl of pellets"
+msgid_plural "ate %d bowls of pellets"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "used the litter box %d time"
+msgid_plural "used the litter box %d times"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "%d new behaviour to discover. Keep watching!"
+msgid_plural "%d new behaviours to discover. Keep watching!"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "%d like"
+msgid_plural "%d likes"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "+%d follower"
+msgid_plural "+%d followers"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "%d save"
+msgid_plural "%d saves"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "%d like! The judges are charmed."
+msgid_plural "%d likes! The judges are charmed."
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "%d like. Sweet, but they've seen cuter."
+msgid_plural "%d likes. Sweet, but they've seen cuter."
+msgstr[0] ""
+msgstr[1] ""

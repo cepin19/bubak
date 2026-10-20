@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="150" height="70" viewBox="0 0 150 70">
+<defs><linearGradient id="sd8ad80" x1="0" y1="0" x2="0.25" y2="1"><stop offset="0" stop-color="#e1bf9c"/><stop offset="0.5" stop-color="#d8ad80"/><stop offset="1" stop-color="#be9871"/></linearGradient><linearGradient id="sb8875a" x1="0" y1="0" x2="0.25" y2="1"><stop offset="0" stop-color="#c8a17e"/><stop offset="0.5" stop-color="#b8875a"/><stop offset="1" stop-color="#a2774f"/></linearGradient><linearGradient id="se9a3a0" x1="0" y1="0" x2="0.25" y2="1"><stop offset="0" stop-color="#eeb7b5"/><stop offset="0.5" stop-color="#e9a3a0"/><stop offset="1" stop-color="#cd8f8d"/></linearGradient></defs>
+<rect x="6" y="30" width="138" height="34" rx="10" fill="url(#sd8ad80)" stroke="#4f3d33" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="30" cy="38" rx="13" ry="7" fill="url(#sb8875a)" stroke="#4f3d33" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="62" cy="38" rx="13" ry="7" fill="url(#sb8875a)" stroke="#4f3d33" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M49,34 a13,13 0 0 1 26,0 z" fill="url(#se9a3a0)" stroke="#4f3d33" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="94" cy="38" rx="13" ry="7" fill="url(#sb8875a)" stroke="#4f3d33" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="126" cy="38" rx="13" ry="7" fill="url(#sb8875a)" stroke="#4f3d33" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M113,34 a13,13 0 0 1 26,0 z" fill="url(#se9a3a0)" stroke="#4f3d33" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+</svg>

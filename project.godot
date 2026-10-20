@@ -1,0 +1,54 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="Bubák"
+config/description="Look after Bubák, a mischievous bunny living in your apartment."
+run/main_scene="res://scenes/main.tscn"
+config/features=PackedStringArray("4.5", "GL Compatibility")
+config/icon="res://assets/art/icon.svg"
+config/quit_on_go_back=false
+
+[autoload]
+
+Catalog="*res://scripts/catalog.gd"
+Game="*res://scripts/game_state.gd"
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/handheld/orientation=4
+
+[gui]
+
+theme/custom_font="res://assets/fonts/Fredoka.ttf"
+
+[importer_defaults]
+
+texture={
+"mipmaps/generate": true,
+"svg/scale": 2.0
+}
+
+[internationalization]
+
+locale/translations=PackedStringArray("res://locale/cs.po")
+locale/fallback="en"
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/vram_compression/import_etc2_astc=true
+textures/canvas_textures/default_texture_filter=3

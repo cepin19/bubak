@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100" height="114" viewBox="0 0 100 114">
+<defs><linearGradient id="se9a3a0" x1="0" y1="0" x2="0.25" y2="1"><stop offset="0" stop-color="#eeb7b5"/><stop offset="0.5" stop-color="#e9a3a0"/><stop offset="1" stop-color="#cd8f8d"/></linearGradient><linearGradient id="sf6dc6e" x1="0" y1="0" x2="0.25" y2="1"><stop offset="0" stop-color="#f8e48e"/><stop offset="0.5" stop-color="#f6dc6e"/><stop offset="1" stop-color="#d8c261"/></linearGradient><linearGradient id="sd8a7d0" x1="0" y1="0" x2="0.25" y2="1"><stop offset="0" stop-color="#e1bada"/><stop offset="0.5" stop-color="#d8a7d0"/><stop offset="1" stop-color="#be93b7"/></linearGradient><linearGradient id="sa7c0e8" x1="0" y1="0" x2="0.25" y2="1"><stop offset="0" stop-color="#baceed"/><stop offset="0.5" stop-color="#a7c0e8"/><stop offset="1" stop-color="#93a9cc"/></linearGradient><linearGradient id="s9cc5a1" x1="0" y1="0" x2="0.25" y2="1"><stop offset="0" stop-color="#b2d2b6"/><stop offset="0.5" stop-color="#9cc5a1"/><stop offset="1" stop-color="#89ad8e"/></linearGradient></defs>
+<path d="M30,30 Q50,60 50,70" stroke="#5f9d62" stroke-width="4" fill="none"/>
+<circle cx="38.0" cy="30.0" r="6" fill="url(#se9a3a0)" stroke="#4f3d33" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="32.5" cy="37.6" r="6" fill="url(#se9a3a0)" stroke="#4f3d33" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="23.5" cy="34.7" r="6" fill="url(#se9a3a0)" stroke="#4f3d33" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="23.5" cy="25.3" r="6" fill="url(#se9a3a0)" stroke="#4f3d33" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="32.5" cy="22.4" r="6" fill="url(#se9a3a0)" stroke="#4f3d33" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="30" cy="30" r="4" fill="#fff4cf"/>
+<path d="M52,18 Q50,60 50,70" stroke="#5f9d62" stroke-width="4" fill="none"/>
+<circle cx="60.0" cy="18.0" r="6" fill="url(#sf6dc6e)" stroke="#4f3d33" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="54.5" cy="25.6" r="6" fill="url(#sf6dc6e)" stroke="#4f3d33" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="45.5" cy="22.7" r="6" fill="url(#sf6dc6e)" stroke="#4f3d33" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="45.5" cy="13.3" r="6" fill="url(#sf6dc6e)" stroke="#4f3d33" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="54.5" cy="10.4" r="6" fill="url(#sf6dc6e)" stroke="#4f3d33" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="52" cy="18" r="4" fill="#fff4cf"/>
+<path d="M72,32 Q50,60 50,70" stroke="#5f9d62" stroke-width="4" fill="none"/>
+<circle cx="80.0" cy="32.0" r="6" fill="url(#sd8a7d0)" stroke="#4f3d33" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="74.5" cy="39.6" r="6" fill="url(#sd8a7d0)" stroke="#4f3d33" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="65.5" cy="36.7" r="6" fill="url(#sd8a7d0)" stroke="#4f3d33" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="65.5" cy="27.3" r="6" fill="url(#sd8a7d0)" stroke="#4f3d33" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="74.5" cy="24.4" r="6" fill="url(#sd8a7d0)" stroke="#4f3d33" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="72" cy="32" r="4" fill="#fff4cf"/>
+<path d="M44,44 Q50,60 50,70" stroke="#5f9d62" stroke-width="4" fill="none"/>
+<circle cx="52.0" cy="44.0" r="6" fill="url(#sa7c0e8)" stroke="#4f3d33" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="46.5" cy="51.6" r="6" fill="url(#sa7c0e8)" stroke="#4f3d33" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="37.5" cy="48.7" r="6" fill="url(#sa7c0e8)" stroke="#4f3d33" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="37.5" cy="39.3" r="6" fill="url(#sa7c0e8)" stroke="#4f3d33" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="46.5" cy="36.4" r="6" fill="url(#sa7c0e8)" stroke="#4f3d33" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="44" cy="44" r="4" fill="#fff4cf"/>
+<path d="M24,70 h52 l-8,40 h-36z" fill="url(#s9cc5a1)" stroke="#4f3d33" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+</svg>
