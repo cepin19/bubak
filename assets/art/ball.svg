@@ -1,9 +1,3 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="68" height="66" viewBox="0 0 68 66">
-<defs><linearGradient id="se6cf7a" x1="0" y1="0" x2="0.25" y2="1"><stop offset="0" stop-color="#ecda97"/><stop offset="0.5" stop-color="#e6cf7a"/><stop offset="1" stop-color="#cab66b"/></linearGradient></defs>
-<circle cx="34" cy="34" r="28" fill="url(#se6cf7a)" stroke="#4f3d33" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
-<ellipse cx="34" cy="34" rx="28" ry="10" transform="rotate(0 34 34)" fill="none" stroke="#b8935a" stroke-width="3"/>
-<ellipse cx="34" cy="34" rx="28" ry="10" transform="rotate(45 34 34)" fill="none" stroke="#b8935a" stroke-width="3"/>
-<ellipse cx="34" cy="34" rx="28" ry="10" transform="rotate(90 34 34)" fill="none" stroke="#b8935a" stroke-width="3"/>
-<ellipse cx="34" cy="34" rx="28" ry="10" transform="rotate(135 34 34)" fill="none" stroke="#b8935a" stroke-width="3"/>
-<circle cx="34" cy="34" r="28" fill="none" stroke="#4f3d33" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+<clipPath id="rb343428"><circle cx="34" cy="34" r="28"/></clipPath><circle cx="34" cy="34" r="28" fill="#7cc96a"/><g clip-path="url(#rb343428)"><g transform="translate(34,34) rotate(-28)"><path d="M-32,-25.4 Q0,-22.6 32,-25.4" fill="none" stroke="#e8505b" stroke-width="9.5"/><path d="M-32,-20.2 Q0,-11.8 32,-20.2" fill="none" stroke="#f39a3d" stroke-width="9.5"/><path d="M-32,-15.0 Q0,-1.0 32,-15.0" fill="none" stroke="#f6d84a" stroke-width="9.5"/><path d="M-32,-9.8 Q0,9.8 32,-9.8" fill="none" stroke="#7cc96a" stroke-width="9.5"/><path d="M-32,1.0 Q0,15.0 32,1.0" fill="none" stroke="#4fa3e0" stroke-width="9.5"/><path d="M-32,11.8 Q0,20.2 32,11.8" fill="none" stroke="#8a6fd6" stroke-width="9.5"/><path d="M-32,22.6 Q0,25.4 32,22.6" fill="none" stroke="#e872b8" stroke-width="9.5"/></g><circle cx="41.0" cy="42.4" r="28" fill="#3b2a4a" opacity="0.12"/></g><ellipse cx="23.36" cy="22.240000000000002" rx="6.72" ry="3.9200000000000004" transform="rotate(-35 23.36 22.240000000000002)" fill="#fff" opacity="0.75"/><circle cx="34" cy="34" r="28" fill="none" stroke="#4f3d33" stroke-width="4"/>
 </svg>

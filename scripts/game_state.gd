@@ -6,6 +6,7 @@ signal toast(text: String)
 signal trust_level_up(level: int)
 signal discovered(behaviour: String)
 signal item_added(entry: Dictionary)
+signal item_removed(uid: int)   # put away in the toy chest
 signal balcony_milestone
 signal goal_completed(id: String)
 signal sponsor_paid(amount: int, streak: int)
@@ -63,21 +64,28 @@ var droppings: Array = []    # [[x, y], ...]
 var cable := "ok"        # ok / chewed / covered
 var balcony := "locked"  # locked / available (milestone reached) / open
 var herbs := 100.0       # herbs in the balcony planter, regrow over time
+var grass := 100.0       # wheatgrass in the balcony tray
+var seeds := 0.0         # bird seed in the feeder, 0..100
+var watered := {}        # "herbs" / "grass" -> unix time the watering wears off (grows 3x faster till then)
 var placed: Array = []   # [{uid, id, x, y}, ...]
+var stored: Array = []   # put away in the toy chest: [{uid, id, (bites)}, ...]
 var next_uid := 1
 var seen := {}           # behaviour -> unix time first seen
 var photos: Array = []   # [{file, behaviour, likes, coins, time}, ...]
 var photo_recent := {}   # behaviour -> unix time last photographed
+var feed := 1.0           # followers' attention (0-1) at feed_time; see feed_attention()
+var feed_time := 0.0
 var work_ready_at := 0.0
 var stats := {"pets": 0, "treats": 0, "photos": 0, "work": 0}
 var created_at := 0.0
 var welcome_text := ""
 var life_goes_on := true   # setting: does time pass for Bubák while the game is closed?
+var fast_game := false     # setting: the original quick pace (see Catalog.FAST_*)
 var _paused_at := 0.0
 var language := "en"
 var upgrades := {"bowl": 1, "water": 1, "hayrack": 1, "litter": 1, "chair": 0, "monitor": 0, "coffee": 0, "headphones": 0}
 var wardrobe: Array = []     # accessories owned
-var wearing := ""            # accessory Bubák has on
+var wearing := {}            # place (Catalog.WEAR_PLACES) -> accessory Bubák has on
 var career_xp := 0
 var job_best := {}   # job id -> {"score": best points, "stars": best stars}
 var goals_claimed: Array = []
@@ -148,7 +156,8 @@ func _process(delta: float) -> void:
 		p.tick(delta, clean, cozy)
 	if mate and bubak.mood(cozy) > 50 and mate.mood(cozy) > 50:
 		bond = minf(100, bond + 0.5 * m)   # about 3 hours of contented living to bond fully
-	herbs = minf(100, herbs + 4.0 * m)
+	herbs = minf(100, herbs + 4.0 * m * _growth("herbs"))
+	grass = minf(100, grass + 2.5 * m * _growth("grass"))
 	if balcony == "locked" and trust_level() >= Catalog.BALCONY_TRUST and followers >= Catalog.BALCONY_FOLLOWERS:
 		balcony = "available"
 		balcony_milestone.emit()
@@ -224,12 +233,124 @@ func has_item(id: String) -> bool:
 	return false
 
 
-func count_item(id: String) -> int:
+# ---- balcony garden -----------------------------------------------------------
+
+func _growth(what: String) -> float:
+	return 3.0 if watered.get(what, 0.0) > Time.get_unix_time_from_system() else 1.0
+
+
+func is_watered(what: String) -> bool:
+	return _growth(what) > 1.0
+
+
+## Waters the planter or the grass tray: it grows back three times as fast for 15 minutes.
+func water_plant(what: String) -> void:
+	watered[what] = Time.get_unix_time_from_system() + 15 * 60
+	save_game()
+
+
+## Picks herbs from the planter for treats. Returns what was picked, or {} if there wasn't enough.
+func harvest_herbs() -> Dictionary:
+	if herbs < 60:
+		return {}
+	var got := {"parsley": 2}
+	if herbs >= 95:
+		got.dandelion = 1   # a full planter has a dandelion or two in it too
+	herbs -= 45
+	for id in got:
+		inventory[id] = inventory.get(id, 0) + got[id]
+	stats.harvests = stats.get("harvests", 0) + 1
+	save_game()
+	changed.emit()
+	return got
+
+
+func fill_feeder() -> void:
+	seeds = 100.0
+	save_game()
+
+
+## How many balcony-only things are set up out there.
+func outdoor_count() -> int:
 	var n := 0
 	for e in placed:
+		if Catalog.ITEMS[e.id].get("outdoor", false):
+			n += 1
+	return n
+
+
+## Owned, whether out in the flat or in the toy chest.
+func count_item(id: String) -> int:
+	var n := 0
+	for e in placed + stored:
 		if e.id == id:
 			n += 1
 	return n
+
+
+# ---- toy chest and clutter -------------------------------------------------------
+
+## How much floor space the things in a room take up.
+func room_clutter(room: String) -> int:
+	var n := 0
+	for e in placed:
+		if room_at(Vector2(e.x, e.y)) == room:
+			n += Catalog.ITEMS[e.id].get("space", 1)
+	return n
+
+
+func room_space(room: String) -> int:
+	return Catalog.ROOM_SPACE.get(room, 16)
+
+
+## Space units over the limit in a room (0 = tidy enough).
+func clutter_over(room: String) -> int:
+	return maxi(0, room_clutter(room) - room_space(room))
+
+
+## Cozy points lost to clutter, all rooms together.
+func clutter_penalty() -> int:
+	return Catalog.CLUTTER_COZY * (clutter_over("living") + clutter_over("balcony"))
+
+
+func _clutter_warning(room: String) -> void:
+	if clutter_over(room) > 0:
+		toast.emit(tr("It's getting cluttered in here! Too much stuff makes it less cozy (-%d). Put a few things away in the toy chest.") % (Catalog.CLUTTER_COZY * clutter_over(room)))
+
+
+func put_away(uid: int) -> bool:
+	for e in placed:
+		if e.uid == uid:
+			placed.erase(e)
+			var keep := {"uid": e.uid, "id": e.id}
+			if e.has("bites"):
+				keep.bites = e.bites
+			stored.append(keep)
+			_recount_cozy()
+			save_game()
+			item_removed.emit(uid)
+			changed.emit()
+			return true
+	return false
+
+
+func take_out(uid: int, room := "living") -> bool:
+	for e in stored:
+		if e.uid == uid:
+			if Catalog.ITEMS[e.id].get("outdoor", false):
+				room = "balcony"
+			stored.erase(e)
+			var spot := _free_spot(room)
+			e.x = spot.x
+			e.y = spot.y
+			placed.append(e)
+			_recount_cozy()
+			save_game()
+			item_added.emit(e)
+			changed.emit()
+			_clutter_warning(room)
+			return true
+	return false
 
 
 func treats_in_inventory() -> Array:
@@ -259,7 +380,7 @@ func _recount_cozy() -> void:
 	if balcony == "open":
 		pts += 3
 	pts += mini(trophies.size(), 8)   # rosettes on the shelf
-	_cozy_points = pts
+	_cozy_points = maxi(0, pts - clutter_penalty())
 
 
 func cozy_points() -> int:
@@ -364,9 +485,12 @@ func goal_value(g: Dictionary) -> int:
 		"cozy": return cozy_level()
 		"upgrades": return upgrades_count()
 		"wardrobe": return wardrobe.size()
+		"outfit": return wearing.size()
 		"career": return career_level()
 		"jobstars": return job_best.values().filter(func(b): return int(b.stars) >= 3).size()
 		"balcony": return 1 if balcony == "open" else 0
+		"outdoor": return outdoor_count()
+		"harvests": return stats.get("harvests", 0)
 		"stars": return trick_stars_total()
 		"mate": return 1 if mate else 0
 		"bond": return int(bond)
@@ -434,6 +558,8 @@ func lock_reason(id: String) -> String:
 		return tr("Unlocks later in the show club")
 	if test_mode:
 		return ""
+	if item.get("outdoor", false) and balcony != "open":
+		return tr("For the balcony, once it's open")
 	if cozy_level() < item.get("req_cozy", 0):
 		return tr("Needs Cozy level %d") % item.req_cozy
 	if career_level() < item.get("req_career", 0):
@@ -460,12 +586,14 @@ func buy(id: String, room := "living") -> String:
 	match item.kind:
 		"wear":
 			wardrobe.append(id)
-			wearing = id
+			wearing[item.place] = id   # straight on
 		"gear":
 			gear.append(id)
 		"food", "hay", "treat":
 			inventory[id] = inventory.get(id, 0) + item.get("qty", 1)
 		"toy", "decor":
+			if item.get("outdoor", false):
+				room = "balcony"
 			if count_item(id) >= item.get("max", 1):
 				return tr("You already have enough of those.")
 			var spot := _free_spot(room)
@@ -475,6 +603,7 @@ func buy(id: String, room := "living") -> String:
 			next_uid += 1
 			placed.append(entry)
 			item_added.emit(entry)
+			_clutter_warning.call_deferred(room)   # after the purchase toast
 		"upgrade":
 			if id == "cable_cover":
 				if cable == "covered":
@@ -497,7 +626,7 @@ func buy(id: String, room := "living") -> String:
 func _free_spot(room: String) -> Vector2:
 	var f := floor_of(room)
 	var ox := BALCONY_X if room == "balcony" else 0.0
-	var taken: Array = [Vector2(420, 470), Vector2(1110, 470), Vector2(710, 470), Vector2(95, 470)]
+	var taken: Array = [Vector2(420, 470), Vector2(1110, 470), Vector2(1040, 490), Vector2(95, 470), Vector2(905, 484)]
 	if room == "balcony":
 		taken = [Vector2(ox + 300, 520), Vector2(ox + 1150, 470), Vector2(ox + 640, 600)]
 	for e in placed:
@@ -529,11 +658,18 @@ func use_inventory(id: String) -> bool:
 ## Scores a photo of `behaviour`, records it and pays out.
 func record_photo(file: String, behaviour: String, decor_nearby: int) -> Dictionary:
 	var now := Time.get_unix_time_from_system()
+	if behaviour == "":   # missed him: nothing worth posting
+		var miss := {"file": file, "behaviour": "", "likes": 0, "coins": 0, "time": now}
+		photos.append(miss)
+		stats.photos += 1
+		save_game()
+		changed.emit()
+		return miss.merged({"new": false, "stale": false, "followers": 0, "lost": 0, "attention": feed_attention()})
+	var attention := feed_attention()
 	var info: Dictionary = Catalog.BEHAVIOURS.get(behaviour, {"likes": 3})
 	var likes: float = info.likes * randf_range(0.85, 1.2)
 	likes *= 1.0 + 0.15 * mini(decor_nearby, 3)
-	if wearing != "":
-		likes *= 1.2
+	likes *= 1.0 + 0.1 * wearing.size()   # every accessory helps a little
 	likes *= minf(1.0 + followers / 400.0, 4.0)
 	var is_new := behaviour != "" and not photo_recent.has(behaviour)
 	var stale := not is_new and behaviour != "" and now - float(photo_recent[behaviour]) < 600
@@ -541,19 +677,32 @@ func record_photo(file: String, behaviour: String, decor_nearby: int) -> Diction
 		likes *= 1.8
 	elif stale:
 		likes *= 0.35
-	if behaviour != "":
-		photo_recent[behaviour] = now
+	photo_recent[behaviour] = now
+	likes *= 0.15 + 0.85 * attention   # a crowded feed gets scrolled past
+	feed = maxf(0.0, attention - Catalog.FEED_COST)
+	feed_time = now
 	var l := int(round(likes))
 	var gained_coins := maxi(1, int(round(l / 5.0)))
 	var gained_followers := int(l / 6.0 * (1.0 + 0.05 * (cozy_level() - 1)))
+	var lost := 0
+	if attention < Catalog.FEED_FLOODED and not test_mode:
+		gained_followers = 0
+		lost = mini(followers, maxi(1, int(followers * Catalog.FEED_UNFOLLOW * (1.5 if stale else 1.0))))
 	coins += gained_coins
-	followers += gained_followers
+	followers += gained_followers - lost
 	stats.photos += 1
 	var entry := {"file": file, "behaviour": behaviour, "likes": l, "coins": gained_coins, "time": now}
 	photos.append(entry)
 	save_game()
 	changed.emit()
-	return entry.merged({"new": is_new, "stale": stale, "followers": gained_followers})
+	return entry.merged({"new": is_new, "stale": stale, "followers": gained_followers, "lost": lost, "attention": attention})
+
+
+## Followers' attention right now (0-1): used up by posting, comes back over time.
+func feed_attention() -> float:
+	if test_mode:
+		return 1.0
+	return clampf(feed + (Time.get_unix_time_from_system() - feed_time) / Catalog.FEED_REFILL, 0.0, 1.0)
 
 
 # ---- show club -----------------------------------------------------------------
@@ -670,8 +819,41 @@ func condition() -> float:
 	return coat * 0.55 + (100.0 - nails) * 0.2 + mood() * 0.25
 
 
+## Best in Show's style mark: 20 with nothing on, about 98 in the fanciest full outfit.
 func style_score() -> float:
-	return {"": 20.0, "bow": 55.0, "glasses": 65.0, "crown": 80.0, "tophat": 95.0}.get(wearing, 40.0)
+	var s := 0.0
+	for id in wearing.values():
+		s += Catalog.ITEMS[id].style
+	return minf(100.0, 20.0 + 0.4 * s)
+
+
+## What he has on, in drawing order (neck first, hat last).
+func outfit() -> Array:
+	var out := []
+	for place in Catalog.WEAR_PLACES:
+		if wearing.has(place):
+			out.append(wearing[place])
+	return out
+
+
+## Puts an owned accessory on (replacing whatever was in its place), or takes it off.
+func toggle_wear(id: String) -> void:
+	var place: String = Catalog.ITEMS[id].place
+	if wearing.get(place, "") == id:
+		wearing.erase(place)
+	elif id in wardrobe:
+		wearing[place] = id
+	save_game()
+	changed.emit()
+
+
+## His fanciest accessory (for the judges' comments), or "".
+func best_accessory() -> String:
+	var best := ""
+	for id in wearing.values():
+		if best == "" or Catalog.ITEMS[id].style > Catalog.ITEMS[best].style:
+			best = id
+	return best
 
 
 func wins_at(t: int) -> int:
@@ -781,7 +963,7 @@ func _set_mate(p: Pet) -> void:
 
 ## Late in the game Bubák gets lonely: the rescue's hutch opens.
 func _check_mate() -> void:
-	if mate_stage == 0 and trust_level() >= Catalog.MATE_TRUST and cozy_level() >= Catalog.MATE_COZY:
+	if mate_stage == 0 and trust_level() >= Catalog.mate_trust() and cozy_level() >= Catalog.mate_cozy():
 		mate_stage = 1
 		save_game()
 		mate_unlocked.emit()
@@ -790,7 +972,7 @@ func _check_mate() -> void:
 ## Why this rabbit can't be adopted ("" if it can).
 func adopt_problem(id: String) -> String:
 	if mate_stage == 0:
-		return tr("Needs Bubák at trust %s and Cozy level %d") % [Catalog.level_name(Catalog.MATE_TRUST), Catalog.MATE_COZY]
+		return tr("Needs Bubák at trust %s and Cozy level %d") % [Catalog.level_name(Catalog.mate_trust()), Catalog.mate_cozy()]
 	if mate != null:
 		return tr("Bubák already has a friend.")
 	if coins < Catalog.MATES[id].price:
@@ -822,10 +1004,24 @@ func _load_settings() -> void:
 	if cfg.load(SETTINGS_PATH) == OK:
 		language = cfg.get_value("general", "language", "en")
 		life_goes_on = cfg.get_value("general", "life_goes_on", true)
+		fast_game = cfg.get_value("general", "fast_game", false)
 	else:
 		# First launch: follow the phone / OS language.
 		language = "cs" if OS.get_locale_language() in ["cs", "sk"] else "en"
 	TranslationServer.set_locale(language)
+
+
+func set_fast_game(on: bool) -> void:
+	fast_game = on
+	var cfg := ConfigFile.new()
+	cfg.load(SETTINGS_PATH)
+	cfg.set_value("general", "fast_game", on)
+	cfg.save(SETTINGS_PATH)
+	bubak.settle_level()
+	if mate:
+		mate.settle_level()
+	_check_mate()
+	changed.emit()
 
 
 func set_life_goes_on(on: bool) -> void:
@@ -852,10 +1048,10 @@ func to_dict() -> Dictionary:
 		"version": 1, "coins": coins, "followers": followers, "needs": needs, "energy": energy,
 		"bladder": bladder, "sugar": sugar, "trust": trust, "inventory": inventory, "bowl": bowl,
 		"hay": hay, "water": water, "litter": litter, "droppings": droppings, "cable": cable,
-		"balcony": balcony, "herbs": herbs, "upgrades": upgrades, "wardrobe": wardrobe,
+		"balcony": balcony, "herbs": herbs, "grass": grass, "seeds": seeds, "watered": watered, "upgrades": upgrades, "wardrobe": wardrobe,
 		"wearing": wearing, "career_xp": career_xp, "job_best": job_best, "goals_claimed": goals_claimed,
-		"sponsor_day": sponsor_day, "sponsor_streak": sponsor_streak, "placed": placed, "next_uid": next_uid, "seen": seen, "photos": photos,
-		"photo_recent": photo_recent, "work_ready_at": work_ready_at, "stats": stats,
+		"sponsor_day": sponsor_day, "sponsor_streak": sponsor_streak, "placed": placed, "stored": stored, "next_uid": next_uid, "seen": seen, "photos": photos,
+		"photo_recent": photo_recent, "feed": feed, "feed_time": feed_time, "work_ready_at": work_ready_at, "stats": stats,
 		"club_stage": club_stage, "gear": gear, "tricks": tricks, "focus": focus, "coat": coat, "nails": nails,
 		"fur": fur, "groom_start": groom_start, "trophies": trophies, "show_ready_at": show_ready_at,
 		"mate_stage": mate_stage, "mate": mate.to_dict() if mate else {}, "bond": bond, "test_mode": test_mode,
@@ -910,11 +1106,21 @@ func _apply(data: Dictionary) -> void:
 	cable = d.cable
 	balcony = d.balcony
 	herbs = float(d.herbs)
+	grass = float(d.grass)
+	seeds = float(d.seeds)
+	watered = d.watered.duplicate()
 	upgrades = _defaults.upgrades.duplicate()
 	for k in d.upgrades:
 		upgrades[k] = int(d.upgrades[k])
 	wardrobe = d.wardrobe
-	wearing = d.wearing
+	wearing = {}
+	if typeof(d.wearing) == TYPE_STRING:   # older saves: one accessory
+		if d.wearing != "" and Catalog.ITEMS.has(d.wearing):
+			wearing[Catalog.ITEMS[d.wearing].place] = d.wearing
+	else:
+		for place in d.wearing:
+			if d.wearing[place] in wardrobe:
+				wearing[place] = d.wearing[place]
 	career_xp = int(d.career_xp)
 	job_best = d.get("job_best", {}).duplicate(true)
 	goals_claimed = d.goals_claimed
@@ -926,10 +1132,18 @@ func _apply(data: Dictionary) -> void:
 		if e.has("bites") or entry.id == "branch":
 			entry.bites = int(e.get("bites", Catalog.ITEMS.branch.bites))
 		placed.append(entry)
+	stored = []
+	for e in d.stored:
+		var entry := {"uid": int(e.uid), "id": e.id}
+		if e.has("bites"):
+			entry.bites = int(e.bites)
+		stored.append(entry)
 	next_uid = int(d.next_uid)
 	seen = d.seen
 	photos = d.photos
 	photo_recent = d.photo_recent
+	feed = float(d.get("feed", 1.0))
+	feed_time = float(d.get("feed_time", 0.0))
 	work_ready_at = float(d.work_ready_at)
 	stats = {}
 	for k in d.stats:
@@ -973,7 +1187,7 @@ func start_test_play() -> void:
 	test_mode = true
 	coins = 10000
 	followers = 1000
-	trust = 92.0
+	trust = 96.0
 	career_xp = Catalog.CAREER[-1].xp
 	balcony = "open"
 	club_stage = 3
@@ -1120,6 +1334,9 @@ func _catch_up(seconds: float) -> void:
 		for i in mini(4, potties / 3):
 			droppings.append([randf_range(FLOOR.position.x, FLOOR.end.x), randf_range(FLOOR.position.y, FLOOR.end.y)])
 	focus = minf(focus_max(), focus + seconds / Catalog.FOCUS_REFILL)
+	herbs = minf(100, herbs + mins * 4.0)
+	grass = minf(100, grass + mins * 2.5)
+	seeds = maxf(0, seeds - mins * 0.5)   # the birds kept coming
 	if club_stage >= 2:
 		coat = maxf(0, coat - mins / 60.0 * (3.0 if molting() else 1.0))
 		nails = minf(100, nails + 12.0 * mins / (24 * 60))

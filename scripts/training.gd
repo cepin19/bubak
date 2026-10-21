@@ -8,6 +8,7 @@ var _say: Label
 var _focus_row: HBoxContainer
 var _focus_note: Label
 var _reward: Button
+var _window_bar: ProgressBar
 var _rows: VBoxContainer
 var _trick := ""
 var _t := 0.0
@@ -33,6 +34,19 @@ func _ready() -> void:
 	_stage.k = 1.2
 	mat.add_child(_stage)
 	_stage.attempt_done.connect(_on_done)
+	# how long is left to reward him: shows while he holds the trick
+	_window_bar = ProgressBar.new()
+	_window_bar.show_percentage = false
+	_window_bar.max_value = 1.0
+	_window_bar.step = 0.001
+	_window_bar.add_theme_stylebox_override("fill", UI.bar_fill(UI.GOLD))
+	_window_bar.set_anchors_and_offsets_preset(PRESET_BOTTOM_WIDE)
+	_window_bar.offset_left = 60
+	_window_bar.offset_right = -60
+	_window_bar.offset_top = -26
+	_window_bar.offset_bottom = -12
+	_window_bar.visible = false
+	_stage.add_child(_window_bar)
 	_say = UI.label(tr("Pick a trick to practise."), 22)
 	_say.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_say.custom_minimum_size = Vector2(420, 0)
@@ -48,7 +62,7 @@ func _ready() -> void:
 	var right := UI.vbox(8)
 	right.size_flags_horizontal = SIZE_EXPAND_FILL
 	add_child(right)
-	right.add_child(UI.wrap_label(tr("Pick a trick. The moment Bubák does it, tap Reward! Don't reward him if he gets distracted."), 17, 340))
+	right.add_child(UI.wrap_label(tr("Pick a trick. When Bubák pulls it off, a star pops up: tap Reward before the bar runs out! Don't reward him if he gets distracted."), 17, 340))
 	_rows = UI.vbox(8)
 	right.add_child(_rows)
 	_fill()
@@ -153,11 +167,17 @@ func _update_focus() -> void:
 
 
 func _process(delta: float) -> void:
-	if _stage.in_window():
+	var left := _stage.window_left()
+	_window_bar.visible = left > 0.0
+	_window_bar.value = left
+	if left > 0.0:
 		var p := 0.75 + 0.25 * sin(Time.get_ticks_msec() / 60.0)
 		_reward.modulate = Color(1.0, 0.85 + 0.15 * p, 0.4 + 0.3 * p)
+		_reward.scale = Vector2.ONE * (1.0 + 0.05 * p)
+		_reward.pivot_offset = _reward.size / 2.0
 	else:
 		_reward.modulate = Color.WHITE
+		_reward.scale = Vector2.ONE
 	_t -= delta
 	if _t <= 0:
 		_t = 1.0

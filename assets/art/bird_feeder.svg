@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="90" height="176" viewBox="0 0 90 176">
+<defs><linearGradient id="sa8713f" x1="0" y1="0" x2="0.25" y2="1"><stop offset="0" stop-color="#bb9069"/><stop offset="0.5" stop-color="#a8713f"/><stop offset="1" stop-color="#946337"/></linearGradient><linearGradient id="s8f6038" x1="0" y1="0" x2="0.25" y2="1"><stop offset="0" stop-color="#a88364"/><stop offset="0.5" stop-color="#8f6038"/><stop offset="1" stop-color="#7e5431"/></linearGradient><linearGradient id="se9c9a8" x1="0" y1="0" x2="0.25" y2="1"><stop offset="0" stop-color="#eed5bb"/><stop offset="0.5" stop-color="#e9c9a8"/><stop offset="1" stop-color="#cdb194"/></linearGradient><linearGradient id="se8735f" x1="0" y1="0" x2="0.25" y2="1"><stop offset="0" stop-color="#ed9282"/><stop offset="0.5" stop-color="#e8735f"/><stop offset="1" stop-color="#cc6554"/></linearGradient><linearGradient id="s5a3f2c" x1="0" y1="0" x2="0.25" y2="1"><stop offset="0" stop-color="#7e695a"/><stop offset="0.5" stop-color="#5a3f2c"/><stop offset="1" stop-color="#4f3727"/></linearGradient><linearGradient id="sc99a6b" x1="0" y1="0" x2="0.25" y2="1"><stop offset="0" stop-color="#d5b08c"/><stop offset="0.5" stop-color="#c99a6b"/><stop offset="1" stop-color="#b1885e"/></linearGradient></defs>
+<rect x="41" y="60" width="8" height="104" rx="3" fill="url(#sa8713f)" stroke="#4f3d33" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M22,164 h46 l-6,8 h-34z" fill="url(#s8f6038)" stroke="#4f3d33" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="16" y="40" width="58" height="30" rx="4" fill="url(#se9c9a8)" stroke="#4f3d33" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M8,42 L45,10 L82,42z" fill="url(#se8735f)" stroke="#4f3d33" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="45" cy="54" r="7" fill="url(#s5a3f2c)" stroke="#4f3d33" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M10,70 h70 l-4,10 h-62z" fill="url(#sc99a6b)" stroke="#4f3d33" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="31" cy="67" r="2.6" fill="#e6c36a" stroke="#9c7a45" stroke-width="1"/>
+<circle cx="39" cy="67" r="2.6" fill="#e6c36a" stroke="#9c7a45" stroke-width="1"/>
+<circle cx="22" cy="68" r="2.6" fill="#e6c36a" stroke="#9c7a45" stroke-width="1"/>
+<circle cx="68" cy="70" r="2.6" fill="#e6c36a" stroke="#9c7a45" stroke-width="1"/>
+<circle cx="59" cy="67" r="2.6" fill="#e6c36a" stroke="#9c7a45" stroke-width="1"/>
+<circle cx="47" cy="67" r="2.6" fill="#e6c36a" stroke="#9c7a45" stroke-width="1"/>
+<circle cx="27" cy="67" r="2.6" fill="#e6c36a" stroke="#9c7a45" stroke-width="1"/>
+<circle cx="30" cy="71" r="2.6" fill="#e6c36a" stroke="#9c7a45" stroke-width="1"/>
+<circle cx="63" cy="70" r="2.6" fill="#e6c36a" stroke="#9c7a45" stroke-width="1"/>
+<circle cx="61" cy="67" r="2.6" fill="#e6c36a" stroke="#9c7a45" stroke-width="1"/>
+<circle cx="35" cy="69" r="2.6" fill="#e6c36a" stroke="#9c7a45" stroke-width="1"/>
+<circle cx="58" cy="70" r="2.6" fill="#e6c36a" stroke="#9c7a45" stroke-width="1"/>
+<circle cx="66" cy="66" r="2.6" fill="#e6c36a" stroke="#9c7a45" stroke-width="1"/>
+<circle cx="51" cy="69" r="2.6" fill="#e6c36a" stroke="#9c7a45" stroke-width="1"/>
+<circle cx="45" cy="67" r="2.6" fill="#e6c36a" stroke="#9c7a45" stroke-width="1"/>
+<circle cx="44" cy="66" r="2.6" fill="#e6c36a" stroke="#9c7a45" stroke-width="1"/>
+</svg>

@@ -2,6 +2,7 @@ extends Control
 ## On-screen UI: status bars, action buttons, toasts and the pop-up screens
 ## (shop, journal, photos, remote work).
 
+const Bunny := preload("res://scripts/bunny.gd")
 const WorkGame := preload("res://scripts/work_game.gd")
 const Training := preload("res://scripts/training.gd")
 const Grooming := preload("res://scripts/grooming.gd")
@@ -60,12 +61,15 @@ var _banner: PanelContainer
 var _banner_label: Label
 var _banner_button: Button
 var _camera_ui: Control
+var _feed_bar: ProgressBar
+var _feed_label: Label
 var _tray: PanelContainer
 var _modal: Control = null
 var _refresh_t := 0.0
 var _shop_tab := "Food"
 var _journal_tab := "Goals"
 var _photo_cache := {}
+var _last_coins := -1   # to hear coins come in and go out
 var _selfie_ui: Control
 var _selfie_frame: Control
 var _selfie_dim: Control
@@ -83,8 +87,10 @@ var _pending: Array = []   # pop-ups waiting for the current one to close
 var _cozy_label: Label
 var _cozy_bar: ProgressBar
 var _journal_badge: PanelContainer
-var _selfie_wear: TextureRect
 var _club_button: Button
+var _wardrobe_stage: StageBunny
+var _wardrobe_side: VBoxContainer
+var _wardrobe_info: Label
 var _club_tab := "Training"
 var club_panel: Control      # the open Training / Grooming / show ring panel
 var saves_scroll: ScrollContainer   # for the playtest
@@ -243,7 +249,9 @@ func _build_top() -> void:
 	v.add_child(_cozy_bar)
 	card.gui_input.connect(func(e):
 		if e is InputEventMouseButton and e.pressed:
-			toast(tr("Coziness grows with furniture, toys and upgrades. Higher levels make Bubák happier, bring more followers and unlock new things in the shop.")))
+			toast(tr("Coziness grows with furniture, toys and upgrades. Higher levels make Bubák happier, bring more followers and unlock new things in the shop.")
+				+ ("\n" + tr("Too cluttered right now (-%d)! Put a few things away in the toy chest by the desk.") % Game.clutter_penalty()
+					if Game.clutter_penalty() > 0 else "")))
 	if Game.mate:
 		_build_mate_card(v)
 
@@ -404,7 +412,10 @@ func _toggle_tray() -> void:
 		v.add_child(UI.label(tr("No treats left. The shop has some!"), 20))
 	else:
 		v.add_child(UI.label(tr("Pick a treat to hand-feed:"), 20))
-		var h := UI.hbox(8)
+		var h := HFlowContainer.new()   # wraps onto a second row when there are many treats
+		h.add_theme_constant_override("h_separation", 8)
+		h.add_theme_constant_override("v_separation", 8)
+		h.custom_minimum_size.x = mini(treats.size(), 6) * 138
 		v.add_child(h)
 		for id in treats:
 			var b := UI.big_button(id, "%s x%d" % [Catalog.item_name(id), Game.inventory[id]], 100)
@@ -459,7 +470,21 @@ func _build_camera_ui() -> void:
 	_camera_ui.add_child(selfie)
 	var hint := PanelContainer.new()
 	_anchor(hint, 0, 1, Vector2(16, -24))
-	hint.add_child(UI.wrap_label(tr("Catch Bubák doing something cute!\nSparkles mean a rare moment."), 17, 300))
+	var hv := UI.vbox(4)
+	hint.add_child(hv)
+	hv.add_child(UI.wrap_label(tr("Catch Bubák doing something cute!\nSparkles mean a rare moment."), 17, 300))
+	# followers' attention: posting too often wears it out
+	var fh := UI.hbox(6)
+	fh.add_child(UI.icon_rect("follower", 22))
+	_feed_label = UI.label("", 16)
+	fh.add_child(_feed_label)
+	hv.add_child(fh)
+	_feed_bar = ProgressBar.new()
+	_feed_bar.custom_minimum_size = Vector2(300, 10)
+	_feed_bar.show_percentage = false
+	_feed_bar.max_value = 1.0
+	_feed_bar.step = 0.001
+	hv.add_child(_feed_bar)
 	_camera_ui.add_child(hint)
 
 
@@ -498,11 +523,6 @@ func _build_selfie_ui() -> void:
 	_selfie_bunny.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_selfie_bunny.mouse_filter = MOUSE_FILTER_IGNORE
 	_selfie_frame.add_child(_selfie_bunny)
-	_selfie_wear = TextureRect.new()
-	_selfie_wear.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	_selfie_wear.flip_h = true
-	_selfie_wear.mouse_filter = MOUSE_FILTER_IGNORE
-	_selfie_bunny.add_child(_selfie_wear)
 	var hand := TextureRect.new()
 	hand.texture = Catalog.tex("owner_hand")
 	hand.position = Vector2(372, 300)
@@ -539,20 +559,8 @@ func _build_selfie_ui() -> void:
 
 func _start_selfie() -> void:
 	var who: Node2D = main.held
-	_selfie_bunny.texture = Catalog.tex("bunny_loaf" + who.pet.skin())
-	_selfie_wear.visible = Game.wearing != "" and who.pet.is_bubak()
-	if _selfie_wear.visible:
-		# Same anchor as in the room, mirrored because the selfie bunny faces left.
-		var t: Array = main.bunny.wear_transform("loaf", Game.wearing)
-		var tex := Catalog.tex(Catalog.ITEMS[Game.wearing].tex)
-		var k := _selfie_bunny.size.x / 220.0
-		var p: Vector2 = t[0]
-		var off: Vector2 = t[2]
-		_selfie_wear.texture = tex
-		_selfie_wear.size = tex.get_size() * k
-		_selfie_wear.position = Vector2((220 - p.x - off.x) * k, (p.y + off.y) * k) - _selfie_wear.size / 2.0
-		_selfie_wear.pivot_offset = _selfie_wear.size / 2.0
-		_selfie_wear.rotation = -t[1]
+	# mirrored: in the selfie he faces left
+	StageBunny.compose(_selfie_bunny, "loaf", who.pet.skin(), Game.wearing if who.pet.is_bubak() else {}, true)
 	_selfie_t = 0.0
 	_selfie_hearts_t = 0.0
 	if _bob:
@@ -625,12 +633,25 @@ func _process(delta: float) -> void:
 
 func _refresh() -> void:
 	_coins.text = str(Game.coins)
+	if _last_coins >= 0 and Game.coins != _last_coins:
+		Sfx.play("coin" if Game.coins > _last_coins else "buy")
+	_last_coins = Game.coins
 	_followers.text = str(Game.followers)
+	if _camera_ui.visible:
+		var a := Game.feed_attention()
+		_feed_bar.value = a
+		_feed_label.text = tr("Followers' attention: %s") % (tr("Flooded!") if a < Catalog.FEED_FLOODED
+			else tr("Fresh") if a > 0.8 else tr("Busy"))
+		_feed_bar.add_theme_stylebox_override("fill", UI.bar_fill(UI.RED if a < Catalog.FEED_FLOODED else UI.GOLD if a <= 0.8 else UI.GREEN))
 	var lvl := Game.trust_level()
 	_trust_name.text = tr("Trust: %s") % Catalog.level_name(lvl)
 	_trust_bar.value = Game.trust_progress()
 	var cl := Game.cozy_level()
 	_cozy_label.text = tr("Cozy level %d: %s") % [cl, Catalog.cozy_name(cl)]
+	var messy := Game.clutter_penalty() > 0
+	if messy:
+		_cozy_label.text = tr("Cozy level %d: %s") % [cl, tr("Cluttered!")]
+	_cozy_label.add_theme_color_override("font_color", Color("#c0392b") if messy else UI.INK)
 	_cozy_bar.value = Game.cozy_progress()
 	_club_button.visible = Game.club_stage >= 1
 	var claim := Game.claimable_goals()
@@ -676,6 +697,7 @@ func on_mode_changed(m: String) -> void:
 # ---- toasts ------------------------------------------------------------------
 
 func toast(text: String, icon := "", gold := false) -> void:
+	Sfx.play("notify")
 	var p := PanelContainer.new()
 	var s := UI.box(Color("#fff3c9") if gold else UI.CREAM, 18)
 	s.content_margin_left = 18
@@ -750,6 +772,7 @@ func _on_sponsor(amount: int, streak: int) -> void:
 
 func on_balcony_milestone() -> void:
 	_queue(func():
+		Sfx.play("fanfare")
 		var v := UI.vbox(12)
 		var pic := UI.icon_rect("door_open", 150)
 		v.add_child(pic)
@@ -772,6 +795,7 @@ func _on_level_up(lvl: int) -> void:
 
 
 func _level_up_popup(lvl: int) -> void:
+	Sfx.play("fanfare")
 	var count := 0
 	for b in Catalog.BEHAVIOURS.values():
 		if b.get("level", 0) == lvl:
@@ -786,7 +810,7 @@ func _level_up_popup(lvl: int) -> void:
 	var msg := tr("He now feels %s with you.") % Catalog.level_name(lvl).to_upper()
 	if count > 0:
 		msg += "\n" + tr_n("%d new behaviour to discover. Keep watching!", "%d new behaviours to discover. Keep watching!", count) % count
-	if lvl == 3:
+	if lvl == Catalog.SELFIE_TRUST:
 		msg += "\n\n" + tr("He'll let you pick him up now! Drag him upwards (or tap Selfie in Photo mode) and snap a selfie together.")
 	var l := UI.wrap_label(msg, 22, 480)
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -884,11 +908,13 @@ func open_shop() -> void:
 	for tab in Catalog.SHOP_TABS:
 		if tab == "Club" and Game.club_stage < 1:
 			continue
-		var b := UI.text_button(tr(tab))
+		if tab == "Balcony" and Game.balcony == "locked" and not Game.test_mode:
+			continue
+		var b := UI.text_button(tr(tab), "", 18)
 		b.toggle_mode = true
 		b.button_group = group
 		b.button_pressed = tab == _shop_tab
-		b.custom_minimum_size.x = 110
+		b.custom_minimum_size.x = 80
 		b.pressed.connect(func():
 			_shop_tab = tab
 			_fill_shop(grid))
@@ -933,7 +959,7 @@ func _fill_shop(grid: GridContainer) -> void:
 				done = Game.count_item(id) >= item.get("max", 1)
 			"wear":
 				done = id in Game.wardrobe
-				owned = tr("Wearing") if Game.wearing == id else (tr("Owned") if done else "")
+				owned = tr("Wearing") if id in Game.wearing.values() else (tr("Owned") if done else "")
 			"gear":
 				done = id in Game.gear
 				owned = tr("Owned") if done else ""
@@ -958,11 +984,8 @@ func _fill_shop(grid: GridContainer) -> void:
 		desc.size_flags_vertical = SIZE_EXPAND_FILL
 		v.add_child(desc)
 		if item.kind == "wear" and done:
-			var wb := UI.text_button(tr("Take off") if Game.wearing == id else tr("Wear"), "", 20)
-			wb.pressed.connect(func():
-				Game.wearing = "" if Game.wearing == id else id
-				Game.save_game()
-				_fill_shop(grid))
+			var wb := UI.text_button(tr("Wardrobe"), "wardrobe", 20)
+			wb.pressed.connect(open_wardrobe)
 			v.add_child(wb)
 			grid.add_child(card)
 			continue
@@ -1174,6 +1197,7 @@ func _snap() -> void:
 
 
 func _flash() -> void:
+	Sfx.play("shutter")
 	var flash := ColorRect.new()
 	flash.color = Color.WHITE
 	flash.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
@@ -1200,7 +1224,9 @@ func show_photo_result(img: Image, res: Dictionary) -> void:
 	pc.add_child(r)
 	v.add_child(pc)
 	var caption := tr("Oops, missed him!")
-	if res.behaviour != "":
+	if res.get("shy", false):
+		caption = tr("He turned his back on the camera.")
+	elif res.behaviour != "":
 		caption = Catalog.behaviour_name(res.behaviour)
 	var ch := UI.hbox(12)
 	ch.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -1218,16 +1244,29 @@ func show_photo_result(img: Image, res: Dictionary) -> void:
 	v.add_child(ch)
 	var stats := UI.hbox(8)
 	stats.alignment = BoxContainer.ALIGNMENT_CENTER
+	var gained: int = res.followers - res.get("lost", 0)
 	for s in [["heart", tr_n("%d like", "%d likes", res.likes) % res.likes], ["coin", "+%d" % res.coins],
-			["follower", tr_n("+%d follower", "+%d followers", res.followers) % res.followers]]:
+			["follower", tr_n("+%d follower", "+%d followers", gained) % gained if gained >= 0
+				else tr_n("%d follower", "%d followers", -gained) % gained]]:
 		stats.add_child(UI.icon_rect(s[0], 30))
-		stats.add_child(UI.label(s[1] + "   ", 21))
-	v.add_child(stats)
+		stats.add_child(UI.label(s[1] + "   ", 21, UI.RED if s[1].begins_with("-") else UI.INK))
+	if res.behaviour != "":
+		v.add_child(stats)
+	var notes: Array[String] = []
+	if res.behaviour == "":
+		notes.append(tr("Not worth posting. Wait for him to do something cute."))
+	elif res.get("lost", 0) > 0:
+		notes.append(tr("Too many posts! Your feed is flooded and some followers unfollowed. Give it a break."))
+	elif res.get("attention", 1.0) < 0.8:
+		notes.append(tr("You've posted a lot lately, so fewer people saw this one."))
 	if res.stale:
-		var note := UI.label(tr("Your followers have seen this one a lot lately."), 17, Color(UI.INK, 0.7))
-		note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		v.add_child(note)
-	var ok := UI.text_button(tr("Nice!"))
+		notes.append(tr("Your followers have seen this one a lot lately."))
+	for n in notes:
+		var nl := UI.wrap_label(n, 17, 480)
+		nl.add_theme_color_override("font_color", Color(UI.INK, 0.7))
+		nl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		v.add_child(nl)
+	var ok := UI.text_button(tr("Nice!") if res.behaviour != "" else tr("OK"))
 	ok.size_flags_horizontal = SIZE_SHRINK_CENTER
 	ok.pressed.connect(close_top)
 	v.add_child(ok)
@@ -1258,6 +1297,23 @@ func open_settings() -> void:
 				main.hud.open_settings.call_deferred())
 		h.add_child(b)
 	v.add_child(HSeparator.new())
+	var snd := UI.hbox(10)
+	v.add_child(snd)
+	var snd_label := UI.label(tr("Sound"), 24)
+	snd_label.custom_minimum_size.x = 150
+	snd.add_child(snd_label)
+	for which in ["sound", "music"]:
+		var sb := UI.text_button(tr("Sound effects") if which == "sound" else tr("Music"), "", 18)
+		sb.toggle_mode = true
+		sb.button_pressed = Sfx.sound_on if which == "sound" else Sfx.music_on
+		sb.custom_minimum_size.x = 160
+		sb.toggled.connect(func(on: bool):
+			if which == "sound":
+				Sfx.set_sound_on(on)
+			else:
+				Sfx.set_music_on(on))
+		snd.add_child(sb)
+	v.add_child(HSeparator.new())
 	v.add_child(UI.label(tr("While the game is closed"), 24))
 	var away := UI.hbox(10)
 	v.add_child(away)
@@ -1277,6 +1333,26 @@ func open_settings() -> void:
 		away.add_child(b)
 	note.call()
 	v.add_child(away_note)
+	v.add_child(HSeparator.new())
+	v.add_child(UI.label(tr("Game pace"), 24))
+	var pace := UI.hbox(10)
+	v.add_child(pace)
+	var pace_group := ButtonGroup.new()
+	var pace_note := UI.wrap_label("", 15, 580)
+	var pace_text := func(): pace_note.text = tr("Bubák bonds with you quickly: the balcony, selfies and a friend come within a session or two.") \
+		if Game.fast_game else tr("Trust takes days to build: first the balcony, then selfies, and a friend only after a long game.")
+	for fast in [false, true]:
+		var b := UI.text_button(tr("Fast game") if fast else tr("Normal game"), "", 18)
+		b.toggle_mode = true
+		b.button_group = pace_group
+		b.button_pressed = Game.fast_game == fast
+		b.custom_minimum_size.x = 200
+		b.pressed.connect(func():
+			Game.set_fast_game(fast)
+			pace_text.call())
+		pace.add_child(b)
+	pace_text.call()
+	v.add_child(pace_note)
 	v.add_child(HSeparator.new())
 	var sv_row := UI.hbox(14)
 	v.add_child(sv_row)
@@ -1592,6 +1668,7 @@ const MATE_ORDER := ["luna", "caramel", "hazel", "shadow"]   # left to right in 
 
 func _on_mate_unlocked() -> void:
 	_queue(func():
+		Sfx.play("fanfare")
 		var v := UI.vbox(12)
 		v.add_child(UI.icon_rect("icon", 110))
 		var title := UI.label(tr("Bubák seems a little lonely..."), 32)
@@ -1723,3 +1800,262 @@ func open_work() -> void:
 	var w := WorkGame.new()
 	w.finished.connect(close_top)
 	_open_modal(tr("Remote work"), w, Vector2(860, 0))
+
+
+# ---- wardrobe --------------------------------------------------------------------
+
+## Bubák up close in everything he has on; tap an accessory to put it on or take it off.
+## One thing per place (head, ears, eyes, neck); ones not owned yet can be bought right here.
+func open_wardrobe() -> void:
+	var h := UI.hbox(18)
+	var left := UI.vbox(8)
+	h.add_child(left)
+	var mirror := PanelContainer.new()
+	var ms := UI.box(Color("#f3e3ef"), 22, 3, false)
+	mirror.add_theme_stylebox_override("panel", ms)
+	mirror.custom_minimum_size = Vector2(360, 380)
+	left.add_child(mirror)
+	_wardrobe_stage = StageBunny.new()
+	_wardrobe_stage.k = 1.55
+	mirror.add_child(_wardrobe_stage)
+	var poses := UI.hbox(8)
+	poses.alignment = BoxContainer.ALIGNMENT_CENTER
+	left.add_child(poses)
+	for p in [["sit", tr("Sit")], ["stand", tr("Stand up")], ["loaf", tr("Loaf")]]:
+		var pb := UI.text_button(p[1], "", 17)
+		pb.pressed.connect(func():
+			_wardrobe_stage.set_pose(p[0])
+			_wardrobe_stage.pop_icon("heart"))
+		poses.add_child(pb)
+	_wardrobe_side = UI.vbox(6)
+	_wardrobe_side.size_flags_horizontal = SIZE_EXPAND_FILL
+	h.add_child(_wardrobe_side)
+	_open_modal(tr("Wardrobe"), h, Vector2(980, 0))
+	_fill_wardrobe()
+
+
+func _fill_wardrobe() -> void:
+	for c in _wardrobe_side.get_children():
+		c.queue_free()
+	var style := int(Game.style_score())
+	var head := UI.hbox(10)
+	_wardrobe_side.add_child(head)
+	var sl := UI.label(tr("Style: %d/100") % style, 20)
+	sl.size_flags_horizontal = SIZE_EXPAND_FILL
+	head.add_child(sl)
+	head.add_child(UI.label(tr("Photo likes +%d%%") % (10 * Game.wearing.size()), 17, Color(UI.INK, 0.7)))
+	var bar := ProgressBar.new()
+	bar.custom_minimum_size = Vector2(0, 12)
+	bar.show_percentage = false
+	bar.value = style
+	bar.add_theme_stylebox_override("fill", UI.bar_fill(Color("#d8a7d0")))
+	_wardrobe_side.add_child(bar)
+	for place in ["head", "ear", "eyes", "neck"]:
+		_wardrobe_side.add_child(UI.label(tr(Catalog.WEAR_PLACE_NAMES[place]), 18))
+		var row := UI.hbox(8)
+		_wardrobe_side.add_child(row)
+		row.add_child(_wear_tile("", place))
+		for id in Catalog.SHOP_TABS.Style:
+			if Catalog.ITEMS[id].place == place:
+				row.add_child(_wear_tile(id, place))
+	_wardrobe_info = UI.wrap_label(tr("Tap something to put it on. He can wear one thing in each place."), 15, 540)
+	_wardrobe_info.custom_minimum_size.y = 40
+	_wardrobe_side.add_child(_wardrobe_info)
+	_wardrobe_stage.dress()
+
+
+## One accessory in the wardrobe ("" = nothing in that place).
+func _wear_tile(id: String, place: String) -> Button:
+	var worn: bool = Game.wearing.get(place, "") == id
+	var owned := id == "" or id in Game.wardrobe
+	var b := Button.new()
+	b.custom_minimum_size = Vector2(124, 84)
+	b.focus_mode = FOCUS_NONE
+	if worn:
+		var gold := UI.box(Color("#fff3c9"), 18, 4)
+		gold.border_color = Color("#e0ad4a")
+		b.add_theme_stylebox_override("normal", gold)
+		b.add_theme_stylebox_override("hover", gold)
+	var v := UI.vbox(0)
+	v.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
+	v.alignment = BoxContainer.ALIGNMENT_CENTER
+	v.mouse_filter = MOUSE_FILTER_IGNORE
+	b.add_child(v)
+	if id == "":
+		var none := UI.label(tr("Nothing"), 16, Color(UI.INK, 0.6))
+		none.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		v.add_child(none)
+	else:
+		var ic := UI.icon_rect(Catalog.ITEMS[id].icon, 46)
+		ic.size_flags_horizontal = SIZE_SHRINK_CENTER
+		if not owned:
+			ic.modulate = Color(1, 1, 1, 0.4)
+		v.add_child(ic)
+		var cap := UI.label(Catalog.item_name(id) if owned else "%d" % Catalog.ITEMS[id].price, 13,
+			UI.INK if owned else Color("#b07a2c"))
+		cap.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		cap.clip_text = true
+		cap.custom_minimum_size.x = 112
+		v.add_child(cap)
+	b.pressed.connect(_on_wear_tile.bind(id, place))
+	return b
+
+
+func _on_wear_tile(id: String, place: String) -> void:
+	if id == "":
+		if Game.wearing.has(place):
+			Game.toggle_wear(Game.wearing[place])
+		_fill_wardrobe()
+		return
+	var item: Dictionary = Catalog.ITEMS[id]
+	if id in Game.wardrobe:
+		Game.toggle_wear(id)
+		_fill_wardrobe()
+		_wardrobe_info.text = "%s: %s" % [Catalog.item_name(id), tr(item.desc)]
+		if Game.wearing.get(place, "") == id:
+			_wardrobe_stage.pop_icon("heart")
+		return
+	# not owned yet: the first tap tells you about it, the second buys it
+	var lock := Game.lock_reason(id)
+	if lock != "":
+		_wardrobe_info.text = "%s: %s" % [Catalog.item_name(id), lock]
+		return
+	if _wardrobe_info.get_meta("buy", "") != id:
+		_wardrobe_info.set_meta("buy", id)
+		_wardrobe_info.text = tr("%s for %d coins: %s Tap again to buy it.") % [Catalog.item_name(id), item.price, tr(item.desc)]
+		return
+	var err := Game.buy(id)
+	if err != "":
+		_wardrobe_info.text = err
+		return
+	_fill_wardrobe()
+	_wardrobe_info.text = tr("New: %s! He's wearing it already.") % Catalog.item_name(id)
+	_wardrobe_stage.happy()
+
+
+# ---- toy chest -------------------------------------------------------------------
+
+var _chest_box: VBoxContainer
+var _chest_room := "living"   # where taken-out things go
+
+
+func open_toy_chest() -> void:
+	_chest_box = UI.vbox(8)
+	_chest_room = main.view if main.view == "balcony" else "living"
+	_open_modal(tr("Toy chest"), _chest_box, Vector2(960, 0))
+	_fill_chest()
+
+
+func _fill_chest() -> void:
+	for c in _chest_box.get_children():
+		c.queue_free()
+	var rooms := ["living"]
+	if Game.balcony == "open":
+		rooms.append("balcony")
+	for room in rooms:
+		var r := UI.hbox(12)
+		_chest_box.add_child(r)
+		var nm := UI.label(tr("Living room") if room == "living" else tr("Balcony"), 18)
+		nm.custom_minimum_size.x = 150
+		r.add_child(nm)
+		var used := Game.room_clutter(room)
+		var cap := Game.room_space(room)
+		var over := Game.clutter_over(room)
+		var bar := ProgressBar.new()
+		bar.custom_minimum_size = Vector2(0, 16)
+		bar.size_flags_horizontal = SIZE_EXPAND_FILL
+		bar.size_flags_vertical = SIZE_SHRINK_CENTER
+		bar.show_percentage = false
+		bar.max_value = cap
+		bar.value = used
+		var col := Color("#8fcf7a") if used <= cap * 0.75 else (Color("#f2c14e") if over == 0 else Color("#e8735f"))
+		bar.add_theme_stylebox_override("fill", UI.bar_fill(col))
+		r.add_child(bar)
+		var st := UI.label(tr("Space %d/%d") % [used, cap] + (" · " + tr("Cozy -%d") % (Catalog.CLUTTER_COZY * over) if over > 0 else ""), 17, Color("#c0392b") if over > 0 else Color(UI.INK, 0.75))
+		st.custom_minimum_size.x = 250
+		r.add_child(st)
+	_chest_box.add_child(UI.wrap_label(tr("Too much stuff out makes the flat less cozy. Things in the chest don't take up space, but they don't add to coziness either. Tap something to move it."), 15, 900))
+	var cols := UI.hbox(14)
+	_chest_box.add_child(cols)
+	var out := Game.placed.filter(func(e): return Catalog.ITEMS[e.id].kind in ["toy", "decor"])
+	out.sort_custom(func(a, b): return [Game.room_at(Vector2(a.x, a.y)), a.id] < [Game.room_at(Vector2(b.x, b.y)), b.id])
+	var left := _chest_column(cols, tr("Out in the flat"), tr("Nothing out. A bit bare in here!"))
+	for e in out:
+		var room := Game.room_at(Vector2(e.x, e.y))
+		left.add_child(_chest_tile(e, tr("Balcony") if room == "balcony" else "", true))
+	var stored := Game.stored.duplicate()
+	stored.sort_custom(func(a, b): return a.id < b.id)
+	var right := _chest_column(cols, tr("In the chest"), tr("The chest is empty."))
+	if rooms.size() > 1:
+		var pick := UI.hbox(6)
+		pick.add_child(UI.label(tr("Take out to:"), 15, Color(UI.INK, 0.75)))
+		for room in rooms:
+			var rb := UI.text_button(tr("Living room") if room == "living" else tr("Balcony"), "", 15)
+			rb.disabled = _chest_room == room
+			rb.pressed.connect(func():
+				_chest_room = room
+				_fill_chest())
+			pick.add_child(rb)
+		var right_col: Control = right.get_parent().get_parent()
+		right_col.add_child(pick)
+		right_col.move_child(pick, 1)
+	for e in stored:
+		right.add_child(_chest_tile(e, "", false))
+
+
+## A titled, scrolling grid; returns the grid to put tiles in.
+func _chest_column(parent: Control, title: String, empty: String) -> GridContainer:
+	var col := UI.vbox(6)
+	col.size_flags_horizontal = SIZE_EXPAND_FILL
+	parent.add_child(col)
+	col.add_child(UI.label(title, 19))
+	var empty_l := UI.label(empty, 16, Color(UI.INK, 0.6))
+	empty_l.visible = false
+	col.add_child(empty_l)
+	var scroll := ScrollContainer.new()
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.custom_minimum_size = Vector2(0, 300)
+	col.add_child(scroll)
+	var grid := GridContainer.new()
+	grid.columns = 3
+	grid.add_theme_constant_override("h_separation", 8)
+	grid.add_theme_constant_override("v_separation", 8)
+	scroll.add_child(grid)
+	(func(): empty_l.visible = grid.get_child_count() == 0).call_deferred()   # once the tiles are in
+	return grid
+
+
+func _chest_tile(e: Dictionary, tag: String, is_out: bool) -> Button:
+	var b := Button.new()
+	b.custom_minimum_size = Vector2(140, 104)
+	b.focus_mode = FOCUS_NONE
+	b.mouse_filter = MOUSE_FILTER_PASS   # dragging on a tile scrolls
+	if not is_out:
+		var sb := UI.box(Color("#f3e6d3"), 18, 3)
+		b.add_theme_stylebox_override("normal", sb)
+	var v := UI.vbox(0)
+	v.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
+	v.alignment = BoxContainer.ALIGNMENT_CENTER
+	v.mouse_filter = MOUSE_FILTER_IGNORE
+	b.add_child(v)
+	var ic := UI.icon_rect(Catalog.ITEMS[e.id].icon, 44)
+	ic.size_flags_horizontal = SIZE_SHRINK_CENTER
+	v.add_child(ic)
+	var cap := UI.label(Catalog.item_name(e.id), 14)
+	cap.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	cap.clip_text = true
+	cap.custom_minimum_size.x = 128
+	v.add_child(cap)
+	var info := tr("Put away") if is_out else tr("Take out")
+	if tag != "":
+		info = "%s · %s" % [tag, info]
+	var sub := UI.label(info, 13, Color("#b07a2c"))
+	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(sub)
+	b.pressed.connect(func():
+		if is_out:
+			Game.put_away(e.uid)
+		else:
+			Game.take_out(e.uid, _chest_room)
+		_fill_chest())
+	return b

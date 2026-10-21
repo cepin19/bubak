@@ -16,7 +16,7 @@ ROOT = os.path.join(os.path.dirname(__file__), "..")
 STR = r'"((?:[^"\\]|\\.)*)"'
 # Shown through tr(variable), so they can't be found from tr("...") calls.
 EXTRA = ["Goals", "Behaviours", "Photos", "Bubák", "Training", "Grooming", "Shows", "Trophies",
-         "1st", "2nd", "3rd", "4th"]
+         "1st", "2nd", "3rd", "4th", "Head", "Ears", "Eyes", "Neck"]
 
 
 def extract():

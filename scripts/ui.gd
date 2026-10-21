@@ -8,6 +8,8 @@ const PEACH_HOVER := Color("#ffdaa8")
 const PEACH_DOWN := Color("#f6c483")
 const PINK := Color("#f08a9c")
 const GOLD := Color("#f3cf7a")
+const RED := Color("#c0392b")
+const GREEN := Color("#7fcfb8")
 const NEED_COLORS := {"food": Color("#f4a259"), "water": Color("#62c3ea"),
 	"fun": Color("#e2c04f"), "clean": Color("#7fcfb8"), "energy": Color("#a99be0")}
 
@@ -122,6 +124,7 @@ static func icon_rect(name: String, size := 40.0) -> TextureRect:
 ## Buttons squish a little when pressed and bounce back.
 static func bouncy(b: BaseButton) -> void:
 	b.button_down.connect(func():
+		Sfx.play("tap")
 		b.pivot_offset = b.size / 2.0
 		b.create_tween().tween_property(b, "scale", Vector2(0.92, 0.92), 0.06))
 	b.button_up.connect(func():

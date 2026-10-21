@@ -9,7 +9,6 @@ const FEET := Vector2(100, 194)
 var k := 1.5                 # drawing scale vs. the sprite
 var pivot: Control           # at his feet; moved, flipped and lifted for tricks
 var body: TextureRect
-var wear: TextureRect
 var hoop: TextureRect
 var pose := ""
 var home := Vector2.ZERO
@@ -34,10 +33,6 @@ func _ready() -> void:
 	body.size = Vector2(220, 200) * k
 	body.position = -FEET * k
 	pivot.add_child(body)
-	wear = TextureRect.new()
-	wear.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	wear.mouse_filter = MOUSE_FILTER_IGNORE
-	body.add_child(wear)
 	set_pose("sit")
 	resized.connect(_place_home)
 	_place_home()
@@ -55,16 +50,71 @@ func set_pose(p: String) -> void:
 	if p == pose:
 		return
 	pose = p
-	body.texture = Catalog.tex("bunny_" + p)
-	wear.visible = Game.wearing != "" and Bunny.HEADS.has(p)
-	if wear.visible:
-		var t: Array = Bunny.wear_transform(p, Game.wearing)
-		var tex := Catalog.tex(Catalog.ITEMS[Game.wearing].tex)
-		wear.texture = tex
-		wear.size = tex.get_size() * k
-		wear.position = ((t[0] as Vector2) + (t[2] as Vector2)) * k - wear.size / 2.0
-		wear.pivot_offset = wear.size / 2.0
-		wear.rotation = t[1]
+	dress()
+
+
+## Shows what he has on (call again after the outfit changes).
+func dress() -> void:
+	compose(body, pose, "", Game.wearing)
+
+
+## Builds a bunny in `holder` (a TextureRect sized like the 220x200 pose sprite) from layers:
+## body, nose, neck/eyes/head accessories, then the perky ear on top (hats have ear holes)
+## with any ear clip riding on it. mirror: for a bunny facing left.
+static func compose(holder: TextureRect, p: String, skin: String, outfit: Dictionary, mirror := false) -> void:
+	for c in holder.get_children():
+		c.free()
+	if not Bunny.HEADS.has(p):
+		holder.texture = Catalog.tex("bunny_" + p + skin)
+		return
+	var k := holder.size.x / 220.0
+	holder.texture = Catalog.tex("bunny_%s_body%s" % [p, skin])
+	var h: Array = Bunny.HEADS[p]
+	var rot := deg_to_rad(h[2])
+	var head := Vector2(h[0], h[1])
+	_layer(holder, "bunny_nose", head + Vector2(40.5, 6).rotated(rot), Vector2(9.5, 10), rot, k, mirror)
+	for place in ["neck", "eyes", "head"]:
+		if outfit.has(place):
+			var id: String = outfit[place]
+			var t: Array = Bunny.wear_transform(p, id)
+			var tn: String = Catalog.ITEMS[id].tex
+			_layer(holder, tn, t[0], Catalog.tex(tn).get_size() / 2.0 - (t[2] as Vector2), t[1], k, mirror)
+	var ear := _layer(holder, "bunny_ear" + skin, head + Vector2(-8, -26).rotated(rot), Vector2(30, 104),
+		deg_to_rad(h[2] + Bunny.EAR_ANGLE[p]), k, mirror)
+	if outfit.has("ear"):
+		var id: String = outfit.ear
+		var clip := TextureRect.new()
+		clip.texture = Catalog.tex(Catalog.ITEMS[id].tex)
+		clip.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		clip.mouse_filter = MOUSE_FILTER_IGNORE
+		clip.size = clip.texture.get_size() * k
+		var c := (Vector2(30, 104) + (Bunny.WEAR_ANCHOR[id][0] as Vector2)) * k
+		if mirror:
+			c.x = ear.size.x - c.x
+			clip.flip_h = true
+		clip.position = c - clip.size / 2.0
+		ear.add_child(clip)
+
+
+static func _layer(holder: Control, tex_name: String, at: Vector2, pivot_tex: Vector2, rot: float, k: float,
+		mirror: bool) -> TextureRect:
+	var r := TextureRect.new()
+	r.texture = Catalog.tex(tex_name)
+	r.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	r.mouse_filter = MOUSE_FILTER_IGNORE
+	r.size = r.texture.get_size() * k
+	var pv := pivot_tex * k
+	var pos := at * k - pv
+	if mirror:
+		pos.x = holder.size.x - (pos.x + r.size.x)
+		pv.x = r.size.x - pv.x
+		rot = -rot
+		r.flip_h = true
+	r.position = pos
+	r.pivot_offset = pv
+	r.rotation = rot
+	holder.add_child(r)
+	return r
 
 
 ## Sprite coordinates (e.g. a spot on his back) to this control's coordinates, while resting.
@@ -114,7 +164,13 @@ func _hop(t: Tween, from: Vector2, to: Vector2, height: float, dur: float) -> vo
 
 
 ## Does a trick. Returns [peak, length] in seconds: the moment to reward him, and when he's done.
+## After the peak he holds his finished pose for a moment, waiting for the treat.
 func perform(trick: String) -> Array:
+	var r := _perform(trick)
+	return [r[0], r[0] + WINDOW.y + 0.3]
+
+
+func _perform(trick: String) -> Array:
 	var t := _start()
 	match trick:
 		"come":
@@ -124,15 +180,15 @@ func perform(trick: String) -> Array:
 				var a := from.lerp(home, i / 3.0)
 				var b := from.lerp(home, (i + 1) / 3.0)
 				_hop(t, a, b, 26 * k, 0.26)
-			t.tween_interval(0.6)
-			return [0.95, 1.6]
+			t.tween_interval(2.0)
+			return [1.0, 0]
 		"stand":
 			t.tween_property(pivot, "scale", Vector2(1.08, 0.9), 0.12)
 			t.tween_callback(set_pose.bind("stand"))
 			t.tween_property(pivot, "scale", Vector2.ONE, 0.2).set_trans(Tween.TRANS_BACK)
-			t.tween_interval(1.0)
+			t.tween_interval(WINDOW.y + 0.4)
 			t.tween_callback(set_pose.bind("sit"))
-			return [0.4, 1.4]
+			return [0.35, 0]
 		"spin":
 			t.tween_callback(set_pose.bind("hop"))
 			t.tween_property(pivot, "position:y", home.y - 30 * k, 0.15).set_ease(Tween.EASE_OUT)
@@ -142,8 +198,8 @@ func perform(trick: String) -> Array:
 			t.tween_callback(set_pose.bind("sit"))
 			t.tween_property(pivot, "scale", Vector2(1.12, 0.88), 0.06)
 			t.tween_property(pivot, "scale", Vector2.ONE, 0.14).set_trans(Tween.TRANS_BACK)
-			t.tween_interval(0.4)
-			return [0.8, 1.4]
+			t.tween_interval(2.0)
+			return [0.9, 0]
 		"hoop":
 			hoop.visible = true
 			var from := home - Vector2(size.x * 0.22, 0)
@@ -151,13 +207,13 @@ func perform(trick: String) -> Array:
 			pivot.position = from
 			t.tween_interval(0.25)
 			_hop(t, from, to, 70 * k, 0.6)
-			t.tween_interval(0.35)
+			t.tween_interval(WINDOW.y + 0.3)
 			t.tween_property(self, "modulate:a", 0.0, 0.15)
 			t.tween_callback(func():
 				pivot.position = home
 				hoop.visible = false)
 			t.tween_property(self, "modulate:a", 1.0, 0.15)
-			return [0.58, 1.5]
+			return [0.75, 0]
 	return [0.0, 0.0]
 
 
@@ -192,15 +248,50 @@ func fumble() -> float:
 ##   missed  - did it, but no reward came          wrong  - rewarded for getting distracted
 ##   ignored - got distracted and wasn't rewarded (that's correct)
 signal attempt_done(result: String)
-const WINDOW := Vector2(-0.15, 0.5)   # around the peak
+const WINDOW := Vector2(-0.2, 1.5)   # around the peak: when a treat counts as well timed
 var _try := {}
+var _tries := 0
 
 
 func attempt(trick: String, chance: float) -> void:
 	var ok := randf() < chance
 	var r: Array = perform(trick) if ok else [-1.0, fumble()]
-	_try = {"ok": ok, "t0": _now(), "peak": r[0], "result": ""}
+	_tries += 1
+	_try = {"ok": ok, "t0": _now(), "peak": r[0], "result": "", "n": _tries}
+	if ok:   # he's done it: make it obvious, it's time for the treat
+		get_tree().create_timer(maxf(0.0, r[0] + WINDOW.x)).timeout.connect(_now_cue.bind(_tries))
 	get_tree().create_timer(r[1] + 0.15).timeout.connect(_attempt_end)
+
+
+func _now_cue(n: int) -> void:
+	if _try.get("n", -1) != n or _try.result != "":
+		return
+	Sfx.play("sparkle")
+	for i in 3:
+		pop_icon("star", pivot.position + Vector2(-70 + 60 * i, -165) * k)
+	# a big "Now!" at the top of the mat that stays while the window is open
+	var l := UI.label(tr("Now!"), 52, Color("#e0901c"))
+	l.add_theme_color_override("font_outline_color", Color.WHITE)
+	l.add_theme_constant_override("outline_size", 14)
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.size = Vector2(size.x, 70)
+	l.position = Vector2(0, 6)
+	l.pivot_offset = l.size / 2.0
+	l.scale = Vector2(0.4, 0.4)
+	add_child(l)
+	var t := l.create_tween()
+	t.tween_property(l, "scale", Vector2.ONE, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	t.tween_interval(WINDOW.y - WINDOW.x - 0.55)
+	t.tween_property(l, "modulate:a", 0.0, 0.3)
+	t.tween_callback(l.queue_free)
+
+
+## How much of the reward window is left (1 = just opened, 0 = closed or not open).
+func window_left() -> float:
+	if not in_window():
+		return 0.0
+	var dt: float = _now() - _try.t0 - (_try.peak + WINDOW.x)
+	return clampf(1.0 - dt / (WINDOW.y - WINDOW.x), 0.0, 1.0)
 
 
 func attempting() -> bool:

@@ -113,7 +113,8 @@ func _judge_looks() -> void:
 	lines.append(tr("Glossy coat! The judge nods.") if Game.coat >= 85 else (tr("A decent coat.") if Game.coat >= 60
 		else tr("Scruffy fur... the judge frowns.")))
 	lines.append(tr("Neat nails.") if Game.nails < 35 else tr("Those nails are a bit long."))
-	lines.append(tr("What a lovely %s!") % Catalog.item_name(Game.wearing).to_lower() if Game.wearing != "" else tr("No outfit today."))
+	var fancy := Game.best_accessory()
+	lines.append(tr("What a lovely %s!") % Catalog.item_name(fancy).to_lower() if fancy != "" else tr("No outfit today."))
 	lines.append(tr("He sits calmly for the judge.") if Game.trust >= 60 else (tr("A little fidgety.") if Game.trust >= 35
 		else tr("He tries to hide behind you!")))
 	for i in lines.size():

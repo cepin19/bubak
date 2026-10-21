@@ -8,7 +8,7 @@ signal cable_alert(active: bool)
 const HOP_TIME := 0.34
 const AIR_PART := 0.72        # share of a hop cycle spent in the air
 ## Activities that make him sparkle: the rare, valuable photo moments.
-const RARE := ["binky", "zoomies", "flop", "bonk", "beg", "bowl_flip", "show_off", "snuggle"]
+const RARE := ["binky", "zoomies", "flop", "bonk", "beg", "bowl_flip", "show_off", "snuggle", "bird_friend"]
 const BEHAVIOUR_OF := {
 	"idle": "idle", "wander": "hop", "eat_bowl": "nom", "eat_hay": "munch", "drink": "drink",
 	"potty": "potty", "loaf": "loaf", "groom": "groom", "play_ball": "ball", "hide_box": "hide",
@@ -17,10 +17,12 @@ const BEHAVIOUR_OF := {
 	"bonk": "bonk", "thump": "thump", "eat_hand": "treat", "come": "idle", "petted": "loaf",
 	"held": "selfie", "door": "hop", "sunbathe": "sunbathe", "bird_watch": "bird_watch",
 	"herb_thief": "herb_thief", "dig": "dig", "forage": "forage", "castle": "castle",
-	"show_off": "show_off", "snuggle": "snuggle",
+	"show_off": "show_off", "snuggle": "snuggle", "graze": "graze", "lookout": "lookout", "chill": "chill",
+	"bird_friend": "bird_friend", "butterfly": "butterfly",
 }
 ## What the other bunny can be doing and still be up for a snuggle.
-const SNUGGLY := ["idle", "loaf", "groom", "sunbathe", "snuggle"]
+const SNUGGLY := ["idle", "loaf", "groom", "sunbathe", "snuggle", "chill"]
+const LOOKOUT_LIFT := 58.0   # height of the lookout deck's top
 
 ## Head centre (x, y) and rotation (degrees) in each pose's sprite, matching tools/gen_art.py.
 const HEADS := {"sit": [146, 92, 0], "blink": [146, 92, 0], "hop": [156, 88, -10], "loaf": [148, 132, 4],
@@ -29,13 +31,21 @@ const HEADS := {"sit": [146, 92, 0], "blink": [146, 92, 0], "hop": [156, 88, -10
 const EAR_ANGLE := {"sit": -12, "blink": -12, "hop": -35, "loaf": -48, "sleep": -48, "eat": -28,
 	"flop": -100, "stand": 4}
 ## Where each accessory sits relative to the head, and the sprite's own offset.
-const WEAR_ANCHOR := {"bow": [Vector2(-18, -30), Vector2.ZERO], "glasses": [Vector2(14, -4), Vector2(-13, 0)],
-	"crown": [Vector2(-2, -32), Vector2(0, -10)], "tophat": [Vector2(4, -36), Vector2(0, -24)]}
+const WEAR_ANCHOR := {
+	"beanie": [Vector2(-4, -26), Vector2(0, -10)], "crown": [Vector2(-2, -32), Vector2(0, -10)],
+	"tophat": [Vector2(4, -36), Vector2(0, -24)],
+	# ear clips: up along the perky ear from its base (they move with it)
+	"bow": [Vector2(0, -44), Vector2.ZERO], "daisy": [Vector2(0, -44), Vector2.ZERO],
+	"starclip": [Vector2(0, -44), Vector2.ZERO],
+	"glasses": [Vector2(14, -4), Vector2(-13, 0)], "sunglasses": [Vector2(14, -4), Vector2(-13, 0)],
+	"heartglasses": [Vector2(14, -4), Vector2(-13, 0)],
+	"bandana": [Vector2(-8, 32), Vector2(0, 10)], "bowtie": [Vector2(0, 36), Vector2.ZERO],
+	"pearls": [Vector2(-8, 32), Vector2(0, 6)]}
 
 var room: Node   # main.gd: finds items, spawns effects, tells the time
 var pet: Pet = Game.bubak   # whose needs and trust this bunny lives by
 var partner: Node2D = null  # the other bunny, once Bubák has a friend
-var wear_sprite: Sprite2D
+var wear_sprites := {}    # place -> Sprite2D
 var ear: Sprite2D
 var nose: Sprite2D
 var ear_extra := 0.0       # twitches and perks, added to the pose's ear angle
@@ -45,7 +55,7 @@ var _ear_t := 3.0
 var _nose_t := 1.0
 var _breath := 0.0
 var _was_airborne := false
-var _wear_shown := ""
+var _wear_shown := ""      # what the sprites show, to notice outfit changes
 var pivot: Node2D
 var body: Sprite2D
 
@@ -78,6 +88,9 @@ var _taps: Array = []
 var _pet_time := 0.0
 var _pet_fatigue := 0.0
 var _hearts_t := 0.0
+var _flashes: Array = []   # when he was last photographed (seconds, _now())
+var _camera_shy_until := 0.0
+var _treat_joy := false    # just had his favourite treat: a binky comes next
 
 
 func _ready() -> void:
@@ -95,9 +108,11 @@ func _ready() -> void:
 	ear.texture = Catalog.tex("bunny_ear" + pet.skin())
 	ear.centered = false
 	ear.offset = Vector2(-30, -104)
-	pivot.add_child(ear)
-	wear_sprite = Sprite2D.new()
-	pivot.add_child(wear_sprite)
+	for place in Catalog.WEAR_PLACES:   # in drawing order: neck, eyes, hat...
+		var ws := Sprite2D.new()
+		(ear if place == "ear" else pivot).add_child(ws)   # ear clips ride on the ear
+		wear_sprites[place] = ws
+	pivot.add_child(ear)   # ...then the perky ear on top (hats have ear holes)
 	_set_pose("sit")
 
 
@@ -122,24 +137,36 @@ static func wear_transform(p: String, wear: String) -> Array:
 	var h: Array = HEADS[p]
 	var rot := deg_to_rad(h[2])
 	var a: Array = WEAR_ANCHOR[wear]
-	return [Vector2(h[0], h[1]) + (a[0] as Vector2).rotated(rot), rot, a[1]]
+	var head := Vector2(h[0], h[1])
+	if Catalog.ITEMS[wear].place == "ear":
+		var ear_rot := deg_to_rad(h[2] + EAR_ANGLE[p])
+		return [head + Vector2(-8, -26).rotated(rot) + (a[0] as Vector2).rotated(ear_rot), ear_rot, a[1]]
+	return [head + (a[0] as Vector2).rotated(rot), rot, a[1]]
 
 
 ## Only Bubák dresses up.
-func _wearing() -> String:
-	return Game.wearing if pet.is_bubak() else ""
+func _wearing() -> Dictionary:
+	return Game.wearing if pet.is_bubak() else {}
 
 
 func _place_wear() -> void:
-	_wear_shown = _wearing()
-	wear_sprite.visible = _wear_shown != ""
-	if _wear_shown == "":
-		return
-	var t := wear_transform(pose, _wear_shown)
-	wear_sprite.texture = Catalog.tex(Catalog.ITEMS[_wear_shown].tex)
-	wear_sprite.position = t[0] - Vector2(100, 194)
-	wear_sprite.rotation = t[1]
-	wear_sprite.offset = t[2]
+	var w := _wearing()
+	_wear_shown = str(w)
+	for place in wear_sprites:
+		var ws: Sprite2D = wear_sprites[place]
+		var id: String = w.get(place, "")
+		ws.visible = id != ""
+		if id == "":
+			continue
+		ws.texture = Catalog.tex(Catalog.ITEMS[id].tex)
+		if place == "ear":
+			ws.position = WEAR_ANCHOR[id][0]
+			ws.offset = WEAR_ANCHOR[id][1]
+			continue
+		var t := wear_transform(pose, id)
+		ws.position = t[0] - Vector2(100, 194)
+		ws.rotation = t[1]
+		ws.offset = t[2]
 
 
 func scale_factor() -> float:
@@ -195,6 +222,12 @@ func _arrive() -> void:
 		data.laps -= 1
 		target = _random_point()
 		return
+	if act == "butterfly" and data.get("laps", 0) > 0:   # it flitted off again: after it!
+		data.laps -= 1
+		target = _clamp(position + Vector2(randf_range(-260, 260), randf_range(-70, 70)))
+		if data.laps % 2 == 0:
+			_boing()
+		return
 	if act == "play_ball" and data.get("chasing", false):
 		data.chasing = false
 	phase = 1
@@ -220,7 +253,7 @@ func _perform(delta: float) -> void:
 				Game.discover("chew_cable")
 				message.emit(tr("The laptop charger is chewed through! Culprit: %s. A new one cost 25 coins.\nA cable cover from the shop would stop this for good.") % pet.display_name())
 				act_t = 0
-		"eat_bowl", "eat_hay", "chew_toy", "eat_hand", "drink", "forage":
+		"eat_bowl", "eat_hay", "chew_toy", "eat_hand", "drink", "forage", "graze":
 			body.position.y = absf(sin(act_t * 14.0)) * 2.5
 		"dig":
 			body.position.y = absf(sin(act_t * 22.0)) * 4.0
@@ -249,7 +282,7 @@ func _update_visual(delta: float) -> void:
 	_animate_face(delta)
 	pivot.rotation = twist
 	visible = not hidden_inside
-	if _wear_shown != _wearing():
+	if _wear_shown != str(_wearing()):
 		_place_wear()
 	if pose == "sit" or pose == "blink":
 		_blink_t -= delta
@@ -321,7 +354,15 @@ func start(name: String, it: Node2D = null, at = null) -> void:
 		hop_phase = 0.0
 
 
+## Sounds when he starts doing something (only heard in the room you're looking at).
+const ACT_SOUND := {"binky": "boing", "thump": "thump", "eat_bowl": "munch", "eat_hay": "munch", "graze": "munch",
+	"chew_toy": "munch", "chew_cable": "munch", "herb_thief": "munch", "drink": "lap", "bowl_flip": "ball",
+	"bonk": "love", "bird_friend": "chirp", "flop": "hop"}
+
+
 func _begin() -> void:
+	if ACT_SOUND.has(act) and room_id == room.view:
+		Sfx.play(ACT_SOUND[act])
 	if act == "snuggle" and (item == null or item.position.distance_to(position) > 150 or not item.act in SNUGGLY):
 		act = "idle"   # the other one wandered off
 	var b: String = BEHAVIOUR_OF.get(act, "")
@@ -365,6 +406,8 @@ func _begin() -> void:
 			if item:
 				lift = 16
 				Game.discover("sleep_bed")
+			elif room_id == "balcony":
+				Game.discover("shade_nap")
 			else:
 				Game.discover("nap")
 			_fx_t = 0.8
@@ -486,7 +529,7 @@ func _begin() -> void:
 			item.wiggle()
 		"sunbathe":
 			act_t = randf_range(12, 20)
-			_set_pose("flop" if pet.trust_level() >= 3 else "loaf")
+			_set_pose("flop" if pet.trust_level() >= 4 else "loaf")
 			emote("heart")
 		"bird_watch":
 			act_t = 3.8
@@ -498,6 +541,40 @@ func _begin() -> void:
 			act_t = 5.0
 			_face(item)
 			_set_pose("eat")
+		"graze":
+			act_t = randf_range(5, 8)
+			_face(item)
+			_set_pose("eat")
+			item.wiggle(0.5)
+		"lookout":
+			act_t = randf_range(8, 14)
+			_tw = create_tween()   # hop up onto the deck
+			_tw.tween_property(self, "lift", LOOKOUT_LIFT, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			facing = -1.0 if randf() < 0.5 else 1.0
+			_set_pose("stand" if randf() < 0.6 else "sit")
+			emote("!")
+		"chill":
+			act_t = randf_range(10, 16)
+			_set_pose("flop" if pet.trust_level() >= 4 else "loaf")
+			emote("heart")
+		"bird_friend":
+			act_t = 6.0
+			_set_pose("sit")
+			var spot := _clamp(position + Vector2(facing * 70, 2))
+			room.land_bird(spot, 4.4)
+			_tw = create_tween()
+			_tw.tween_interval(1.7)
+			_tw.tween_callback(func():
+				_set_pose("loaf")
+				emote("heart"))
+			_tw.tween_interval(2.2)
+			_tw.tween_callback(func():
+				_set_pose("stand")
+				emote("!"))
+		"butterfly":
+			act_t = 1.6
+			_set_pose("stand")
+			emote("heart")
 		"snuggle":
 			act_t = randf_range(10, 16)
 			_face(item)
@@ -619,6 +696,27 @@ func _finish() -> void:
 			pet.add_need("fun", 4)
 		"snuggle":
 			pet.add_need("fun", 8)
+		"graze":
+			Game.grass = maxf(0, Game.grass - 18)
+			pet.add_need("food", 14)
+			pet.add_need("fun", 4)
+		"lookout":
+			pet.add_need("fun", 8)
+			lift = 0.0
+			_boing()
+			if randf() < 0.3:
+				var fans := randi_range(2, 6)
+				Game.followers += fans
+				message.emit(tr("A neighbour across the street spotted %s on the lookout and waved! +%d followers.") % [pet.display_name(), fans])
+		"chill":
+			pet.add_need("fun", 4)
+			pet.energy = minf(100, pet.energy + 4)
+		"bird_friend":
+			pet.add_need("fun", 10)
+			Game.seeds = maxf(0, Game.seeds - 8)
+		"butterfly":
+			pet.add_need("fun", 10)
+			pet.energy -= 3
 		"herb_thief":
 			Game.herbs = maxf(0, Game.herbs - 25)
 			pet.add_need("food", 10)
@@ -654,6 +752,10 @@ func _end_current() -> void:
 
 
 func _choose_next() -> void:
+	if _treat_joy:
+		_treat_joy = false
+		start("binky", null, position)
+		return
 	var lvl := pet.trust_level()
 	var mood := pet.mood()
 	var n: Dictionary = pet.needs
@@ -669,7 +771,8 @@ func _choose_next() -> void:
 			start("floor_potty", null, position + Vector2(randf_range(-80, 80), randf_range(-30, 30)))
 		return
 	# The balcony is for fun; food, water and the litter box are inside.
-	if outside and (n.food < 45 or n.water < 45 or pet.bladder >= 85 or pet.energy < 30
+	var parasol = room.find_item("parasol", "balcony")
+	if outside and (n.food < 45 or n.water < 45 or pet.bladder >= 85 or (pet.energy < 30 and parasol == null)
 			or Game.balcony != "open" or _now() - _outside_since > _visit_length):
 		start("door", room.door_of("balcony"))
 		return
@@ -706,6 +809,23 @@ func _choose_next() -> void:
 			opts.bird_watch = [12.0, null]
 		if Game.herbs > 25:
 			opts.herb_thief = [10.0 + (100 - n.food) * 0.3, room.planter]
+		if parasol and pet.energy < 45:
+			opts.shade_nap = [70.0 if pet.energy < 30 else 20.0, parasol]
+		var tray = room.find_item("grass_tray", "balcony")
+		if tray and Game.grass > 15:
+			opts.graze = [12.0 + (100 - n.food) * 0.5, tray]
+		var deck = room.find_item("lookout", "balcony")
+		if deck:
+			opts.lookout = [16.0 if daytime else 6.0, deck]
+		var tile = room.find_item("cool_tile", "balcony")
+		if tile:
+			opts.chill = [22.0 if hour > 11.0 and hour < 18.0 else 5.0, tile]
+		var feeder = room.find_item("bird_feeder", "balcony")
+		if feeder and Game.seeds > 10 and daytime:
+			opts.bird_watch = [22.0, null]   # the feeder brings more birds by
+			opts.bird_friend = [5.0 + (8.0 if lvl >= 2 else 0.0), feeder]
+		if daytime and (Game.herbs > 40 or room.find_item("flowers", "balcony")):
+			opts.butterfly = [8.0, null]
 	for toy in [["ball", "play_ball"], ["box", "hide_box"], ["hut", "hide_box"], ["tunnel", "tunnel"],
 			["branch", "chew_toy"], ["digbox", "dig"], ["puzzle", "forage"], ["castle", "castle"]]:
 		var it = room.find_item(toy[0], room_id)
@@ -771,6 +891,18 @@ func _choose_next() -> void:
 			start("snuggle", it, it.position + Vector2(-70 if position.x < it.position.x else 70, 4))
 		"sunbathe":
 			start("sunbathe", null, it.position + Vector2(randf_range(-90, 90), randf_range(-12, 12)))
+		"shade_nap":
+			start("sleep", null, it.use_point(position))
+		"chill":
+			start("chill", it, it.position + Vector2(randf_range(-30, 30), 4))
+		"bird_friend":
+			start("bird_friend", null, position)
+		"butterfly":
+			start("butterfly", null, _clamp(position + Vector2(randf_range(-240, 240), randf_range(-60, 60))))
+			data.laps = 4
+			speed = 230.0
+			Game.discover("butterfly")
+			room.spawn_butterfly(self)
 		_:
 			start(pick, it)
 
@@ -828,11 +960,38 @@ func on_tap() -> void:
 			if item:
 				item.wiggle()
 			return
-	if phase == 1 and pet.trust_level() >= 3 and randf() < 0.35:
+	if phase == 1 and pet.trust_level() >= 4 and randf() < 0.35:
 		start("bonk", null, position)
 	else:
 		emote("?")
 		_boing()
+
+
+## True while he's had enough of the camera and turns away from it.
+func camera_shy() -> bool:
+	return _now() < _camera_shy_until
+
+
+## A photo of him was just taken. Too many flashes in a row and he's had enough.
+func on_flash() -> void:
+	var now := _now()
+	_flashes.append(now)
+	_flashes = _flashes.filter(func(t): return now - t < Catalog.CAMERA_WINDOW)
+	if act == "sleep" and _flashes.size() >= 2:   # one photo of him napping is fine
+		emote("!")
+		pet.add_trust(-0.5)
+		message.emit(tr("The flash woke %s up.") % pet.display_name())
+		start("idle", null, position)
+	elif _flashes.size() > Catalog.CAMERA_PATIENCE and not camera_shy():
+		_flashes.clear()
+		_camera_shy_until = now + Catalog.CAMERA_SHY_TIME
+		pet.add_trust(-1.0)
+		message.emit(tr("Too many flashes! %s has had enough of the camera for a while.") % pet.display_name())
+		start("flee", null, _far_point(300))
+		speed = 300.0
+	elif _flashes.size() == Catalog.CAMERA_PATIENCE:
+		emote("!")
+		message.emit(tr("%s is getting tired of the camera.") % pet.display_name())
 
 
 func on_floor_tap(pos: Vector2) -> void:
@@ -852,7 +1011,7 @@ func on_pet_start() -> bool:
 		message.emit(tr("%s has had enough cuddles for now.") % pet.display_name())
 		start("wander", null, _far_point(200))
 		return false
-	var shy: float = [0.55, 0.25, 0.08, 0.0, 0.0][pet.trust_level()]
+	var shy: float = [0.55, 0.25, 0.08, 0.03, 0.0, 0.0, 0.0][pet.trust_level()]
 	if act == "sleep":
 		shy += 0.25
 	if randf() < shy:
@@ -887,8 +1046,9 @@ func on_pet_hold(delta: float) -> bool:
 	pet.add_trust(0.25 * delta / (1.0 + _pet_fatigue))
 	pet.add_need("fun", 1.2 * delta)
 	var lvl := pet.trust_level()
-	if lvl >= 4 and _pet_time > 2.5 and not data.get("purr", false):
+	if lvl >= 5 and _pet_time > 2.5 and not data.get("purr", false):
 		data.purr = true
+		Sfx.play("purr")
 		emote_text(tr("purr~"))
 		Game.discover("purr")
 	if _pet_time > 5.0 + lvl * 3.0:
@@ -917,7 +1077,7 @@ func try_pick_up() -> String:
 	if act in ["thump", "flee"]:
 		return "no"
 	var lvl := pet.trust_level()
-	var chance: float = [0.0, 0.0, 0.4, 0.95, 1.0][lvl]
+	var chance: float = [0.0, 0.0, 0.0, 0.2, 0.95, 1.0, 1.0][lvl]
 	if randf() < chance:
 		_end_current()
 		act = "held"
@@ -939,7 +1099,7 @@ func try_pick_up() -> String:
 
 ## How long he tolerates being held, in seconds.
 func hold_limit() -> float:
-	return 25.0 if pet.trust_level() >= 4 else 14.0
+	return 25.0 if pet.trust_level() >= 5 else 14.0
 
 
 func put_down() -> void:
@@ -947,7 +1107,7 @@ func put_down() -> void:
 		return
 	_end_current()
 	_boing()
-	if pet.trust_level() >= 4 and randf() < 0.5:
+	if pet.trust_level() >= 5 and randf() < 0.5:
 		start("binky", null, position)
 	else:
 		start("idle", null, position)
@@ -968,13 +1128,17 @@ func _eat_from_hand() -> void:
 	_set_pose("eat")
 	var shy := pet.trust_level() == 0
 	act_t = 0.8 if shy else 2.6
+	Sfx.play("munch")
 	pet.add_need("food", info.food)
 	pet.add_need("fun", info.fun)
 	pet.sugar += info.sugar
-	pet.add_trust(info.trust * (0.6 if shy else 1.0))
+	pet.add_trust(Catalog.treat_trust(treat) * (0.6 if shy else 1.0) * pet.treat_trust())
 	Game.stats.treats += 1
 	emote("heart")
-	if pet.sugar > 60:
+	if info.get("favourite", false) and not shy:
+		_treat_joy = true
+		message.emit(tr("%s! %s's favourite!") % [Catalog.item_name(treat), pet.display_name()])
+	elif pet.sugar > 60:
 		message.emit(tr("Too many sweets... %s has a tummy ache.\nParsley and hay are kinder to a bunny's tummy.") % pet.display_name())
 	elif shy:
 		message.emit(tr("Snatched it and ran! %s will get braver.") % pet.display_name())
@@ -986,9 +1150,9 @@ func current_behaviour() -> String:
 	if act in ["tunnel", "door"] and phase == 1:
 		return ""
 	if phase == 0:
-		return "zoomies" if act == "zoomies" else "hop"
+		return {"zoomies": "zoomies", "butterfly": "butterfly"}.get(act, "hop")
 	if act == "sleep":
-		return "sleep_bed" if item else "nap"
+		return "sleep_bed" if item else ("shade_nap" if room_id == "balcony" else "nap")
 	if act == "flop" and pose != "flop":
 		return "loaf"
 	return BEHAVIOUR_OF.get(act, "idle")

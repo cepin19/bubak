@@ -7,13 +7,39 @@ const ART := "res://assets/art/"
 const BALCONY_TRUST := 3
 const BALCONY_FOLLOWERS := 300
 
+# Photos: followers only have so much attention. Every post uses some up and it comes back slowly,
+# so a flood of posts gets fewer likes and, once attention runs low, people unfollow.
+const FEED_COST := 0.2          # attention one post uses (out of 1)
+const FEED_REFILL := 2400.0     # seconds for attention to come back from empty to full
+const FEED_FLOODED := 0.3       # below this, a post loses followers instead of gaining them
+const FEED_UNFOLLOW := 0.02     # share of followers lost per post into a flooded feed
+# Bubák and the flash: more than this many photos of him in CAMERA_WINDOW seconds and he's had enough.
+const CAMERA_PATIENCE := 3
+const CAMERA_WINDOW := 120.0
+const CAMERA_SHY_TIME := 180.0  # how long he then turns away from the camera
+
 const TRUST_LEVELS := [
 	{"at": 0.0, "name": "Shy"},
-	{"at": 15.0, "name": "Curious"},
-	{"at": 35.0, "name": "Friendly"},
-	{"at": 60.0, "name": "Bonded"},
-	{"at": 85.0, "name": "Best buds"},
+	{"at": 10.0, "name": "Curious"},
+	{"at": 25.0, "name": "Friendly"},
+	{"at": 42.0, "name": "Trusting"},   # the balcony
+	{"at": 60.0, "name": "Cuddly"},     # he lets you pick him up for a selfie
+	{"at": 78.0, "name": "Bonded"},
+	{"at": 94.0, "name": "Best buds"},  # then, after a long game, a friend for him
 ]
+## Trust is slow to earn: each level gains it slower than the last (TRUST_PACE[level]), and the more
+## he has warmed up today, the less each extra bit counts: gains are divided by 1 + today / TRUST_DAILY.
+const TRUST_PACE := [1.0, 0.9, 0.75, 0.6, 0.5, 0.4, 0.35]
+## Settings > Game pace > Fast: the original quick game. Bubák bonds within a session or two:
+## lower thresholds, no slowdown per level or per day, treats count fully every time and are
+## worth what they used to be, and the friend comes at Cuddly in a Cozy level 4 flat.
+const FAST_TRUST_AT := [0.0, 15.0, 35.0, 50.0, 60.0, 72.0, 85.0]
+const FAST_TREAT_TRUST := {"parsley": 1.0, "carrot": 1.5, "apple": 2.0, "dandelion": 5.0, "hay_cookie": 6.5,
+	"banana_chips": 7.5, "rose_petals": 9.0, "dried_apple": 12.0}
+const FAST_MATE := {"trust": 4, "cozy": 4}
+const TRUST_DAILY := 6.0
+const TREAT_REPEAT := 0.7       # every treat already had today counts this much less for trust
+const SELFIE_TRUST := 4         # level at which he can be picked up
 
 ## kind:
 ##   food   - goes into the bowl          hay   - goes into the hay rack
@@ -27,46 +53,78 @@ const ITEMS := {
 	"hay": {"name": "Meadow hay", "kind": "hay", "price": 8, "qty": 5, "icon": "hay",
 		"desc": "5 armfuls of hay. Bunnies should always have hay!"},
 	"parsley": {"name": "Parsley", "kind": "treat", "price": 3, "qty": 1, "icon": "parsley",
-		"desc": "Healthy green snack.", "food": 6.0, "fun": 4.0, "trust": 2.5, "sugar": 0.0},
+		"desc": "Healthy green snack.", "food": 6.0, "fun": 4.0, "trust": 0.8, "sugar": 0.0},
 	"carrot": {"name": "Carrot", "kind": "treat", "price": 5, "qty": 1, "icon": "carrot",
-		"desc": "Crunchy and sweet. Don't overdo it.", "food": 10.0, "fun": 6.0, "trust": 3.5, "sugar": 18.0},
+		"desc": "Crunchy and sweet. Don't overdo it.", "food": 10.0, "fun": 6.0, "trust": 1.2, "sugar": 18.0},
 	"apple": {"name": "Apple slice", "kind": "treat", "price": 7, "qty": 1, "icon": "apple",
-		"desc": "His absolute favourite! Sweet, so just a slice now and then.", "food": 8.0, "fun": 12.0, "trust": 6.0, "sugar": 35.0},
+		"desc": "Sweet and juicy, so just a slice now and then.", "food": 8.0, "fun": 8.0, "trust": 1.5, "sugar": 30.0},
+	# Gourmet treats: pricey, but they win his heart much faster.
+	"dandelion": {"name": "Dandelion bouquet", "kind": "treat", "price": 28, "qty": 1, "icon": "dandelion", "fancy": true,
+		"desc": "Fresh dandelion leaves and flowers. A healthy feast.", "food": 12.0, "fun": 10.0, "trust": 3.0, "sugar": 0.0},
+	"hay_cookie": {"name": "Hay cookie", "kind": "treat", "price": 36, "qty": 1, "icon": "hay_cookie", "fancy": true,
+		"desc": "Baked hay and herbs, shaped like a heart.", "food": 10.0, "fun": 12.0, "trust": 3.5, "sugar": 8.0},
+	"banana_chips": {"name": "Banana chips", "kind": "treat", "price": 42, "qty": 1, "icon": "banana_chips", "fancy": true,
+		"desc": "Crispy and very sweet. A rare indulgence.", "food": 6.0, "fun": 16.0, "trust": 4.0, "sugar": 32.0},
+	"rose_petals": {"name": "Dried rose petals", "kind": "treat", "price": 55, "qty": 1, "icon": "rose_petals", "fancy": true,
+		"desc": "Fragrant petals for a bunny of refined taste.", "food": 4.0, "fun": 14.0, "trust": 4.5, "sugar": 0.0},
+	"dried_apple": {"name": "Dried apple rings", "kind": "treat", "price": 75, "qty": 1, "icon": "dried_apple", "fancy": true,
+		"favourite": true, "desc": "His absolute favourite! He'll do a happy binky for one.",
+		"food": 8.0, "fun": 22.0, "trust": 6.0, "sugar": 28.0},
 	"branch": {"name": "Leafy branch", "kind": "toy", "price": 10, "icon": "branch", "tex": "branch",
 		"scale": 0.85, "use": "chew_toy", "max": 2, "bites": 4,
-		"desc": "Fresh branch with leaves. He eats the lot, leaves first. Keeps him off cables."},
+		"space": 1, "desc": "Fresh branch with leaves. He eats the lot, leaves first. Keeps him off cables."},
 
-	"ball": {"name": "Willow ball", "kind": "toy", "price": 20, "icon": "ball", "tex": "ball",
-		"scale": 0.7, "use": "play_ball", "max": 2, "cozy": 1, "desc": "To nudge, toss and chase."},
+	"ball": {"name": "Rainbow ball", "kind": "toy", "price": 20, "icon": "ball", "tex": "ball",
+		"scale": 0.7, "use": "play_ball", "max": 2, "cozy": 1, "space": 1, "desc": "To nudge, toss and chase."},
 	"box": {"name": "Cardboard castle", "kind": "toy", "price": 15, "icon": "box", "tex": "box",
-		"scale": 0.85, "use": "hide_box", "max": 1, "cozy": 1, "desc": "A hideout. Very important bunny business."},
+		"scale": 0.85, "use": "hide_box", "max": 1, "cozy": 1, "space": 2, "desc": "A hideout. Very important bunny business."},
 	"tunnel": {"name": "Play tunnel", "kind": "toy", "price": 45, "icon": "tunnel", "tex": "tunnel",
-		"scale": 0.85, "use": "tunnel", "max": 1, "cozy": 2, "desc": "Zoom in one end, out the other."},
+		"scale": 0.85, "use": "tunnel", "max": 1, "cozy": 2, "space": 2, "desc": "Zoom in one end, out the other."},
 
 	"bed": {"name": "Cushy bed", "kind": "decor", "price": 55, "icon": "bed", "tex": "bed",
-		"scale": 0.85, "use": "sleep", "max": 1, "cozy": 3, "desc": "Naps here restore energy faster."},
+		"scale": 0.85, "use": "sleep", "max": 1, "cozy": 3, "space": 2, "desc": "Naps here restore energy faster."},
 	"rug": {"name": "Cozy rug", "kind": "decor", "price": 35, "icon": "rug", "tex": "rug",
-		"scale": 1.0, "flat": true, "max": 2, "cozy": 2, "desc": "Soft paws, happy bunny."},
+		"scale": 1.0, "flat": true, "max": 2, "cozy": 2, "space": 2, "desc": "Soft paws, happy bunny."},
 	"plant": {"name": "Potted fern", "kind": "decor", "price": 25, "icon": "plant", "tex": "plant",
-		"scale": 0.8, "max": 3, "cozy": 1, "desc": "Makes photos look fancier."},
+		"scale": 0.8, "max": 3, "cozy": 1, "space": 1, "desc": "Makes photos look fancier."},
 	"lamp": {"name": "Floor lamp", "kind": "decor", "price": 40, "icon": "lamp", "tex": "lamp",
-		"scale": 0.8, "max": 1, "cozy": 2, "desc": "Warm light in the evening."},
+		"scale": 0.8, "max": 1, "cozy": 2, "space": 1, "desc": "Warm light in the evening."},
 	"digbox": {"name": "Dig box", "kind": "toy", "price": 45, "icon": "digbox", "tex": "digbox",
-		"scale": 0.8, "use": "dig", "max": 1, "cozy": 2, "desc": "A box of sand for very important digging."},
+		"scale": 0.8, "use": "dig", "max": 1, "cozy": 2, "space": 2, "desc": "A box of sand for very important digging."},
 	"puzzle": {"name": "Treat puzzle", "kind": "toy", "price": 35, "icon": "puzzle", "tex": "puzzle",
-		"scale": 0.8, "use": "forage", "max": 1, "cozy": 1, "desc": "Hides little snacks under the lids. Makes him think."},
+		"scale": 0.8, "use": "forage", "max": 1, "cozy": 1, "space": 1, "desc": "Hides little snacks under the lids. Makes him think."},
 	"hut": {"name": "Wooden hut", "kind": "toy", "price": 80, "icon": "hut", "tex": "hut", "req_cozy": 2,
-		"scale": 0.8, "use": "hide_box", "max": 1, "cozy": 3, "desc": "A hideaway that smells like a forest."},
+		"scale": 0.8, "use": "hide_box", "max": 1, "cozy": 3, "space": 3, "desc": "A hideaway that smells like a forest."},
 	"castle": {"name": "Bunny castle", "kind": "toy", "price": 260, "icon": "castle", "tex": "castle", "req_cozy": 3,
-		"scale": 0.85, "use": "castle", "max": 1, "cozy": 5, "desc": "Two floors of castle. He rules from the top."},
+		"scale": 0.85, "use": "castle", "max": 1, "cozy": 5, "space": 3, "desc": "Two floors of castle. He rules from the top."},
 	"teepee": {"name": "Teepee tent", "kind": "decor", "price": 110, "icon": "teepee", "tex": "teepee", "req_cozy": 2,
-		"scale": 0.8, "use": "sleep", "max": 1, "cozy": 4, "desc": "A tent for very cozy naps."},
+		"scale": 0.8, "use": "sleep", "max": 1, "cozy": 4, "space": 3, "desc": "A tent for very cozy naps."},
 	"beanbag": {"name": "Bean bag", "kind": "decor", "price": 70, "icon": "beanbag", "tex": "beanbag",
-		"scale": 0.85, "max": 1, "cozy": 3, "desc": "He flops on it like he owns it. He does."},
+		"scale": 0.85, "max": 1, "cozy": 3, "space": 2, "desc": "He flops on it like he owns it. He does."},
 	"lantern": {"name": "Paper lantern", "kind": "decor", "price": 30, "icon": "lantern", "tex": "lantern",
-		"scale": 0.8, "max": 2, "cozy": 1, "desc": "A soft glow for the evenings."},
+		"scale": 0.8, "max": 2, "cozy": 1, "space": 1, "desc": "A soft glow for the evenings."},
 	"flowers": {"name": "Flower pot", "kind": "decor", "price": 20, "icon": "flowers", "tex": "flowers",
-		"scale": 0.8, "max": 3, "cozy": 1, "desc": "Pretty. Not for eating. Probably."},
+		"scale": 0.8, "max": 3, "cozy": 1, "space": 1, "desc": "Pretty. Not for eating. Probably."},
+
+	# balcony only ("outdoor"): bought straight onto the balcony
+	"grass_tray": {"name": "Wheatgrass tray", "kind": "toy", "price": 40, "icon": "grass_tray", "tex": "grass_tray",
+		"outdoor": true, "scale": 0.85, "use": "graze", "max": 1, "cozy": 2, "space": 2,
+		"desc": "Fresh grass to graze. Water it and it grows back."},
+	"bird_feeder": {"name": "Bird feeder", "kind": "decor", "price": 60, "icon": "bird_feeder", "tex": "bird_feeder",
+		"outdoor": true, "scale": 0.8, "max": 1, "cozy": 2, "space": 1,
+		"desc": "Fill it with seeds and the birds drop by. Bubák is fascinated."},
+	"cool_tile": {"name": "Cool stone tile", "kind": "decor", "price": 45, "icon": "cool_tile", "tex": "cool_tile",
+		"outdoor": true, "flat": true, "scale": 0.9, "use": "chill", "max": 1, "cozy": 1, "space": 1,
+		"desc": "Rabbits don't like the heat. On warm afternoons he stretches out on it."},
+	"wind_chime": {"name": "Wind chime", "kind": "decor", "price": 30, "icon": "wind_chime", "tex": "wind_chime",
+		"outdoor": true, "scale": 0.8, "max": 1, "cozy": 1, "space": 1,
+		"desc": "Tinkles in the breeze. Tap it and watch his ears."},
+	"parasol": {"name": "Sun umbrella", "kind": "decor", "price": 90, "icon": "parasol", "tex": "parasol",
+		"outdoor": true, "scale": 0.85, "max": 1, "cozy": 3, "space": 2,
+		"desc": "A shady spot, so he can nap outside."},
+	"lookout": {"name": "Lookout deck", "kind": "toy", "price": 130, "icon": "lookout", "tex": "lookout", "req_cozy": 3,
+		"outdoor": true, "scale": 0.85, "use": "lookout", "max": 1, "cozy": 3, "space": 2,
+		"desc": "Up the ramp and over the railing: the whole street to watch. The neighbours wave back."},
 
 	# Upgrades: "slot" + "tier". Care slots start at tier 1, desk gear at tier 0.
 	"bowl2": {"name": "Big food bowl", "kind": "upgrade", "slot": "bowl", "tier": 2, "price": 70,
@@ -94,15 +152,32 @@ const ITEMS := {
 	"headphones": {"name": "Noise-cancelling headphones", "kind": "upgrade", "slot": "headphones", "tier": 1, "price": 260,
 		"req_career": 3, "icon": "headphones", "cozy": 1, "desc": "Another +25% pay for remote work."},
 
-	# Things Bubák can wear (one at a time). Photos with an outfit get more likes.
-	"bow": {"name": "Red bow", "kind": "wear", "price": 45, "icon": "wear_bow", "tex": "wear_bow",
+	# Things Bubák can wear: one per slot (head, ear, eyes, neck), all at once.
+	# style: points towards the shows' Best in Show; photos with an outfit get more likes.
+	"beanie": {"name": "Knitted beanie", "kind": "wear", "place": "head", "style": 25, "price": 70, "icon": "wear_beanie",
+		"tex": "wear_beanie", "desc": "Warm, soft and a little bit cool."},
+	"crown": {"name": "Flower crown", "kind": "wear", "place": "head", "style": 40, "price": 150, "req_cozy": 2,
+		"icon": "wear_crown", "tex": "wear_crown", "desc": "Spring, all year round."},
+	"tophat": {"name": "Tiny top hat", "kind": "wear", "place": "head", "style": 60, "price": 300, "req_cozy": 4,
+		"icon": "wear_tophat", "tex": "wear_tophat", "desc": "For a bunny of distinction."},
+	"bow": {"name": "Red bow", "kind": "wear", "place": "ear", "style": 20, "price": 45, "icon": "wear_bow", "tex": "wear_bow",
 		"desc": "A classic. Photos with an outfit get more likes."},
-	"glasses": {"name": "Round glasses", "kind": "wear", "price": 90, "icon": "wear_glasses", "tex": "wear_glasses_side",
-		"desc": "Very smart. Very scholarly."},
-	"crown": {"name": "Flower crown", "kind": "wear", "price": 150, "req_cozy": 2, "icon": "wear_crown", "tex": "wear_crown",
-		"desc": "Spring, all year round."},
-	"tophat": {"name": "Tiny top hat", "kind": "wear", "price": 300, "req_cozy": 4, "icon": "wear_tophat", "tex": "wear_tophat",
-		"desc": "For a bunny of distinction."},
+	"daisy": {"name": "Daisy clip", "kind": "wear", "place": "ear", "style": 25, "price": 60, "icon": "wear_daisy",
+		"tex": "wear_daisy", "desc": "A little daisy behind the ear."},
+	"starclip": {"name": "Star clip", "kind": "wear", "place": "ear", "style": 40, "price": 160, "req_cozy": 3,
+		"icon": "wear_starclip", "tex": "wear_starclip", "desc": "A sparkly gold star. Born for the spotlight."},
+	"glasses": {"name": "Round glasses", "kind": "wear", "place": "eyes", "style": 30, "price": 90, "icon": "wear_glasses",
+		"tex": "wear_glasses_side", "desc": "Very smart. Very scholarly."},
+	"sunglasses": {"name": "Sunglasses", "kind": "wear", "place": "eyes", "style": 35, "price": 130, "req_cozy": 2,
+		"icon": "wear_sunglasses", "tex": "wear_sunglasses_side", "desc": "Too cool for the litter box."},
+	"heartglasses": {"name": "Heart glasses", "kind": "wear", "place": "eyes", "style": 45, "price": 220, "req_cozy": 3,
+		"icon": "wear_heartglasses", "tex": "wear_heartglasses_side", "desc": "He sees the world through heart-shaped glasses."},
+	"bandana": {"name": "Bandana", "kind": "wear", "place": "neck", "style": 20, "price": 50, "icon": "wear_bandana",
+		"tex": "wear_bandana", "desc": "A blue bandana for an adventurous bunny."},
+	"bowtie": {"name": "Bow tie", "kind": "wear", "place": "neck", "style": 30, "price": 95, "icon": "wear_bowtie",
+		"tex": "wear_bowtie", "desc": "Dressed for a very important meeting."},
+	"pearls": {"name": "Pearl necklace", "kind": "wear", "place": "neck", "style": 50, "price": 350, "req_cozy": 4,
+		"icon": "wear_pearls", "tex": "wear_pearls", "desc": "Utterly glamorous."},
 
 	"balcony_net": {"name": "Balcony netting", "kind": "upgrade", "price": 120, "icon": "door_open", "cozy": 3,
 		"desc": "Makes the balcony bunny-safe, so Bubák can go out and enjoy the fresh air."},
@@ -133,11 +208,14 @@ const ITEMS := {
 
 const SHOP_TABS := {
 	"Food": ["pellets", "hay", "branch", "parsley", "carrot", "apple"],
+	"Gourmet": ["dandelion", "hay_cookie", "banana_chips", "rose_petals", "dried_apple"],
 	"Toys": ["ball", "box", "tunnel", "puzzle", "digbox", "hut", "castle"],
+	"Balcony": ["grass_tray", "bird_feeder", "cool_tile", "wind_chime", "parasol", "lookout"],
 	"Home": ["bed", "rug", "plant", "flowers", "lantern", "lamp", "beanbag", "teepee", "cable_cover", "balcony_net"],
 	"Upgrades": ["bowl2", "bowl3", "water2", "water3", "hayrack2", "hayrack3", "litter2", "litter3",
 		"chair", "monitor", "coffee", "headphones"],
-	"Style": ["bow", "glasses", "crown", "tophat"],
+	"Style": ["beanie", "crown", "tophat", "bow", "daisy", "starclip", "glasses", "sunglasses", "heartglasses",
+		"bandana", "bowtie", "pearls"],
 	"Club": ["clicker", "pouch", "hoop", "brush", "comb", "clippers"],
 }
 
@@ -165,6 +243,12 @@ const BEHAVIOURS := {
 	"balcony": {"name": "Fresh air", "likes": 60, "desc": "His first trip out onto the balcony.", "needs": "balcony"},
 	"sunbathe": {"name": "Sunbathing", "likes": 90, "desc": "Stretched out in a warm patch of sun.", "needs": "balcony"},
 	"bird_watch": {"name": "Bird watching", "likes": 100, "desc": "Up on his hind legs, very interested in that pigeon.", "needs": "balcony"},
+	"graze": {"name": "Grazing", "likes": 60, "desc": "Munching fresh wheatgrass, one blade at a time.", "needs": "grass_tray"},
+	"lookout": {"name": "On the lookout", "likes": 110, "desc": "Keeping an eye on the street from the top of the deck.", "needs": "lookout"},
+	"chill": {"name": "Cooling off", "likes": 90, "desc": "Belly down on the cool stone. Ahh.", "needs": "cool_tile"},
+	"shade_nap": {"name": "Shady nap", "likes": 100, "desc": "A snooze under the sun umbrella.", "needs": "parasol"},
+	"bird_friend": {"name": "Feathered friend", "likes": 180, "desc": "A sparrow from the feeder hops right up to him. Nose to beak!", "needs": "bird_feeder"},
+	"butterfly": {"name": "Butterfly chase", "likes": 150, "desc": "Hop, hop, pounce... missed. Again!", "needs": "balcony"},
 	"herb_thief": {"name": "Herb thief", "likes": 70, "desc": "Those herbs were for cooking. Were.", "needs": "balcony"},
 	"thump": {"name": "THUMP!", "likes": 60, "desc": "A warning stomp. Something scared him."},
 	"chew_cable": {"name": "Cable crime", "likes": 80, "desc": "Caught red-pawed. Naughty!"},
@@ -173,18 +257,23 @@ const BEHAVIOURS := {
 	"bowl_flip": {"name": "Bowl flip", "likes": 110, "desc": "Empty bowl? Unacceptable!", "level": 1},
 	"binky": {"name": "Binky!", "likes": 160, "desc": "A happy jump-twist. Pure joy.", "level": 2},
 	"zoomies": {"name": "Zoomies", "likes": 120, "desc": "Sudden laps around the flat at full speed.", "level": 2},
-	"flop": {"name": "Flop", "likes": 200, "desc": "Falls over on his side. Total trust.", "level": 3},
-	"bonk": {"name": "Nose bonk", "likes": 150, "desc": "Boop! He only does this to his favourite people.", "level": 3},
-	"selfie": {"name": "Selfie together", "likes": 220, "desc": "Cheek to cheek. Your followers can't get enough.", "level": 3},
+	"flop": {"name": "Flop", "likes": 200, "desc": "Falls over on his side. Total trust.", "level": 4},
+	"bonk": {"name": "Nose bonk", "likes": 150, "desc": "Boop! He only does this to his favourite people.", "level": 4},
+	"selfie": {"name": "Selfie together", "likes": 220, "desc": "Cheek to cheek. Your followers can't get enough.", "level": 4},
 	"snuggle": {"name": "Snuggle buddies", "likes": 260, "desc": "Two bunnies, one fluffy loaf.", "needs": "mate"},
 	"show_off": {"name": "Show-off", "likes": 130, "desc": "Does a trick nobody asked for. Then waits for applause.", "needs": "tricks"},
-	"purr": {"name": "Tooth purr", "likes": 120, "desc": "Soft teeth-clicking while petted. Bliss.", "level": 4},
+	"purr": {"name": "Tooth purr", "likes": 120, "desc": "Soft teeth-clicking while petted. Bliss.", "level": 5},
 }
 
 const BEHAVIOUR_ORDER := ["hop", "idle", "nom", "munch", "drink", "potty", "loaf", "nap", "groom",
 	"treat", "thump", "chew_cable", "hide", "ball", "tunnel", "chew", "dig", "forage", "castle", "sleep_bed",
-	"balcony", "sunbathe", "bird_watch", "herb_thief", "chin", "beg",
+	"balcony", "sunbathe", "bird_watch", "herb_thief", "graze", "chill", "lookout", "shade_nap", "butterfly", "bird_friend", "chin", "beg",
 	"bowl_flip", "binky", "zoomies", "flop", "bonk", "selfie", "purr", "show_off", "snuggle"]
+
+## Floor space per room for toys and furniture (each item has a "space" of 1-3). Over it,
+## the room is cluttered and loses CLUTTER_COZY cozy points per unit over.
+const ROOM_SPACE := {"living": 25, "balcony": 16}
+const CLUTTER_COZY := 2
 
 const COZY_LEVELS := [
 	{"at": 0, "name": "Bare"},
@@ -221,6 +310,10 @@ const JOBS := {
 }
 const PROMOTION_BONUS := 60   # coins per career level, paid once on promotion
 
+## Where accessories go, in the order they're drawn (later ones on top).
+const WEAR_PLACES := ["neck", "eyes", "ear", "head"]
+const WEAR_PLACE_NAMES := {"head": "Head", "ear": "Ears", "eyes": "Eyes", "neck": "Neck"}
+
 ## Long-term goals. type: what is counted, n: target, reward: coins.
 const GOALS := [
 	{"id": "photo3", "type": "photos", "n": 3, "reward": 10, "text": "Take %d photos"},
@@ -239,14 +332,19 @@ const GOALS := [
 	{"id": "photo30", "type": "photos", "n": 30, "reward": 60, "text": "Take %d photos"},
 	{"id": "trust3", "type": "trust", "n": 3, "reward": 70, "text": "Reach trust: %s"},
 	{"id": "balcony", "type": "balcony", "n": 1, "reward": 70, "text": "Open the balcony"},
+	{"id": "patio", "type": "outdoor", "n": 3, "reward": 90, "text": "Set up %d things on the balcony"},
+	{"id": "harvest", "type": "harvests", "n": 3, "reward": 60, "text": "Pick herbs from the balcony planter %d times"},
 	{"id": "up4", "type": "upgrades", "n": 4, "reward": 90, "text": "Buy %d upgrades"},
 	{"id": "fol500", "type": "followers", "n": 500, "reward": 90, "text": "Reach %d followers"},
 	{"id": "career4", "type": "career", "n": 4, "reward": 120, "text": "Get promoted to %s"},
 	{"id": "jobstars", "type": "jobstars", "n": 3, "reward": 100, "text": "Get 3 stars in %d different jobs"},
 	{"id": "cozy5", "type": "cozy", "n": 5, "reward": 150, "text": "Reach Cozy level %d"},
 	{"id": "seen25", "type": "seen", "n": 25, "reward": 180, "text": "Discover %d behaviours"},
-	{"id": "trust4", "type": "trust", "n": 4, "reward": 180, "text": "Reach trust: %s"},
-	{"id": "wear4", "type": "wardrobe", "n": 4, "reward": 180, "text": "Collect all %d accessories"},
+	{"id": "trust4", "type": "trust", "n": 4, "reward": 120, "text": "Reach trust: %s"},
+	{"id": "trust5", "type": "trust", "n": 5, "reward": 180, "text": "Reach trust: %s"},
+	{"id": "trust6", "type": "trust", "n": 6, "reward": 260, "text": "Reach trust: %s"},
+	{"id": "outfit", "type": "outfit", "n": 4, "reward": 90, "text": "Dress Bubák in a full outfit: something on all %d places"},
+	{"id": "wear4", "type": "wardrobe", "n": 12, "reward": 300, "text": "Collect all %d accessories"},
 	{"id": "fol1500", "type": "followers", "n": 1500, "reward": 240, "text": "Reach %d followers"},
 	{"id": "career5", "type": "career", "n": 5, "reward": 240, "text": "Get promoted to %s"},
 	{"id": "cozy6", "type": "cozy", "n": 6, "reward": 300, "text": "Turn the flat into a bunny paradise"},
@@ -267,8 +365,17 @@ const GOALS := [
 ]
 
 ## Late in the game Bubák can get a friend from the rescue's hutch.
-const MATE_TRUST := 3
-const MATE_COZY := 4
+const MATE_TRUST := 6
+const MATE_COZY := 5
+
+
+## The mate requirements for the chosen game pace.
+func mate_trust() -> int:
+	return FAST_MATE.trust if Game.fast_game else MATE_TRUST
+
+
+func mate_cozy() -> int:
+	return FAST_MATE.cozy if Game.fast_game else MATE_COZY
 ## trust: how much the newcomer trusts you at first; trust_rate: how fast that grows.
 const MATES := {
 	"luna": {"name": "Luna", "price": 600, "trust": 5.0, "trust_rate": 0.8,
@@ -422,9 +529,19 @@ func rival_name(id: String) -> String:
 	return tr(RIVALS[id].name)
 
 
+## Trust needed for level `i` (lower in a fast game).
+func level_at(i: int) -> float:
+	return FAST_TRUST_AT[i] if Game.fast_game else TRUST_LEVELS[i].at
+
+
+## How much trust a treat wins (it was worth more in the original, fast game).
+func treat_trust(id: String) -> float:
+	return FAST_TREAT_TRUST.get(id, ITEMS[id].trust) if Game.fast_game else ITEMS[id].trust
+
+
 func trust_level_for(trust: float) -> int:
 	var lvl := 0
 	for i in TRUST_LEVELS.size():
-		if trust >= TRUST_LEVELS[i].at:
+		if trust >= level_at(i):
 			lvl = i
 	return lvl

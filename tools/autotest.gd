@@ -46,8 +46,11 @@ func press(world: Vector2, down: bool) -> void:
 
 
 func tap(world: Vector2) -> void:
+	var t0 := Time.get_ticks_msec()
 	press(world, true)
 	await wait(0.08)
+	if Time.get_ticks_msec() - t0 > 350:
+		print("  (slow tap: held %d ms of real time)" % (Time.get_ticks_msec() - t0))
 	press(world, false)
 	await wait(0.1)
 
@@ -127,9 +130,39 @@ func _run() -> void:
 	check(Game.cozy_level() > cozy_before, "buying stuff raises coziness (%d -> %d, %d pts)" % [cozy_before, Game.cozy_level(), Game.cozy_points()])
 	check(main.chair.visible, "office chair appears at the desk")
 	check(Game.buy("monitor") != "", "second monitor needs a promotion first")
-	check(Game.buy("bow") == "" and Game.wearing == "bow", "bought and wearing the bow")
+	check(Game.buy("bow") == "" and Game.wearing.get("ear") == "bow", "bought and wearing the bow")
 	await wait(0.1)
-	check(b.wear_sprite.visible, "Bubák shows the bow")
+	check(b.wear_sprites.ear.visible, "Bubák shows the bow")
+	# wardrobe: one thing per place, several places at once; buying puts it straight on
+	check(Game.buy("bandana") == "" and Game.buy("glasses") == "" and Game.buy("beanie") == "", "buy more accessories")
+	check(Game.outfit() == ["bandana", "glasses", "bow", "beanie"], "wearing one thing in each place")
+	check(Game.buy("daisy") == "" and Game.wearing.ear == "daisy" and "bow" in Game.wardrobe, "a new ear clip replaces the bow")
+	var style_full := Game.style_score()
+	Game.toggle_wear("beanie")
+	check(not Game.wearing.has("head") and Game.style_score() < style_full, "taking off the beanie lowers style")
+	await tap(main.closet.position + Vector2(0, -60))   # the little wardrobe on the wall
+	await wait(0.6)
+	check(main.hud._wardrobe_stage != null and is_instance_valid(main.hud._wardrobe_stage), "tapping the wardrobe opens it")
+	main.hud._on_wear_tile("beanie", "head")
+	main.hud._on_wear_tile("bow", "ear")
+	await wait(0.3)
+	check(Game.wearing.head == "beanie" and Game.wearing.ear == "bow", "wardrobe tiles put things on")
+	main.hud._on_wear_tile("bowtie", "neck")
+	main.hud._on_wear_tile("bowtie", "neck")   # second tap buys
+	await wait(0.6)
+	check("bowtie" in Game.wardrobe and Game.wearing.neck == "bowtie", "buy in the wardrobe, worn right away")
+	await shot("wardrobe")
+	main.hud._wardrobe_stage.set_pose("stand")
+	await wait(0.5)
+	await shot("wardrobe_stand")
+	main.hud.close_top()
+	await wait(0.2)
+	check(b.wear_sprites.neck.visible and b.wear_sprites.head.visible, "Bubák wears the whole outfit in the room")
+	var old_save := Game.to_dict()
+	old_save.wearing = "glasses"
+	Game._apply(old_save)
+	check(Game.wearing == {"eyes": "glasses"}, "old saves with one accessory still load")
+	Game.wearing = {"neck": "bowtie", "eyes": "glasses", "ear": "bow", "head": "beanie"}
 	await close_popups()
 	for act in ["dig", "forage"]:
 		var it: Node2D = main.find_item({"dig": "digbox", "forage": "puzzle"}[act])
@@ -138,6 +171,50 @@ func _run() -> void:
 		await wait(0.8)
 		await shot("act_" + act)
 		check(b.act == act, "new activity: %s" % act)
+	# toy chest: put things away and take them out again; too much stuff out costs coziness
+	var chest_at: Vector2 = main.toy_chest.position + Vector2(0, -40)
+	for dy in [-40, -20, -60, -75, -10]:   # a spot where nothing stands in front of the chest
+		for dx in [0, -40, 40]:
+			if main._hit(main.toy_chest.position + Vector2(dx, dy)) == main.toy_chest:
+				chest_at = main.toy_chest.position + Vector2(dx, dy)
+	await tap(chest_at)
+	await wait(0.6)
+	check(main.hud._chest_box != null and is_instance_valid(main.hud._chest_box), "tapping the toy chest opens it")
+	await shot("toy_chest")
+	var dig: Node2D = main.find_item("digbox")
+	var dig_uid: int = dig.uid
+	b.teleport(dig.use_point(b.position))
+	b.start("dig", dig)
+	var cozy_chest := Game.cozy_points()
+	var raw_chest := Game.cozy_points() + Game.clutter_penalty()   # before clutter is taken off
+	check(Game.put_away(dig_uid), "put the dig box away")
+	await wait(0.3)
+	check(main.find_item("digbox") == null and b.act != "dig", "it leaves the room, and Bubák stops digging")
+	check(Game.cozy_points() + Game.clutter_penalty() == raw_chest - Catalog.ITEMS.digbox.cozy, "stored things don't add coziness")
+	check(Game.count_item("digbox") == 1 and Game.buy("digbox") != "", "the stored one still counts as owned")
+	var reloaded := Game.to_dict()
+	Game._apply(reloaded)
+	check(Game.stored.size() == 1 and Game.stored[0].id == "digbox", "the chest is saved")
+	main.hud._fill_chest()
+	check(Game.take_out(dig_uid) and main.find_item("digbox") != null, "take it out again")
+	check(Game.cozy_points() == cozy_chest, "coziness comes back")
+	var junk := []
+	while Game.clutter_over("living") < 3:
+		var e := {"uid": 9000 + junk.size(), "id": "plant", "x": 600.0, "y": 600.0}
+		junk.append(e)
+		Game.placed.append(e)
+	Game._recount_cozy()
+	check(Game.clutter_penalty() >= 3 * Catalog.CLUTTER_COZY
+		and Game.cozy_points() == maxi(0, raw_chest + junk.size() * Catalog.ITEMS.plant.cozy - Game.clutter_penalty()), "clutter lowers coziness")
+	await wait(0.4)
+	check(tr("Cluttered!") in main.hud._cozy_label.text, "the cozy label warns about clutter")
+	main.hud._fill_chest()
+	await wait(0.2)
+	await shot("toy_chest_cluttered")
+	for e in junk:
+		Game.placed.erase(e)
+	Game._recount_cozy()
+	main.hud.close_top()
 	Game.stats.photos = 3
 	await wait(1.2)
 	check(Game.claimable_goals() > 0, "goals become claimable")
@@ -213,6 +290,68 @@ func _run() -> void:
 	b.start("bird_watch", null, b.position)
 	await wait(1.2)
 	await shot("balcony_birds")
+	# balcony garden: pick herbs, water things, and the balcony-only amenities
+	Game.herbs = 100.0
+	var parsley: int = Game.inventory.get("parsley", 0)
+	main._use_item(main.planter)
+	check(Game.inventory.get("parsley", 0) == parsley + 2 and Game.inventory.get("dandelion", 0) >= 1, "picking herbs gives parsley (and a dandelion)")
+	main._use_item(main.planter)
+	check(Game.is_watered("herbs"), "a picked-over planter gets watered instead")
+	Game.coins += 2000
+	for id in ["grass_tray", "bird_feeder", "cool_tile", "wind_chime", "parasol", "lookout"]:
+		check(Game.buy(id) == "", "bought %s" % id)
+		var it: Node2D = main.find_item(id)
+		check(it != null and Game.room_at(it.position) == "balcony", "%s goes on the balcony" % id)
+	check(Game.goal_value({"type": "outdoor"}) == 6, "balcony things counted for the goal")
+	var tray: Node2D = main.find_item("grass_tray")
+	Game.grass = 100.0
+	b.teleport(tray.use_point(b.position))
+	b.start("graze", tray)
+	await wait(1.0)
+	await shot("balcony_graze")
+	await wait(8.0)
+	check(Game.grass < 100.0 and Game.seen.has("graze"), "Bubák grazes the wheatgrass")
+	main._use_item(tray)
+	check(Game.is_watered("grass"), "watering the grass tray")
+	var deck: Node2D = main.find_item("lookout")
+	b.teleport(deck.use_point(b.position))
+	b.start("lookout", deck)
+	await wait(1.0)
+	check(is_equal_approx(b.lift, b.LOOKOUT_LIFT) and Game.seen.has("lookout"), "up on the lookout deck")
+	await shot("balcony_lookout")
+	var tile: Node2D = main.find_item("cool_tile")
+	b.start("chill", tile, tile.position)
+	await wait(2.5)
+	check(b.act == "chill" and b.lift == 0.0, "stretched out on the cool tile")
+	await shot("balcony_chill")
+	Game.seeds = 0.0
+	main._use_item(main.find_item("bird_feeder"))
+	check(Game.seeds == 100.0, "filling the bird feeder")
+	main._feeder_t = 0.0
+	var fx_before: int = main.fx.get_child_count()
+	await wait(0.2)
+	check(Game.seeds < 100.0 and main.fx.get_child_count() > fx_before, "a bird comes to the feeder")
+	b.start("bird_friend", null, b.position)
+	await wait(1.9)
+	await shot("balcony_bird_friend")
+	check(Game.seen.has("bird_friend"), "a feathered friend visits Bubák")
+	b.start("butterfly", null, b.position + Vector2(200, 0))
+	b.data.laps = 2
+	Game.discover("butterfly")
+	main.spawn_butterfly(b)
+	await wait(1.5)
+	await shot("balcony_butterfly")
+	check(b.current_behaviour() == "butterfly", "chasing a butterfly")
+	await wait(5.0)
+	Game.energy = 20.0
+	var umbrella: Node2D = main.find_item("parasol")
+	b.teleport(umbrella.use_point(b.position) + Vector2(-40, 0))   # close by, so he's there before we look
+	b.start("sleep", null, umbrella.use_point(b.position))
+	await wait(2.5)
+	check(b.room_id == "balcony" and b.act == "sleep" and b.current_behaviour() == "shade_nap", "a nap in the shade, out on the balcony (room=%s act=%s phase=%s beh=%s)" % [b.room_id, b.act, b.phase, b.current_behaviour()])
+	await shot("balcony_shade_nap")
+	b.start("idle", null, b.position)
+	Game.energy = 80.0
 	Game.needs.water = 30
 	b.teleport(main.balcony_door.use_point(b.position))
 	b.start("idle", null, b.position)
@@ -251,10 +390,69 @@ func _run() -> void:
 	check(main.hand_active(), "treat offered on floor")
 	await wait(4.5)
 	check(Game.stats.treats == treats + 1, "Bubák came and ate the treat")
+	# his favourite: dried apple rings make him binky
+	Game.coins += 100
+	check(Game.buy("dried_apple") == "", "buy dried apple rings")
+	b.start("idle", null, Vector2(400, 620))
+	b.teleport(Vector2(400, 620))
+	b.act_t = 30
+	main.treat_selected = "dried_apple"
+	main.set_mode("treat")
+	await tap(Vector2(800, 620))
+	var binked := false
+	for i in 60:
+		await wait(0.1)
+		if b.act == "binky":
+			binked = true
+			break
+	check(binked, "his favourite treat makes him binky")
+	check(Catalog.ITEMS.dried_apple.trust > 3 * Catalog.ITEMS.apple.trust, "fancy treats win much more trust")
+
+	# Trust takes time: slower at higher levels, less after a lot of bonding today, and treats wear off
+	var pet_b: Pet = Game.bubak
+	var keep_trust: float = pet_b.trust
+	pet_b.trust = 0.0
+	pet_b.trust_day = ""
+	pet_b.add_trust(1.0)
+	var first_gain: float = pet_b.trust
+	pet_b.trust_today = 3.0 * Catalog.TRUST_DAILY
+	var t0: float = pet_b.trust
+	pet_b.add_trust(1.0)
+	check(is_equal_approx(first_gain, 1.0) and pet_b.trust - t0 < 0.3,
+		"after a lot of bonding today, trust comes slower (%.2f then %.2f)" % [first_gain, pet_b.trust - t0])
+	pet_b.trust = 80.0
+	pet_b.trust_day = ""
+	pet_b.add_trust(1.0)
+	check(pet_b.trust - 80.0 < 0.5, "trust comes slower at high levels (+%.2f)" % (pet_b.trust - 80.0))
+	pet_b.trust_day = ""
+	var tt1: float = pet_b.treat_trust()
+	var tt2: float = pet_b.treat_trust()
+	check(tt1 == 1.0 and tt2 < 1.0, "each treat today counts less for trust (%.2f, %.2f)" % [tt1, tt2])
+	check(Catalog.BALCONY_TRUST < Catalog.SELFIE_TRUST and Catalog.SELFIE_TRUST < Catalog.mate_trust(),
+		"balcony first, then selfies, then a friend")
+	# Settings > Game pace > Fast: the original quick game
+	Game.fast_game = true
+	pet_b.trust = 72.0
+	pet_b.trust_day = ""
+	pet_b.trust_today = 50.0
+	pet_b.add_trust(1.0)
+	check(pet_b.trust_level() == 5 and is_equal_approx(pet_b.trust, 73.0) and pet_b.treat_trust() == 1.0
+		and pet_b.treat_trust() == 1.0 and Catalog.treat_trust("dried_apple") == 12.0 and Catalog.mate_trust() == Catalog.SELFIE_TRUST,
+		"fast game: quick levels, no slowdown, treats count fully")
+	Game.fast_game = false
+	check(pet_b.trust_level() == 4, "normal game: the same trust is a lower level")
+	pet_b.trust = keep_trust
+	pet_b.trust_day = ""
+	pet_b.settle_level()
+	await close_popups()
 
 	# Moving furniture
 	main.set_mode("move")
-	var ball: Node2D = main._hit(main.find_item("ball").position + Vector2(0, -20), true)   # whatever is on top there
+	var ball: Node2D = main.find_item("ball")
+	for spot in [Vector2(640, 560), Vector2(450, 580), Vector2(820, 570), Vector2(560, 520), Vector2(1000, 590)]:   # clear of the on-screen panels
+		ball.position = spot   # somewhere nothing else covers it, so the drag grabs the ball
+		if main._hit(spot + Vector2(0, -20), true) == ball:
+			break
 	var from := ball.position
 	press(from + Vector2(0, -20), true)
 	await wait(0.05)
@@ -267,7 +465,8 @@ func _run() -> void:
 	await wait(0.05)
 	press(drop, false)
 	await wait(0.1)
-	check(ball.position.distance_to(from) > 50, "dragging moves furniture in Move mode")
+	check(ball.position.distance_to(from) > 50, "dragging moves furniture in Move mode (hit=%s at %s, now %s, mode=%s)" % [
+		main._hit(from + Vector2(0, -20), true).get("id") if main._hit(from + Vector2(0, -20), true) else "none", from, ball.position, main.mode])
 	main.set_mode("")
 
 	# Rare behaviours + photo
@@ -286,6 +485,46 @@ func _run() -> void:
 	await shot("photo_result")
 	main.hud.close_top()
 	main.set_mode("")
+
+	# Posting too often: followers' attention runs out, likes drop, then people unfollow
+	check(Game.feed_attention() < 0.85, "a post uses up followers' attention (%.2f)" % Game.feed_attention())
+	var shot_file: String = Game.photos[-1].file
+	Game.feed = 1.0
+	Game.feed_time = Time.get_unix_time_from_system()
+	var fresh: Dictionary = Game.record_photo(shot_file, "zoomies", 0)
+	Game.feed = 0.1
+	var fol: int = Game.followers
+	var flooded: Dictionary = Game.record_photo(shot_file, "zoomies", 0)
+	check(flooded.likes < fresh.likes * 0.6 and flooded.lost > 0 and Game.followers < fol,
+		"a flooded feed gets fewer likes and loses followers (%d vs %d likes, -%d)" % [flooded.likes, fresh.likes, flooded.lost])
+	Game.feed_time -= Catalog.FEED_REFILL
+	check(Game.feed_attention() == 1.0, "followers' attention comes back over time")
+	var c_miss: int = Game.coins
+	var missed: Dictionary = Game.record_photo(shot_file, "", 0)
+	check(missed.likes == 0 and Game.coins == c_miss and Game.feed_attention() == 1.0, "a missed shot pays nothing and isn't posted")
+	main.set_mode("photo")
+	await wait(0.3)
+	check(main.hud._feed_label.text != "" and main.hud._feed_bar.value > 0.9, "camera shows followers' attention")
+	main.set_mode("")
+
+	# Too many flashes and Bubák has had enough of the camera
+	var trust_cam: float = Game.bubak.trust
+	b.teleport(Vector2(640, 600))
+	b.start("idle", null, b.position)
+	for i in Catalog.CAMERA_PATIENCE + 1:
+		b.on_flash()
+	check(b.camera_shy() and b.act == "flee" and Game.bubak.trust < trust_cam, "too many flashes and he's had enough")
+	main.set_mode("photo")
+	main.hud._snap()
+	await wait(0.6)
+	check(Game.photos[-1].behaviour == "", "a camera-shy Bubák turns his back on the camera")
+	await shot("photo_shy")
+	main.hud.close_top()
+	main.set_mode("")
+	b._camera_shy_until = 0.0
+	b._flashes.clear()
+	Game.bubak.trust = trust_cam
+
 
 	var rug: Node2D = main.find_item("rug")
 	b.teleport(rug.position)
@@ -310,6 +549,8 @@ func _run() -> void:
 	check(not b.visible, "hiding in box hides Bubák")
 
 	# High trust: drag him upwards to pick him up, then take a selfie
+	Game.trust = maxf(Game.trust, Catalog.level_at(Catalog.SELFIE_TRUST + 1))   # Bonded: he never wriggles free
+	Game.bubak.settle_level()
 	b.start("idle", null, Vector2(640, 600))
 	b.teleport(Vector2(640, 600))
 	b.act_t = 30
@@ -324,7 +565,7 @@ func _run() -> void:
 	await wait(0.05)
 	press(bunny_center() + Vector2(0, -120), false)
 	await wait(0.5)
-	check(main.mode == "selfie" and b.act == "held" and not b.visible, "dragging him up picks him up")
+	check(main.mode == "selfie" and b.act == "held" and not b.visible, "dragging him up picks him up (mode=%s act=%s trust=%d)" % [main.mode, b.act, Game.trust_level()])
 	await shot("selfie_view")
 	var n_photos: int = Game.photos.size()
 	main.hud._snap_selfie()
@@ -360,7 +601,11 @@ func _run() -> void:
 	b.start("chew_cable", main.cable)
 	await wait(0.5)
 	await tap(bunny_center())
-	check(b.act != "chew_cable", "tapping stops cable chewing")
+	if b.act == "chew_cable":   # a tap now and then goes missing in the scripted run; a player would tap again
+		print("  (cable: second tap needed)")
+		await tap(bunny_center())
+	check(b.act != "chew_cable", "tapping stops cable chewing (act=%s mode=%s hit=%s, bunny=%s visible=%s phase=%s, modal=%s)" % [b.act, main.mode,
+		main._hit(bunny_center()).get("id"), b == main._hit(bunny_center()), b.visible, b.phase, main.hud._modal])
 
 	await close_popups()
 	# Three quick pokes = thump
@@ -520,6 +765,7 @@ func _run() -> void:
 		for j in 40:
 			await wait(0.05)
 			if tr_panel._stage.in_window() and not rewarded:
+				await wait(0.5)
 				await shot("club_training")
 				tr_panel._reward.pressed.emit()
 				rewarded = true
@@ -654,9 +900,17 @@ func _run() -> void:
 
 	# ---- a mate for Bubák ---------------------------------------------------------
 	Game.mate_stage = 0
-	Game.trust = 70.0
+	Game.trust = 90.0
 	await wait(1.3)
-	check(Game.mate_stage == 1 and hud._modal != null, "Bonded + cozy flat: the rescue opens, with a pop-up")
+	check(Game.mate_stage == 0, "no friend yet at Bonded")
+	await close_popups()
+	Game.trust = 96.0
+	if Game.cozy_level() < Catalog.MATE_COZY:
+		Game.coins += 5000
+		for id in ["castle", "lantern", "flowers", "beanbag", "rug", "plant", "lamp"]:
+			Game.buy(id)
+	await wait(1.3)
+	check(Game.mate_stage == 1 and hud._modal != null, "Best buds + cozy flat: the rescue opens, with a pop-up (cozy %d)" % Game.cozy_level())
 	await shot("mate_unlock")
 	await close_popups()
 	hud.open_shop()
@@ -741,6 +995,16 @@ func _run() -> void:
 	hud = main.hud
 	b = main.bunny
 	check(not Game.test_mode and Game.coins == 77 and Game.save_path == "user://autotest_save.json", "back to the real game, untouched")
+
+	# Sounds: every sound the game asks for exists, the music loops, and playtests stay silent
+	var wanted: Array = ["tap", "notify", "coin", "buy", "shutter", "fanfare", "pellets", "hay", "water", "scrape",
+		"pluck", "drip", "seeds", "chime", "chirp", "door", "ball", "purr", "good", "bad", "streak", "star", "music"]
+	wanted.append_array(main.FX_SOUND.values())
+	wanted.append_array(b.ACT_SOUND.values())
+	var missing_snd := wanted.filter(func(n): return Sfx._stream(n) == null)
+	check(missing_snd.is_empty(), "all sounds load (missing: %s)" % [missing_snd])
+	check((Sfx._stream("music") as AudioStreamOggVorbis).get_length() > 30.0, "music loop loads")
+	check(Sfx.muted and not Sfx._music.playing, "playtest runs silently")
 
 	# Time away: with "Time stops", nothing changes while the game is closed
 	Game.life_goes_on = false

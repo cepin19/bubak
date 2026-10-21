@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="110" height="198" viewBox="0 0 110 198">
+<defs><linearGradient id="sd9a46a" x1="0" y1="0" x2="0.25" y2="1"><stop offset="0" stop-color="#e1b88b"/><stop offset="0.5" stop-color="#d9a46a"/><stop offset="1" stop-color="#bf905d"/></linearGradient><linearGradient id="sa7c0e8" x1="0" y1="0" x2="0.25" y2="1"><stop offset="0" stop-color="#baceed"/><stop offset="0.5" stop-color="#a7c0e8"/><stop offset="1" stop-color="#93a9cc"/></linearGradient><linearGradient id="s9cc5a1" x1="0" y1="0" x2="0.25" y2="1"><stop offset="0" stop-color="#b2d2b6"/><stop offset="0.5" stop-color="#9cc5a1"/><stop offset="1" stop-color="#89ad8e"/></linearGradient><linearGradient id="sf3cf7a" x1="0" y1="0" x2="0.25" y2="1"><stop offset="0" stop-color="#f6da97"/><stop offset="0.5" stop-color="#f3cf7a"/><stop offset="1" stop-color="#d6b66b"/></linearGradient><linearGradient id="se9a3a0" x1="0" y1="0" x2="0.25" y2="1"><stop offset="0" stop-color="#eeb7b5"/><stop offset="0.5" stop-color="#e9a3a0"/><stop offset="1" stop-color="#cd8f8d"/></linearGradient><linearGradient id="sf08a9c" x1="0" y1="0" x2="0.25" y2="1"><stop offset="0" stop-color="#f3a4b2"/><stop offset="0.5" stop-color="#f08a9c"/><stop offset="1" stop-color="#d37989"/></linearGradient><linearGradient id="s8f6038" x1="0" y1="0" x2="0.25" y2="1"><stop offset="0" stop-color="#a88364"/><stop offset="0.5" stop-color="#8f6038"/><stop offset="1" stop-color="#7e5431"/></linearGradient></defs>
+<path d="M20,190 V40 q0,-30 30,-30 q24,0 24,24" fill="none" stroke="#4f3d33" stroke-width="6" stroke-linecap="round"/>
+<path d="M20,190 V40 q0,-30 30,-30 q24,0 24,24" fill="none" stroke="#7a8796" stroke-width="3" stroke-linecap="round"/>
+<ellipse cx="74" cy="44" rx="22" ry="6" fill="url(#sd9a46a)" stroke="#4f3d33" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M58,46 v12" stroke="#4f3d33" stroke-width="1.5"/>
+<rect x="55" y="58" width="7" height="46" rx="3" fill="url(#sa7c0e8)" stroke="#4f3d33" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M68,46 v12" stroke="#4f3d33" stroke-width="1.5"/>
+<rect x="65" y="58" width="7" height="60" rx="3" fill="url(#s9cc5a1)" stroke="#4f3d33" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M80,46 v12" stroke="#4f3d33" stroke-width="1.5"/>
+<rect x="77" y="58" width="7" height="54" rx="3" fill="url(#sf3cf7a)" stroke="#4f3d33" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M90,46 v12" stroke="#4f3d33" stroke-width="1.5"/>
+<rect x="87" y="58" width="7" height="40" rx="3" fill="url(#se9a3a0)" stroke="#4f3d33" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M74,46 v70" stroke="#4f3d33" stroke-width="1.5"/>
+<path d="M66,116 h16 l-4,18 h-8z" fill="url(#sf08a9c)" stroke="#4f3d33" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="20" cy="190" rx="14" ry="4" fill="url(#s8f6038)" stroke="#4f3d33" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+</svg>

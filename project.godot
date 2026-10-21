@@ -13,14 +13,15 @@ config_version=5
 config/name="Bubák"
 config/description="Look after Bubák, a mischievous bunny living in your apartment."
 run/main_scene="res://scenes/main.tscn"
+config/quit_on_go_back=false
 config/features=PackedStringArray("4.5", "GL Compatibility")
 config/icon="res://assets/art/icon.svg"
-config/quit_on_go_back=false
 
 [autoload]
 
 Catalog="*res://scripts/catalog.gd"
 Game="*res://scripts/game_state.gd"
+Sfx="*res://scripts/sfx.gd"
 
 [display]
 
@@ -44,11 +45,10 @@ texture={
 [internationalization]
 
 locale/translations=PackedStringArray("res://locale/cs.po")
-locale/fallback="en"
 
 [rendering]
 
+textures/canvas_textures/default_texture_filter=3
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
 textures/vram_compression/import_etc2_astc=true
-textures/canvas_textures/default_texture_filter=3

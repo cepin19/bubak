@@ -9,7 +9,7 @@ var sprite: Sprite2D
 var tex_name := ""
 var item_scale := 1.0
 var shadow := true
-const NO_SHADOW := ["door", "balcony_door", "cable", "sunspot", "trophy_shelf"]
+const NO_SHADOW := ["door", "balcony_door", "cable", "sunspot", "trophy_shelf", "closet"]
 
 
 func setup(item_id: String, item_uid: int, texture_name := "", s := -1.0) -> void:
@@ -25,7 +25,7 @@ func setup(item_id: String, item_uid: int, texture_name := "", s := -1.0) -> voi
 
 
 func _ready() -> void:
-	if id in ["plant", "flowers", "planter"]:
+	if id in ["plant", "flowers", "planter", "grass_tray", "wind_chime"]:
 		# leaves sway gently, each plant at its own pace
 		var t := create_tween().set_loops()
 		t.tween_interval(randf() * 1.5)
@@ -67,8 +67,12 @@ func use_point(from: Vector2) -> Vector2:
 	match id:
 		"litter", "bed":
 			return position + Vector2(0, 2)
-		"box", "hut", "digbox", "castle":
+		"box", "hut", "digbox", "castle", "cool_tile":
 			return position + Vector2(0, 4)
+		"lookout":   # on top of the deck, right of the ramp
+			return position + Vector2(s.x * 0.18, 4)
+		"parasol":   # in the shade, beside the pole
+			return position + Vector2(-50, 8)
 		"tunnel":
 			return position + Vector2(-s.x / 2.0 + 20, 4)
 		"desk", "sofa":

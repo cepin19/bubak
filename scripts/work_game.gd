@@ -199,8 +199,10 @@ func hit(pos: Vector2, base := 1) -> void:
 	_best_combo = maxi(_best_combo, _combo)
 	var c := base * multiplier() * (2 if rush() else 1)
 	_earned += c
+	Sfx.play("good", 1.0 + 0.08 * (multiplier() - 1), 0.02)
 	float_text("+%d" % c, pos, Color("#ffe9a8"), 26 + mini(c, 12))
 	if multiplier() > old:
+		Sfx.play("streak")
 		_banner([tr("Nice streak! x%d"), tr("On fire! x%d"), tr("Unstoppable! x%d")][multiplier() - 2] % multiplier(),
 			Color("#ffd27a"), 0.7)
 		_pulse(_mult_label)
@@ -210,6 +212,7 @@ func miss() -> void:
 	if not _running:
 		return
 	_misses += 1
+	Sfx.play("bad")
 	if _combo >= MULT_AT[1]:
 		float_text(tr("Streak lost"), Vector2(_area.size.x / 2 - 60, 60), Color("#ff9a9a"), 22)
 	_combo = 0
@@ -220,6 +223,7 @@ func penalty(points: int, pos: Vector2, text: String) -> void:
 	_earned = maxi(0, _earned - points)
 	_misses += 1
 	_combo = 0
+	Sfx.play("bad")
 	float_text(text, pos, Color("#ff9a9a"))
 	_shake(1.0)
 
@@ -365,6 +369,7 @@ func _end() -> void:
 
 
 func _promotion(v: VBoxContainer, lvl: int, bonus: int) -> void:
+	Sfx.play("fanfare")
 	var card := PanelContainer.new()
 	var cs := UI.box(Color("#fff3c9"), 18, 3)
 	cs.border_color = Color("#e0ad4a")
@@ -402,6 +407,8 @@ func _pop_star(st: Control, delay: float) -> void:
 	st.pivot_offset = st.size / 2
 	var t := st.create_tween()
 	t.tween_interval(delay)
-	t.tween_callback(func(): st.modulate = Color.WHITE)
+	t.tween_callback(func():
+		st.modulate = Color.WHITE
+		Sfx.play("star", 1.0, 0.0, 6.0))
 	t.tween_property(st, "scale", Vector2(1.4, 1.4), 0.12).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	t.tween_property(st, "scale", Vector2.ONE, 0.15)

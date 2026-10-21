@@ -21,6 +21,9 @@ var trust := 0.0
 var asleep := false          # set by the bunny's AI; changes the energy rate
 var in_bed := false
 var _last_level := 0
+var trust_day := ""          # the day trust_today and treats_today count
+var trust_today := 0.0
+var treats_today := 0
 
 
 func is_bubak() -> bool:
@@ -54,7 +57,7 @@ func tick(delta: float, clean: float, cozy: int) -> void:
 		add_trust(0.15 * m * trust_rate())
 	elif md < 30:
 		# Neglect costs trust, but never a whole level.
-		var floor_at: float = Catalog.TRUST_LEVELS[trust_level()].at
+		var floor_at: float = Catalog.level_at(trust_level())
 		trust = maxf(floor_at, trust - 0.4 * m)
 
 
@@ -78,12 +81,17 @@ func trust_progress() -> float:
 	var lvl := trust_level()
 	if lvl >= Catalog.TRUST_LEVELS.size() - 1:
 		return 1.0
-	var a: float = Catalog.TRUST_LEVELS[lvl].at
-	var b: float = Catalog.TRUST_LEVELS[lvl + 1].at
+	var a: float = Catalog.level_at(lvl)
+	var b: float = Catalog.level_at(lvl + 1)
 	return (trust - a) / (b - a)
 
 
+## Trust gained (positive amounts) comes slower at higher levels and after a lot of bonding today.
 func add_trust(amount: float) -> void:
+	if amount > 0 and not Game.test_mode and not Game.fast_game:
+		_new_day()
+		amount *= Catalog.TRUST_PACE[trust_level()] / (1.0 + trust_today / Catalog.TRUST_DAILY)
+		trust_today += amount
 	trust = clampf(trust + amount, 0, 100)
 	settle_level(true)
 
@@ -96,12 +104,28 @@ func settle_level(notify := false) -> void:
 	_last_level = lvl
 
 
+## How much a treat still counts for trust: each one already had today counts less.
+func treat_trust() -> float:
+	_new_day()
+	treats_today += 1
+	return 1.0 if Game.fast_game else pow(Catalog.TREAT_REPEAT, treats_today - 1)
+
+
+func _new_day() -> void:
+	var today := Time.get_date_string_from_system()
+	if today != trust_day:
+		trust_day = today
+		trust_today = 0.0
+		treats_today = 0
+
+
 func add_need(need: String, amount: float) -> void:
 	needs[need] = clampf(needs[need] + amount, 0, 100)
 
 
 func to_dict() -> Dictionary:
-	return {"id": id, "needs": needs, "energy": energy, "bladder": bladder, "sugar": sugar, "trust": trust}
+	return {"id": id, "needs": needs, "energy": energy, "bladder": bladder, "sugar": sugar, "trust": trust,
+		"trust_day": trust_day, "trust_today": trust_today, "treats_today": treats_today}
 
 
 static func from_dict(d: Dictionary) -> Pet:
@@ -113,4 +137,7 @@ static func from_dict(d: Dictionary) -> Pet:
 	p.bladder = float(d.get("bladder", 30))
 	p.sugar = float(d.get("sugar", 0))
 	p.trust = float(d.get("trust", 0))
+	p.trust_day = str(d.get("trust_day", ""))
+	p.trust_today = float(d.get("trust_today", 0))
+	p.treats_today = int(d.get("treats_today", 0))
 	return p

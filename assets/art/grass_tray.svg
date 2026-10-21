@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="78" viewBox="0 0 160 78">
+<defs><linearGradient id="s8fb8d8" x1="0" y1="0" x2="0.25" y2="1"><stop offset="0" stop-color="#a8c8e1"/><stop offset="0.5" stop-color="#8fb8d8"/><stop offset="1" stop-color="#7ea2be"/></linearGradient></defs>
+<path d="M18,50 q1,-22 3,-44" stroke="#7cc27e" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M22,50 q-1,-15 -2,-30" stroke="#5f9d62" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M27,50 q2,-24 3,-48" stroke="#93d38a" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M33,50 q1,-21 3,-42" stroke="#7cc27e" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M36,50 q-3,-20 -5,-40" stroke="#5f9d62" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M44,50 q3,-16 5,-31" stroke="#93d38a" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M46,50 q-1,-23 -3,-45" stroke="#7cc27e" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M52,50 q-4,-24 -8,-49" stroke="#5f9d62" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M56,50 q0,-25 0,-50" stroke="#93d38a" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M61,50 q4,-26 7,-52" stroke="#7cc27e" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M66,50 q-3,-20 -6,-39" stroke="#5f9d62" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M72,50 q-3,-22 -5,-44" stroke="#93d38a" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M78,50 q-3,-16 -5,-31" stroke="#7cc27e" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M84,50 q-1,-19 -1,-39" stroke="#5f9d62" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M88,50 q-1,-20 -2,-40" stroke="#93d38a" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M91,50 q4,-23 7,-46" stroke="#7cc27e" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M99,50 q-1,-22 -2,-45" stroke="#5f9d62" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M102,50 q1,-23 3,-45" stroke="#93d38a" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M106,50 q-1,-18 -2,-35" stroke="#7cc27e" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M112,50 q0,-24 0,-48" stroke="#5f9d62" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M115,50 q-1,-24 -1,-48" stroke="#93d38a" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M122,50 q-1,-17 -1,-35" stroke="#7cc27e" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M127,50 q-3,-23 -6,-47" stroke="#5f9d62" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M132,50 q2,-17 3,-34" stroke="#93d38a" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M135,50 q-1,-18 -2,-36" stroke="#7cc27e" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M143,50 q-0,-16 -1,-31" stroke="#5f9d62" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M6,46 h148 l-8,26 h-132z" fill="url(#s8fb8d8)" stroke="#4f3d33" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M18,58 h124" stroke="#a9cbe4" stroke-width="3"/>
+</svg>

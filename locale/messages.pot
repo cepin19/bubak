@@ -11,10 +11,22 @@ msgstr ""
 msgid "THUMP!"
 msgstr ""
 
+msgid "A neighbour across the street spotted %s on the lookout and waved! +%d followers."
+msgstr ""
+
 msgid "Too many pokes! %s is scared now.\nTry gently holding your finger on the bunny instead."
 msgstr ""
 
 msgid "Hey! No chewing cables!"
+msgstr ""
+
+msgid "The flash woke %s up."
+msgstr ""
+
+msgid "Too many flashes! %s has had enough of the camera for a while."
+msgstr ""
+
+msgid "%s is getting tired of the camera."
 msgstr ""
 
 msgid "%s has had enough cuddles for now."
@@ -35,6 +47,9 @@ msgstr ""
 msgid "%s panics, kicks and bolts! Too soon to be picked up.\n(Trust went down.)"
 msgstr ""
 
+msgid "%s! %s's favourite!"
+msgstr ""
+
 msgid "Too many sweets... %s has a tummy ache.\nParsley and hay are kinder to a bunny's tummy."
 msgstr ""
 
@@ -51,6 +66,12 @@ msgid "Curious"
 msgstr ""
 
 msgid "Friendly"
+msgstr ""
+
+msgid "Trusting"
+msgstr ""
+
+msgid "Cuddly"
 msgstr ""
 
 msgid "Bonded"
@@ -86,7 +107,37 @@ msgstr ""
 msgid "Apple slice"
 msgstr ""
 
-msgid "His absolute favourite! Sweet, so just a slice now and then."
+msgid "Sweet and juicy, so just a slice now and then."
+msgstr ""
+
+msgid "Dandelion bouquet"
+msgstr ""
+
+msgid "Fresh dandelion leaves and flowers. A healthy feast."
+msgstr ""
+
+msgid "Hay cookie"
+msgstr ""
+
+msgid "Baked hay and herbs, shaped like a heart."
+msgstr ""
+
+msgid "Banana chips"
+msgstr ""
+
+msgid "Crispy and very sweet. A rare indulgence."
+msgstr ""
+
+msgid "Dried rose petals"
+msgstr ""
+
+msgid "Fragrant petals for a bunny of refined taste."
+msgstr ""
+
+msgid "Dried apple rings"
+msgstr ""
+
+msgid "His absolute favourite! He'll do a happy binky for one."
 msgstr ""
 
 msgid "Leafy branch"
@@ -95,7 +146,7 @@ msgstr ""
 msgid "Fresh branch with leaves. He eats the lot, leaves first. Keeps him off cables."
 msgstr ""
 
-msgid "Willow ball"
+msgid "Rainbow ball"
 msgstr ""
 
 msgid "To nudge, toss and chase."
@@ -185,6 +236,42 @@ msgstr ""
 msgid "Pretty. Not for eating. Probably."
 msgstr ""
 
+msgid "Wheatgrass tray"
+msgstr ""
+
+msgid "Fresh grass to graze. Water it and it grows back."
+msgstr ""
+
+msgid "Bird feeder"
+msgstr ""
+
+msgid "Fill it with seeds and the birds drop by. Bubák is fascinated."
+msgstr ""
+
+msgid "Cool stone tile"
+msgstr ""
+
+msgid "Rabbits don't like the heat. On warm afternoons he stretches out on it."
+msgstr ""
+
+msgid "Wind chime"
+msgstr ""
+
+msgid "Tinkles in the breeze. Tap it and watch his ears."
+msgstr ""
+
+msgid "Sun umbrella"
+msgstr ""
+
+msgid "A shady spot, so he can nap outside."
+msgstr ""
+
+msgid "Lookout deck"
+msgstr ""
+
+msgid "Up the ramp and over the railing: the whole street to watch. The neighbours wave back."
+msgstr ""
+
 msgid "Big food bowl"
 msgstr ""
 
@@ -257,16 +344,10 @@ msgstr ""
 msgid "Another +25% pay for remote work."
 msgstr ""
 
-msgid "Red bow"
+msgid "Knitted beanie"
 msgstr ""
 
-msgid "A classic. Photos with an outfit get more likes."
-msgstr ""
-
-msgid "Round glasses"
-msgstr ""
-
-msgid "Very smart. Very scholarly."
+msgid "Warm, soft and a little bit cool."
 msgstr ""
 
 msgid "Flower crown"
@@ -279,6 +360,60 @@ msgid "Tiny top hat"
 msgstr ""
 
 msgid "For a bunny of distinction."
+msgstr ""
+
+msgid "Red bow"
+msgstr ""
+
+msgid "A classic. Photos with an outfit get more likes."
+msgstr ""
+
+msgid "Daisy clip"
+msgstr ""
+
+msgid "A little daisy behind the ear."
+msgstr ""
+
+msgid "Star clip"
+msgstr ""
+
+msgid "A sparkly gold star. Born for the spotlight."
+msgstr ""
+
+msgid "Round glasses"
+msgstr ""
+
+msgid "Very smart. Very scholarly."
+msgstr ""
+
+msgid "Sunglasses"
+msgstr ""
+
+msgid "Too cool for the litter box."
+msgstr ""
+
+msgid "Heart glasses"
+msgstr ""
+
+msgid "He sees the world through heart-shaped glasses."
+msgstr ""
+
+msgid "Bandana"
+msgstr ""
+
+msgid "A blue bandana for an adventurous bunny."
+msgstr ""
+
+msgid "Bow tie"
+msgstr ""
+
+msgid "Dressed for a very important meeting."
+msgstr ""
+
+msgid "Pearl necklace"
+msgstr ""
+
+msgid "Utterly glamorous."
 msgstr ""
 
 msgid "Balcony netting"
@@ -473,6 +608,42 @@ msgstr ""
 msgid "Up on his hind legs, very interested in that pigeon."
 msgstr ""
 
+msgid "Grazing"
+msgstr ""
+
+msgid "Munching fresh wheatgrass, one blade at a time."
+msgstr ""
+
+msgid "On the lookout"
+msgstr ""
+
+msgid "Keeping an eye on the street from the top of the deck."
+msgstr ""
+
+msgid "Cooling off"
+msgstr ""
+
+msgid "Belly down on the cool stone. Ahh."
+msgstr ""
+
+msgid "Shady nap"
+msgstr ""
+
+msgid "A snooze under the sun umbrella."
+msgstr ""
+
+msgid "Feathered friend"
+msgstr ""
+
+msgid "A sparrow from the feeder hops right up to him. Nose to beak!"
+msgstr ""
+
+msgid "Butterfly chase"
+msgstr ""
+
+msgid "Hop, hop, pounce... missed. Again!"
+msgstr ""
+
 msgid "Herb thief"
 msgstr ""
 
@@ -650,10 +821,19 @@ msgstr ""
 msgid "Open the balcony"
 msgstr ""
 
+msgid "Set up %d things on the balcony"
+msgstr ""
+
+msgid "Pick herbs from the balcony planter %d times"
+msgstr ""
+
 msgid "Buy %d upgrades"
 msgstr ""
 
 msgid "Get 3 stars in %d different jobs"
+msgstr ""
+
+msgid "Dress Bubák in a full outfit: something on all %d places"
 msgstr ""
 
 msgid "Collect all %d accessories"
@@ -806,7 +986,13 @@ msgstr ""
 msgid "Food"
 msgstr ""
 
+msgid "Gourmet"
+msgstr ""
+
 msgid "Toys"
+msgstr ""
+
+msgid "Balcony"
 msgstr ""
 
 msgid "Home"
@@ -824,7 +1010,13 @@ msgstr ""
 msgid "Meet Bubák!\n\nHe's new here and a little shy. Keep his bowls full, clean his litter box and hold your finger on him to pet him gently.\n\nTake photos of the cute things he does to earn coins."
 msgstr ""
 
+msgid "It's getting cluttered in here! Too much stuff makes it less cozy (-%d). Put a few things away in the toy chest."
+msgstr ""
+
 msgid "Unlocks later in the show club"
+msgstr ""
+
+msgid "For the balcony, once it's open"
 msgstr ""
 
 msgid "Needs Cozy level %d"
@@ -953,6 +1145,9 @@ msgstr ""
 msgid "Coziness grows with furniture, toys and upgrades. Higher levels make Bubák happier, bring more followers and unlock new things in the shop."
 msgstr ""
 
+msgid "Too cluttered right now (-%d)! Put a few things away in the toy chest by the desk."
+msgstr ""
+
 msgid "Bond"
 msgstr ""
 
@@ -1016,10 +1211,25 @@ msgstr ""
 msgid "%s is getting wriggly. Back on the floor!"
 msgstr ""
 
+msgid "Followers' attention: %s"
+msgstr ""
+
+msgid "Flooded!"
+msgstr ""
+
+msgid "Fresh"
+msgstr ""
+
+msgid "Busy"
+msgstr ""
+
 msgid "Trust: %s"
 msgstr ""
 
 msgid "Cozy level %d: %s"
+msgstr ""
+
+msgid "Cluttered!"
 msgstr ""
 
 msgid "Drag furniture and toys to rearrange the room."
@@ -1103,10 +1313,7 @@ msgstr ""
 msgid "Installed"
 msgstr ""
 
-msgid "Take off"
-msgstr ""
-
-msgid "Wear"
+msgid "Wardrobe"
 msgstr ""
 
 msgid "The balcony door is open! Bubák will pop out when he feels like it.\nTap the door to go out yourself."
@@ -1190,7 +1397,19 @@ msgstr ""
 msgid "Oops, missed him!"
 msgstr ""
 
+msgid "He turned his back on the camera."
+msgstr ""
+
 msgid "NEW!"
+msgstr ""
+
+msgid "Not worth posting. Wait for him to do something cute."
+msgstr ""
+
+msgid "Too many posts! Your feed is flooded and some followers unfollowed. Give it a break."
+msgstr ""
+
+msgid "You've posted a lot lately, so fewer people saw this one."
 msgstr ""
 
 msgid "Your followers have seen this one a lot lately."
@@ -1199,7 +1418,19 @@ msgstr ""
 msgid "Nice!"
 msgstr ""
 
+msgid "OK"
+msgstr ""
+
 msgid "Language"
+msgstr ""
+
+msgid "Sound"
+msgstr ""
+
+msgid "Sound effects"
+msgstr ""
+
+msgid "Music"
 msgstr ""
 
 msgid "While the game is closed"
@@ -1215,6 +1446,21 @@ msgid "Life goes on"
 msgstr ""
 
 msgid "Time stops"
+msgstr ""
+
+msgid "Game pace"
+msgstr ""
+
+msgid "Bubák bonds with you quickly: the balcony, selfies and a friend come within a session or two."
+msgstr ""
+
+msgid "Trust takes days to build: first the balcony, then selfies, and a friend only after a long game."
+msgstr ""
+
+msgid "Fast game"
+msgstr ""
+
+msgid "Normal game"
 msgstr ""
 
 msgid "Saved games"
@@ -1349,6 +1595,66 @@ msgstr ""
 msgid "Remote work"
 msgstr ""
 
+msgid "Sit"
+msgstr ""
+
+msgid "Loaf"
+msgstr ""
+
+msgid "Style: %d/100"
+msgstr ""
+
+msgid "Photo likes +%d%%"
+msgstr ""
+
+msgid "Tap something to put it on. He can wear one thing in each place."
+msgstr ""
+
+msgid "Nothing"
+msgstr ""
+
+msgid "%s for %d coins: %s Tap again to buy it."
+msgstr ""
+
+msgid "New: %s! He's wearing it already."
+msgstr ""
+
+msgid "Toy chest"
+msgstr ""
+
+msgid "Living room"
+msgstr ""
+
+msgid "Space %d/%d"
+msgstr ""
+
+msgid "Cozy -%d"
+msgstr ""
+
+msgid "Too much stuff out makes the flat less cozy. Things in the chest don't take up space, but they don't add to coziness either. Tap something to move it."
+msgstr ""
+
+msgid "Out in the flat"
+msgstr ""
+
+msgid "Nothing out. A bit bare in here!"
+msgstr ""
+
+msgid "In the chest"
+msgstr ""
+
+msgid "The chest is empty."
+msgstr ""
+
+msgid "Take out to:"
+msgstr ""
+
+msgid "Put away"
+msgstr ""
+
+msgid "Take out"
+msgstr ""
+
 msgid "Not the ladybug!"
 msgstr ""
 
@@ -1466,10 +1772,52 @@ msgstr ""
 msgid "The balcony door is locked. It opens once Bubák trusts you (%s) and he has %d followers.\nNow: %s, %d followers."
 msgstr ""
 
-msgid "Parsley and dandelions. They grow back... if a certain bunny lets them."
+msgid "+%d parsley"
 msgstr ""
 
-msgid "Nibbled down to stubs. They'll grow back in a while."
+msgid "Fresh parsley from the planter, for treats!"
+msgstr ""
+
+msgid "And a dandelion!"
+msgstr ""
+
+msgid "Watered and growing. Pick more once it's leafy again."
+msgstr ""
+
+msgid "watered!"
+msgstr ""
+
+msgid "Not much to pick yet, so you water it. It'll grow back faster now."
+msgstr ""
+
+msgid "Freshly watered. Give it time to grow."
+msgstr ""
+
+msgid "The grass will grow back faster now."
+msgstr ""
+
+msgid "Lush and green. Bubák approves."
+msgstr ""
+
+msgid "Plenty of seeds left. The sparrows are happy."
+msgstr ""
+
+msgid "+ seeds"
+msgstr ""
+
+msgid "Feeder filled. The birds will be back soon."
+msgstr ""
+
+msgid "ting-a-ling!"
+msgstr ""
+
+msgid "Nice and shady underneath. Perfect for a nap."
+msgstr ""
+
+msgid "Cool to the touch, even in the afternoon sun."
+msgstr ""
+
+msgid "The best view on the street. Ask Bubák."
 msgstr ""
 
 msgid "Safe and sound under its cover."
@@ -1595,13 +1943,16 @@ msgstr ""
 msgid "Continue"
 msgstr ""
 
+msgid "Now!"
+msgstr ""
+
 msgid "Focus"
 msgstr ""
 
 msgid "Pick a trick to practise."
 msgstr ""
 
-msgid "Pick a trick. The moment Bubák does it, tap Reward! Don't reward him if he gets distracted."
+msgid "Pick a trick. When Bubák pulls it off, a star pops up: tap Reward before the bar runs out! Don't reward him if he gets distracted."
 msgstr ""
 
 msgid "Practise"
@@ -1760,6 +2111,18 @@ msgstr ""
 msgid "4th"
 msgstr ""
 
+msgid "Head"
+msgstr ""
+
+msgid "Ears"
+msgstr ""
+
+msgid "Eyes"
+msgstr ""
+
+msgid "Neck"
+msgstr ""
+
 msgid "ate %d bowl of pellets"
 msgid_plural "ate %d bowls of pellets"
 msgstr[0] ""
@@ -1782,6 +2145,11 @@ msgstr[1] ""
 
 msgid "+%d follower"
 msgid_plural "+%d followers"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "%d follower"
+msgid_plural "%d followers"
 msgstr[0] ""
 msgstr[1] ""
 

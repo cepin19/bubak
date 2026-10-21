@@ -41,6 +41,12 @@ var balcony_door: Node2D
 var planter: Node2D
 var sunspot: Node2D
 var desk: Node2D
+var laptop: Sprite2D
+var closet: Node2D
+var toy_chest: Node2D
+var _chest_t := 2.0
+var _feeder_t := 6.0
+var _laptop_t := 1.0
 var chair: Node2D
 var shelf: Node2D        # trophy shelf on the wall, appears with the first ribbon
 var view := "living"     # which room the camera shows
@@ -105,6 +111,8 @@ func _ready() -> void:
 		elif arg == "--demo":   # a furnished flat, for trying things out
 			Game.use_scratch_game("user://demo_save.json")
 			_demo.call_deferred()
+		elif arg.begins_with("--lang="):   # screenshots in another language, settings untouched
+			TranslationServer.set_locale(arg.get_slice("=", 1))
 		elif arg.begins_with("--view="):
 			go_to.call_deferred(arg.get_slice("=", 1))
 	RenderingServer.set_default_clear_color(Color("#f7e6d0"))
@@ -140,7 +148,7 @@ func _ready() -> void:
 	tint = CanvasModulate.new()
 	add_child(tint)
 
-	fixed.append(_make_item("sofa", 0, Vector2(420, 478), "sofa", 0.95))
+	fixed.append(_make_item("sofa", 0, Vector2(410, 478), "sofa", 0.78))
 	door = _make_item("door", 0, Vector2(95, 438), "door_locked", 1.0)
 	fixed.append(door)
 	balcony_door = _make_item("balcony_door", 0, Vector2(BX + 1150, 438), "balcony_door", 1.0)
@@ -151,9 +159,20 @@ func _ready() -> void:
 	fixed.append(sunspot)
 	desk = _make_item("desk", 0, Vector2(1110, 480), "desk", 1.0)
 	fixed.append(desk)
-	chair = _make_item("office_chair", 0, Vector2(1010, 545), "chair", 0.7)
+	# the laptop is its own sprite (pivot at its base) so it can jiggle when work is waiting
+	laptop = Sprite2D.new()
+	laptop.texture = Catalog.tex("laptop")
+	laptop.centered = false
+	laptop.position = Vector2(-10, -158)
+	laptop.offset = Vector2(-110, -62)
+	desk.add_child(laptop)
+	closet = _make_item("closet", 0, Vector2(362, 226), "closet", 0.7)   # on the wall above the sofa
+	fixed.append(closet)
+	toy_chest = _make_item("toy_chest", 0, Vector2(905, 484), "toy_chest", 0.8)
+	fixed.append(toy_chest)
+	chair = _make_item("office_chair", 0, Vector2(1100, 476), "chair", 0.85)   # pushed in under the desk
 	fixed.append(chair)
-	cable = _make_item("cable", 0, Vector2(710, 464), "cable_" + Game.cable, 1.0)
+	cable = _make_item("cable", 0, Vector2(1105, 464), "cable_" + Game.cable, 1.0)   # under the desk
 	fixed.append(cable)
 	shelf = _make_item("trophy_shelf", 0, Vector2(335, 262), "trophy_shelf", 0.8)
 	fixed.append(shelf)
@@ -183,6 +202,7 @@ func _ready() -> void:
 		b.message.connect(hud.toast)
 		b.cable_alert.connect(_on_cable_alert.bind(b))
 	Game.item_added.connect(_spawn_placed)
+	Game.item_removed.connect(_on_item_removed)
 	Game.balcony_milestone.connect(hud.on_balcony_milestone)
 	if not Game.welcome.is_connected(_on_welcome):
 		Game.welcome.connect(_on_welcome)
@@ -194,7 +214,11 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	Sfx.set_night(not is_daytime())
 	_update_care_items()
+	_jiggle_laptop(delta)
+	_jiggle_chest(delta)
+	_feeder_birds(delta)
 	if _pressing and _press_target in bunnies and not _petting and mode == "" \
 			and Time.get_ticks_msec() / 1000.0 - _press_time > 0.4 and _moved < 24:
 		_pet_bunny = _press_target
@@ -246,6 +270,12 @@ func _update_care_items() -> void:
 	chair.visible = Game.tier("chair") > 0
 	door.set_texture(("door_open_night" if _night > 0.6 else "door_open") if Game.balcony == "open" else "door_locked")
 	planter.set_texture("planter" if Game.herbs > 40 else "planter_nibbled")
+	var tray := find_item("grass_tray")
+	if tray:
+		tray.set_texture("grass_tray" if Game.grass > 35 else "grass_tray_short")
+	var feeder := find_item("bird_feeder")
+	if feeder:
+		feeder.set_texture("bird_feeder" if Game.seeds > 0 else "bird_feeder_empty")
 	sunspot.visible = is_daytime()
 
 
@@ -269,6 +299,19 @@ func _make_item(id: String, uid: int, pos: Vector2, tex := "", s := -1.0) -> Nod
 	return it
 
 
+## Put away in the toy chest: off the floor, and whoever was using it finds something else to do.
+func _on_item_removed(uid: int) -> void:
+	var it: Node2D = items.get(uid)
+	if it == null:
+		return
+	items.erase(uid)
+	for b in bunnies:
+		if b.item == it and b.act != "held":
+			b.start("idle", null, b.position)
+	spawn_fx("star", it.position + Vector2(0, -30))
+	it.queue_free()
+
+
 func _spawn_placed(e: Dictionary) -> void:
 	var it := _make_item(e.id, e.uid, Vector2(e.x, e.y))
 	items[e.uid] = it
@@ -287,7 +330,7 @@ func find_item(id: String, room := "") -> Node2D:
 
 
 func random_furniture(room := "living") -> Node2D:
-	var pool: Array = fixed.filter(func(f): return not f in [cable, door, balcony_door, sunspot, chair, shelf])
+	var pool: Array = fixed.filter(func(f): return not f in [cable, door, balcony_door, sunspot, chair, shelf, closet])
 	for it in items.values():
 		if not Catalog.ITEMS[it.id].get("flat", false):
 			pool.append(it)
@@ -312,6 +355,7 @@ func go_to(room: String) -> void:
 	if mode in ["move", "treat"]:
 		set_mode("")
 	view = room
+	Sfx.play("door")
 	var t := create_tween()
 	t.tween_property(camera, "position:x", 640.0 + (BX if room == "balcony" else 0.0), 0.7) \
 		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
@@ -355,6 +399,74 @@ func spawn_bird() -> void:
 	var t := b.create_tween()
 	t.tween_property(b, "position", Vector2(BX + 1050, y - 60), 4.0).set_trans(Tween.TRANS_SINE)
 	t.tween_callback(b.queue_free)
+
+
+## Birds drop by the feeder while there are seeds in it.
+func _feeder_birds(delta: float) -> void:
+	_feeder_t -= delta
+	if _feeder_t > 0:
+		return
+	_feeder_t = randf_range(18, 32)
+	var feeder := find_item("bird_feeder")
+	if feeder == null or Game.seeds <= 0:
+		return
+	Game.seeds = maxf(0, Game.seeds - 4)
+	land_bird(feeder.position + Vector2(randf_range(-14, 14), -feeder.size().y * 0.62), 4.0)
+
+
+## A bird flies in, lands at `at` for a while (pecking), then flies off over the railing.
+func land_bird(at: Vector2, stay: float) -> void:
+	if view == "balcony":
+		Sfx.play("chirp")
+	var b := Sprite2D.new()
+	b.texture = Catalog.tex("bird")
+	b.offset = Vector2(0, -b.texture.get_size().y / 2.0)
+	b.position = Vector2(BX - 60, at.y - 260)
+	b.scale = Vector2(0.8, 0.8)
+	b.z_index = 2
+	fx.add_child(b)
+	var t := b.create_tween()
+	t.tween_property(b, "position", at, 1.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	for i in int(stay / 0.6):   # peck, look around, peck
+		t.tween_property(b, "rotation", 0.35, 0.1)
+		t.tween_property(b, "rotation", 0.0, 0.15)
+		t.tween_interval(0.35)
+		if i % 3 == 2:
+			t.tween_callback(func(): b.flip_h = not b.flip_h)
+	t.tween_callback(func(): b.flip_h = false)
+	t.tween_property(b, "position", Vector2(BX + 1100, at.y - 300), 2.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	t.tween_callback(b.queue_free)
+
+
+## A butterfly that flutters just ahead of a bunny while it's chasing, then flies off.
+func spawn_butterfly(chaser: Node2D) -> void:
+	var b := Sprite2D.new()
+	b.texture = Catalog.tex("butterfly")
+	b.position = chaser.position + Vector2(140, -160)
+	b.z_index = 3
+	b.scale = Vector2(1.4, 1.4)
+	fx.add_child(b)
+	var flap := b.create_tween().set_loops()
+	flap.tween_property(b, "scale:x", 0.4, 0.12)
+	flap.tween_property(b, "scale:x", 1.4, 0.12)
+	var t0 := Time.get_ticks_msec() / 1000.0
+	var follow := func():
+		var now := Time.get_ticks_msec() / 1000.0 - t0
+		if not is_instance_valid(chaser) or chaser.act != "butterfly" or now > 30.0:
+			return false
+		var goal: Vector2 = chaser.target + Vector2(60 + sin(now * 2.3) * 50, -170 + sin(now * 3.7) * 30)
+		b.position = b.position.lerp(goal, 0.05)
+		return true
+	var timer := Timer.new()
+	timer.wait_time = 1.0 / 60.0
+	timer.autostart = true
+	b.add_child(timer)
+	timer.timeout.connect(func():
+		if not follow.call():
+			timer.stop()
+			var t := b.create_tween()
+			t.tween_property(b, "position", b.position + Vector2(260, -380), 2.0)
+			t.tween_callback(b.queue_free))
 
 
 func save_item_position(it: Node2D) -> void:
@@ -573,6 +685,7 @@ func _use_item(it: Node2D) -> void:
 				hud.toast(tr("The bowl is full."))
 			elif Game.use_inventory("pellets"):
 				Game.bowl += 1
+				Sfx.play("pellets")
 				spawn_fx("text", above, tr("+ pellets"))
 			else:
 				hud.toast(tr("Out of pellets! Buy more in the shop."))
@@ -581,21 +694,28 @@ func _use_item(it: Node2D) -> void:
 				hud.toast(tr("Plenty of hay in there already."))
 			elif Game.use_inventory("hay"):
 				Game.hay = minf(100, Game.hay + [55, 80, 100][Game.tier("hayrack") - 1])
+				Sfx.play("hay")
 				spawn_fx("text", above, tr("+ hay"))
 			else:
 				hud.toast(tr("Out of hay! Bunnies need lots of it. Visit the shop."))
 		"water":
 			Game.water = 100
+			Sfx.play("water")
 			spawn_fx("text", above, tr("fresh water!"))
 		"litter":
 			if Game.litter < 5:
 				hud.toast(tr("Already spotless."))
 			else:
 				Game.litter = 0
+				Sfx.play("scrape")
 				spawn_fx("clean", above)
 				spawn_fx("text", above, tr("sparkly clean!"))
 		"desk", "office_chair":
 			hud.open_work()
+		"closet":
+			hud.open_wardrobe()
+		"toy_chest":
+			hud.open_toy_chest()
 		"trophy_shelf":
 			hud.open_club("Trophies")
 		"door":
@@ -611,8 +731,48 @@ func _use_item(it: Node2D) -> void:
 		"balcony_door":
 			go_to("living")
 		"planter":
-			hud.toast(tr("Parsley and dandelions. They grow back... if a certain bunny lets them.") if Game.herbs > 40
-				else tr("Nibbled down to stubs. They'll grow back in a while."))
+			var got := Game.harvest_herbs()
+			if not got.is_empty():
+				Sfx.play("pluck")
+				spawn_fx("text", above, tr("+%d parsley") % got.parsley)
+				spawn_fx("heart", above + Vector2(30, 10))
+				hud.toast(tr("Fresh parsley from the planter, for treats!") + (" " + tr("And a dandelion!") if got.has("dandelion") else ""))
+			elif Game.is_watered("herbs"):
+				hud.toast(tr("Watered and growing. Pick more once it's leafy again."))
+			else:
+				Game.water_plant("herbs")
+				Sfx.play("drip")
+				spawn_fx("text", above, tr("watered!"))
+				hud.toast(tr("Not much to pick yet, so you water it. It'll grow back faster now."))
+		"grass_tray":
+			if Game.is_watered("grass"):
+				hud.toast(tr("Freshly watered. Give it time to grow."))
+			else:
+				Game.water_plant("grass")
+				Sfx.play("drip")
+				spawn_fx("text", above, tr("watered!"))
+				hud.toast(tr("The grass will grow back faster now.") if Game.grass < 90 else tr("Lush and green. Bubák approves."))
+		"bird_feeder":
+			if Game.seeds > 60:
+				hud.toast(tr("Plenty of seeds left. The sparrows are happy."))
+			else:
+				Game.fill_feeder()
+				Sfx.play("seeds")
+				spawn_fx("text", above, tr("+ seeds"))
+				hud.toast(tr("Feeder filled. The birds will be back soon."))
+				_feeder_t = 4.0
+		"wind_chime":
+			Sfx.play("chime")
+			spawn_fx("text", above, tr("ting-a-ling!"))
+			for b in bunnies:
+				if b.room_id == "balcony":
+					b.perk_ears()
+		"parasol":
+			hud.toast(tr("Nice and shady underneath. Perfect for a nap."))
+		"cool_tile":
+			hud.toast(tr("Cool to the touch, even in the afternoon sun."))
+		"lookout":
+			hud.toast(tr("The best view on the street. Ask Bubák."))
 		"cable":
 			match Game.cable:
 				"covered": hud.toast(tr("Safe and sound under its cover."))
@@ -630,6 +790,7 @@ func _use_item(it: Node2D) -> void:
 			tw.tween_property(it, "position", dest, 0.6).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 			tw.parallel().tween_property(it.sprite, "rotation", it.sprite.rotation + TAU, 0.6)
 			tw.tween_callback(save_item_position.bind(it))
+			Sfx.play("ball")
 			var b := bunny_near(it.position)
 			if b and b.pet.needs.fun < 90 and b.act in ["idle", "wander", "loaf", "groom"]:
 				b.start("play_ball", it)
@@ -725,7 +886,12 @@ func set_mode(m: String) -> void:
 
 # ---- effects -----------------------------------------------------------------
 
+const FX_SOUND := {"heart": "love", "!": "surprise", "?": "huh", "clean": "sparkle", "star": "star", "dust": "hop", "dirt": "dig"}
+
+
 func spawn_fx(kind: String, pos: Vector2, text := "") -> void:
+	if FX_SOUND.has(kind) and Game.room_at(pos) == view:
+		Sfx.play(FX_SOUND[kind])
 	if kind == "dust":   # puff when Bubák lands from a hop
 		var p := Sprite2D.new()
 		p.texture = Catalog.soft_circle()
@@ -1012,6 +1178,9 @@ func _draw_sky_in(r: Rect2, scale: float) -> void:
 func take_photo() -> void:
 	var subject := bunny_near(camera.position)   # whoever is nearest the middle of the shot
 	var behaviour: String = subject.current_behaviour() if subject else ""
+	var shy: bool = subject != null and subject.camera_shy()
+	if shy:
+		behaviour = ""   # he turns his back on the camera
 	var decor := 0
 	for it in items.values():
 		if subject and it.id in DECOR and it.position.distance_to(subject.position) < 260:
@@ -1032,7 +1201,10 @@ func take_photo() -> void:
 	var file := Game.PHOTO_DIR + "p_%d.png" % int(Time.get_unix_time_from_system() * 1000)
 	sub.save_png(file)
 	var res := Game.record_photo(file, behaviour, decor)
+	res.shy = shy
 	hud.show_photo_result(sub, res)
+	if subject and not shy:
+		subject.on_flash()
 
 
 # ---- lifecycle ------------------------------------------------------------------
@@ -1050,6 +1222,9 @@ func _demo() -> void:
 		Game.buy(id)
 	Game.buy("flowers", "balcony")
 	Game.buy("beanbag", "balcony")
+	for id in ["grass_tray", "bird_feeder", "cool_tile", "wind_chime", "parasol", "lookout"]:
+		Game.buy(id)
+	Game.fill_feeder()
 	Game.welcome_text = ""
 
 
@@ -1071,11 +1246,41 @@ func _screenshot(path: String) -> void:
 				"tray": hud._toggle_tray()
 				"club": hud.open_club("Shows")
 				"hutch": hud.open_hutch()
+				"chest": hud.open_toy_chest()
+				"wardrobe": hud.open_wardrobe()
 				"settings": hud.open_settings()
 	await get_tree().create_timer(delay * 0.5).timeout
 	await RenderingServer.frame_post_draw
 	get_viewport().get_texture().get_image().save_png(path)
 	get_tree().quit()
+
+
+## Work is waiting: every couple of seconds the laptop does a little hop and wiggle.
+## Too much stuff about: the toy chest rattles its lid now and then.
+func _jiggle_chest(delta: float) -> void:
+	_chest_t -= delta
+	if _chest_t > 0:
+		return
+	_chest_t = 3.0
+	if Game.clutter_over("living") + Game.clutter_over("balcony") > 0:
+		toy_chest.wiggle(1.6)
+
+
+func _jiggle_laptop(delta: float) -> void:
+	if Game.work_ready_at > Time.get_unix_time_from_system():
+		return
+	_laptop_t -= delta
+	if _laptop_t > 0:
+		return
+	_laptop_t = 2.4
+	var t := laptop.create_tween()
+	t.tween_property(laptop, "scale", Vector2(1.06, 0.92), 0.08)
+	t.tween_property(laptop, "scale", Vector2(0.97, 1.06), 0.08)
+	t.tween_property(laptop, "rotation", 0.07, 0.07)
+	t.tween_property(laptop, "rotation", -0.07, 0.1)
+	t.tween_property(laptop, "rotation", 0.04, 0.08)
+	t.tween_property(laptop, "rotation", 0.0, 0.07)
+	t.parallel().tween_property(laptop, "scale", Vector2.ONE, 0.15).set_trans(Tween.TRANS_BACK)
 
 
 func _on_welcome(text: String) -> void:
