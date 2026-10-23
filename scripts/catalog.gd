@@ -81,13 +81,13 @@ const ITEMS := {
 	"tunnel": {"name": "Play tunnel", "kind": "toy", "price": 45, "icon": "tunnel", "tex": "tunnel",
 		"scale": 0.85, "use": "tunnel", "max": 1, "cozy": 2, "space": 2, "desc": "Zoom in one end, out the other."},
 
-	"bed": {"name": "Cushy bed", "kind": "decor", "price": 55, "icon": "bed", "tex": "bed",
+	"bed": {"name": "Cushy bed", "kind": "decor", "price": 160, "icon": "bed", "tex": "bed",
 		"scale": 0.85, "use": "sleep", "max": 1, "cozy": 3, "space": 2, "desc": "Naps here restore energy faster."},
-	"rug": {"name": "Cozy rug", "kind": "decor", "price": 35, "icon": "rug", "tex": "rug",
+	"rug": {"name": "Cozy rug", "kind": "decor", "price": 100, "icon": "rug", "tex": "rug",
 		"scale": 1.0, "flat": true, "max": 2, "cozy": 2, "space": 2, "desc": "Soft paws, happy bunny."},
-	"plant": {"name": "Potted fern", "kind": "decor", "price": 25, "icon": "plant", "tex": "plant",
+	"plant": {"name": "Potted fern", "kind": "decor", "price": 80, "icon": "plant", "tex": "plant",
 		"scale": 0.8, "max": 3, "cozy": 1, "space": 1, "desc": "Makes photos look fancier."},
-	"lamp": {"name": "Floor lamp", "kind": "decor", "price": 40, "icon": "lamp", "tex": "lamp",
+	"lamp": {"name": "Floor lamp", "kind": "decor", "price": 120, "icon": "lamp", "tex": "lamp",
 		"scale": 0.8, "max": 1, "cozy": 2, "space": 1, "desc": "Warm light in the evening."},
 	"digbox": {"name": "Dig box", "kind": "toy", "price": 45, "icon": "digbox", "tex": "digbox",
 		"scale": 0.8, "use": "dig", "max": 1, "cozy": 2, "space": 2, "desc": "A box of sand for very important digging."},
@@ -95,61 +95,67 @@ const ITEMS := {
 		"scale": 0.8, "use": "forage", "max": 1, "cozy": 1, "space": 1, "desc": "Hides little snacks under the lids. Makes him think."},
 	"hut": {"name": "Wooden hut", "kind": "toy", "price": 80, "icon": "hut", "tex": "hut", "req_cozy": 2,
 		"scale": 0.8, "use": "hide_box", "max": 1, "cozy": 3, "space": 3, "desc": "A hideaway that smells like a forest."},
+	"hurdles": {"name": "Hop hurdles", "kind": "toy", "price": 300, "icon": "hurdles", "tex": "hurdles", "req_cozy": 2,
+		"scale": 0.85, "use": "hurdles", "max": 1, "cozy": 2, "space": 3,
+		"desc": "A little jumping course. The best exercise there is: he clears it again and again for fun."},
+	"treat_ball": {"name": "Treat ball", "kind": "toy", "price": 90, "icon": "treat_ball", "tex": "treat_ball",
+		"scale": 0.6, "use": "roll_feeder", "max": 1, "cozy": 1, "space": 1,
+		"desc": "He rolls it all over the room to shake out a bite of kibble. Keeps him moving."},
 	"castle": {"name": "Bunny castle", "kind": "toy", "price": 260, "icon": "castle", "tex": "castle", "req_cozy": 3,
 		"scale": 0.85, "use": "castle", "max": 1, "cozy": 5, "space": 3, "desc": "Two floors of castle. He rules from the top."},
-	"teepee": {"name": "Teepee tent", "kind": "decor", "price": 110, "icon": "teepee", "tex": "teepee", "req_cozy": 2,
+	"teepee": {"name": "Teepee tent", "kind": "decor", "price": 350, "icon": "teepee", "tex": "teepee", "req_cozy": 2,
 		"scale": 0.8, "use": "sleep", "max": 1, "cozy": 4, "space": 3, "desc": "A tent for very cozy naps."},
-	"beanbag": {"name": "Bean bag", "kind": "decor", "price": 70, "icon": "beanbag", "tex": "beanbag",
+	"beanbag": {"name": "Bean bag", "kind": "decor", "price": 220, "icon": "beanbag", "tex": "beanbag",
 		"scale": 0.85, "max": 1, "cozy": 3, "space": 2, "desc": "He flops on it like he owns it. He does."},
-	"lantern": {"name": "Paper lantern", "kind": "decor", "price": 30, "icon": "lantern", "tex": "lantern",
+	"lantern": {"name": "Paper lantern", "kind": "decor", "price": 90, "icon": "lantern", "tex": "lantern",
 		"scale": 0.8, "max": 2, "cozy": 1, "space": 1, "desc": "A soft glow for the evenings."},
-	"flowers": {"name": "Flower pot", "kind": "decor", "price": 20, "icon": "flowers", "tex": "flowers",
+	"flowers": {"name": "Flower pot", "kind": "decor", "price": 60, "icon": "flowers", "tex": "flowers",
 		"scale": 0.8, "max": 3, "cozy": 1, "space": 1, "desc": "Pretty. Not for eating. Probably."},
 
 	# balcony only ("outdoor"): bought straight onto the balcony
-	"grass_tray": {"name": "Wheatgrass tray", "kind": "toy", "price": 40, "icon": "grass_tray", "tex": "grass_tray",
+	"grass_tray": {"name": "Wheatgrass tray", "kind": "toy", "price": 240, "icon": "grass_tray", "tex": "grass_tray",
 		"outdoor": true, "scale": 0.85, "use": "graze", "max": 1, "cozy": 2, "space": 2,
 		"desc": "Fresh grass to graze. Water it and it grows back."},
-	"bird_feeder": {"name": "Bird feeder", "kind": "decor", "price": 60, "icon": "bird_feeder", "tex": "bird_feeder",
+	"bird_feeder": {"name": "Bird feeder", "kind": "decor", "price": 320, "icon": "bird_feeder", "tex": "bird_feeder",
 		"outdoor": true, "scale": 0.8, "max": 1, "cozy": 2, "space": 1,
 		"desc": "Fill it with seeds and the birds drop by. Bubák is fascinated."},
-	"cool_tile": {"name": "Cool stone tile", "kind": "decor", "price": 45, "icon": "cool_tile", "tex": "cool_tile",
+	"cool_tile": {"name": "Cool stone tile", "kind": "decor", "price": 260, "icon": "cool_tile", "tex": "cool_tile",
 		"outdoor": true, "flat": true, "scale": 0.9, "use": "chill", "max": 1, "cozy": 1, "space": 1,
 		"desc": "Rabbits don't like the heat. On warm afternoons he stretches out on it."},
-	"wind_chime": {"name": "Wind chime", "kind": "decor", "price": 30, "icon": "wind_chime", "tex": "wind_chime",
+	"wind_chime": {"name": "Wind chime", "kind": "decor", "price": 180, "icon": "wind_chime", "tex": "wind_chime",
 		"outdoor": true, "scale": 0.8, "max": 1, "cozy": 1, "space": 1,
 		"desc": "Tinkles in the breeze. Tap it and watch his ears."},
-	"parasol": {"name": "Sun umbrella", "kind": "decor", "price": 90, "icon": "parasol", "tex": "parasol",
+	"parasol": {"name": "Sun umbrella", "kind": "decor", "price": 480, "icon": "parasol", "tex": "parasol",
 		"outdoor": true, "scale": 0.85, "max": 1, "cozy": 3, "space": 2,
 		"desc": "A shady spot, so he can nap outside."},
-	"lookout": {"name": "Lookout deck", "kind": "toy", "price": 130, "icon": "lookout", "tex": "lookout", "req_cozy": 3,
+	"lookout": {"name": "Lookout deck", "kind": "toy", "price": 750, "icon": "lookout", "tex": "lookout", "req_cozy": 3,
 		"outdoor": true, "scale": 0.85, "use": "lookout", "max": 1, "cozy": 3, "space": 2,
 		"desc": "Up the ramp and over the railing: the whole street to watch. The neighbours wave back."},
 
 	# Upgrades: "slot" + "tier". Care slots start at tier 1, desk gear at tier 0.
-	"bowl2": {"name": "Big food bowl", "kind": "upgrade", "slot": "bowl", "tier": 2, "price": 70,
+	"bowl2": {"name": "Big food bowl", "kind": "upgrade", "slot": "bowl", "tier": 2, "price": 180,
 		"icon": "bowl_t2_full", "cozy": 2, "desc": "Holds 5 portions instead of 3."},
-	"bowl3": {"name": "Royal food bowl", "kind": "upgrade", "slot": "bowl", "tier": 3, "price": 220, "req_cozy": 3,
+	"bowl3": {"name": "Royal food bowl", "kind": "upgrade", "slot": "bowl", "tier": 3, "price": 600, "req_cozy": 3,
 		"icon": "bowl_t3_full", "cozy": 2, "desc": "Holds 8 portions. Fit for a bunny king."},
-	"water2": {"name": "Big water bowl", "kind": "upgrade", "slot": "water", "tier": 2, "price": 60,
+	"water2": {"name": "Big water bowl", "kind": "upgrade", "slot": "water", "tier": 2, "price": 160,
 		"icon": "water_t2_full", "cozy": 2, "desc": "Holds more water, so it lasts longer."},
-	"water3": {"name": "Water fountain", "kind": "upgrade", "slot": "water", "tier": 3, "price": 240, "req_cozy": 3,
+	"water3": {"name": "Water fountain", "kind": "upgrade", "slot": "water", "tier": 3, "price": 640, "req_cozy": 3,
 		"icon": "water_t3_full", "cozy": 2, "desc": "Fresh running water. Lasts ages, and drinking is fun."},
-	"hayrack2": {"name": "Big hay rack", "kind": "upgrade", "slot": "hayrack", "tier": 2, "price": 80,
+	"hayrack2": {"name": "Big hay rack", "kind": "upgrade", "slot": "hayrack", "tier": 2, "price": 200,
 		"icon": "hayrack_t2_full", "cozy": 2, "desc": "Holds more hay, and each refill lasts longer."},
-	"hayrack3": {"name": "Hay house", "kind": "upgrade", "slot": "hayrack", "tier": 3, "price": 260, "req_cozy": 3,
+	"hayrack3": {"name": "Hay house", "kind": "upgrade", "slot": "hayrack", "tier": 3, "price": 680, "req_cozy": 3,
 		"icon": "hayrack_t3_full", "cozy": 2, "desc": "A hay rack with a roof. Holds a whole bale."},
-	"litter2": {"name": "Corner litter box", "kind": "upgrade", "slot": "litter", "tier": 2, "price": 70,
+	"litter2": {"name": "Corner litter box", "kind": "upgrade", "slot": "litter", "tier": 2, "price": 180,
 		"icon": "litter_t2", "cozy": 2, "desc": "High back, less mess. Stays clean longer."},
-	"litter3": {"name": "Luxury litter box", "kind": "upgrade", "slot": "litter", "tier": 3, "price": 230, "req_cozy": 3,
+	"litter3": {"name": "Luxury litter box", "kind": "upgrade", "slot": "litter", "tier": 3, "price": 620, "req_cozy": 3,
 		"icon": "litter_t3", "cozy": 2, "desc": "Stays clean much longer. Has ears!"},
-	"chair": {"name": "Comfy office chair", "kind": "upgrade", "slot": "chair", "tier": 1, "price": 90,
+	"chair": {"name": "Comfy office chair", "kind": "upgrade", "slot": "chair", "tier": 1, "price": 220,
 		"icon": "chair", "cozy": 1, "desc": "Shorter breaks between work shifts."},
-	"monitor": {"name": "Second monitor", "kind": "upgrade", "slot": "monitor", "tier": 1, "price": 160, "req_career": 1,
+	"monitor": {"name": "Second monitor", "kind": "upgrade", "slot": "monitor", "tier": 1, "price": 400, "req_career": 1,
 		"icon": "monitor", "cozy": 1, "desc": "+25% pay for remote work."},
-	"coffee": {"name": "Coffee machine", "kind": "upgrade", "slot": "coffee", "tier": 1, "price": 140, "req_career": 2,
+	"coffee": {"name": "Coffee machine", "kind": "upgrade", "slot": "coffee", "tier": 1, "price": 350, "req_career": 2,
 		"icon": "coffee", "cozy": 1, "desc": "Work shifts last 5 seconds longer."},
-	"headphones": {"name": "Noise-cancelling headphones", "kind": "upgrade", "slot": "headphones", "tier": 1, "price": 260,
+	"headphones": {"name": "Noise-cancelling headphones", "kind": "upgrade", "slot": "headphones", "tier": 1, "price": 650,
 		"req_career": 3, "icon": "headphones", "cozy": 1, "desc": "Another +25% pay for remote work."},
 
 	# Things Bubák can wear: one per slot (head, ear, eyes, neck), all at once.
@@ -179,12 +185,14 @@ const ITEMS := {
 	"pearls": {"name": "Pearl necklace", "kind": "wear", "place": "neck", "style": 50, "price": 350, "req_cozy": 4,
 		"icon": "wear_pearls", "tex": "wear_pearls", "desc": "Utterly glamorous."},
 
-	"balcony_net": {"name": "Balcony netting", "kind": "upgrade", "price": 120, "icon": "door_open", "cozy": 3,
+	"balcony_net": {"name": "Balcony netting", "kind": "upgrade", "price": 400, "icon": "door_open", "cozy": 3,
 		"desc": "Makes the balcony bunny-safe, so Bubák can go out and enjoy the fresh air."},
-	"cable_cover": {"name": "Cable cover", "kind": "upgrade", "price": 60, "icon": "cable_covered", "cozy": 1,
+	"cable_cover": {"name": "Cable cover", "kind": "upgrade", "price": 150, "icon": "cable_covered", "cozy": 1,
 		"desc": "Protects the laptop charger from Bubák's teeth. Forever."},
 
 	# Show club gear (kind "gear": owned once, used in training and grooming).
+	"leash": {"name": "Harness & leash", "kind": "gear", "price": 650, "icon": "leash", "stage": 1, "req_trust": 5, "req_stars": 6,
+		"desc": "A comfy harness and a soft leash. Take Bubák out once a day: to the park, and further as you go."},
 	"clicker": {"name": "Clicker", "kind": "gear", "price": 40, "icon": "clicker", "stage": 1,
 		"desc": "Click at just the right moment so he knows what he did right. Tricks are learned 50% faster."},
 	"pouch": {"name": "Treat pouch", "kind": "gear", "price": 90, "icon": "pouch", "stage": 1,
@@ -209,14 +217,14 @@ const ITEMS := {
 const SHOP_TABS := {
 	"Food": ["pellets", "hay", "branch", "parsley", "carrot", "apple"],
 	"Gourmet": ["dandelion", "hay_cookie", "banana_chips", "rose_petals", "dried_apple"],
-	"Toys": ["ball", "box", "tunnel", "puzzle", "digbox", "hut", "castle"],
+	"Toys": ["ball", "box", "tunnel", "puzzle", "treat_ball", "digbox", "hut", "hurdles", "castle"],
 	"Balcony": ["grass_tray", "bird_feeder", "cool_tile", "wind_chime", "parasol", "lookout"],
 	"Home": ["bed", "rug", "plant", "flowers", "lantern", "lamp", "beanbag", "teepee", "cable_cover", "balcony_net"],
 	"Upgrades": ["bowl2", "bowl3", "water2", "water3", "hayrack2", "hayrack3", "litter2", "litter3",
 		"chair", "monitor", "coffee", "headphones"],
 	"Style": ["beanie", "crown", "tophat", "bow", "daisy", "starclip", "glasses", "sunglasses", "heartglasses",
 		"bandana", "bowtie", "pearls"],
-	"Club": ["clicker", "pouch", "hoop", "brush", "comb", "clippers"],
+	"Club": ["clicker", "pouch", "hoop", "brush", "comb", "clippers", "leash"],
 }
 
 ## likes: how much a photo of it is worth. level: trust level needed.
@@ -238,6 +246,8 @@ const BEHAVIOURS := {
 	"chew": {"name": "Branch muncher", "likes": 35, "desc": "Leaves first, then the bark. Great for his teeth.", "needs": "branch"},
 	"dig": {"name": "Digging", "likes": 70, "desc": "Sand everywhere. Worth it.", "needs": "digbox"},
 	"forage": {"name": "Puzzle solver", "likes": 80, "desc": "Flips the lids with his nose to find the snacks.", "needs": "puzzle"},
+	"hurdles": {"name": "Show jumper", "likes": 140, "desc": "Clears the whole course without touching a bar.", "needs": "hurdles"},
+	"treat_ball": {"name": "Snack roller", "likes": 80, "desc": "Roll, roll, kibble! Roll, roll, kibble!", "needs": "treat_ball"},
 	"castle": {"name": "King of the castle", "likes": 140, "desc": "Surveying his kingdom from the top floor.", "needs": "castle"},
 	"sleep_bed": {"name": "Cozy bed nap", "likes": 80, "desc": "Snoozing in his very own bed.", "needs": "bed"},
 	"balcony": {"name": "Fresh air", "likes": 60, "desc": "His first trip out onto the balcony.", "needs": "balcony"},
@@ -266,7 +276,7 @@ const BEHAVIOURS := {
 }
 
 const BEHAVIOUR_ORDER := ["hop", "idle", "nom", "munch", "drink", "potty", "loaf", "nap", "groom",
-	"treat", "thump", "chew_cable", "hide", "ball", "tunnel", "chew", "dig", "forage", "castle", "sleep_bed",
+	"treat", "thump", "chew_cable", "hide", "ball", "tunnel", "chew", "dig", "forage", "treat_ball", "hurdles", "castle", "sleep_bed",
 	"balcony", "sunbathe", "bird_watch", "herb_thief", "graze", "chill", "lookout", "shade_nap", "butterfly", "bird_friend", "chin", "beg",
 	"bowl_flip", "binky", "zoomies", "flop", "bonk", "selfie", "purr", "show_off", "snuggle"]
 
@@ -360,9 +370,60 @@ const GOALS := [
 	{"id": "allcats", "type": "cats", "n": 3, "reward": 120, "stage": 3, "text": "Win in all %d categories"},
 	{"id": "win1", "type": "won", "n": 2, "reward": 200, "stage": 3, "text": "Win the Regional show"},
 	{"id": "win2", "type": "won", "n": 3, "reward": 500, "stage": 3, "text": "Become National champion"},
+	{"id": "walk1", "type": "walks", "n": 1, "reward": 60, "stage": 1, "text": "Take Bubák out on a walk"},
+	{"id": "walkall", "type": "places", "n": 5, "reward": 300, "stage": 1, "text": "Go on walks to all %d places"},
 	{"id": "mate", "type": "mate", "n": 1, "reward": 150, "mate": 1, "text": "Adopt a friend for Bubák"},
 	{"id": "bond", "type": "bond", "n": 100, "reward": 300, "mate": 1, "text": "Make them best friends"},
 ]
+
+## Weight, in grams. Each food point he eats adds FOOD_GRAMS, food eaten when he's already full adds
+## OVEREAT_GRAMS more, and sugar adds a little. Activities burn EXERCISE grams (walks WALK_GRAMS), and
+## his metabolism slowly pulls him back towards his ideal weight. So only lots of extra food (treats
+## piled on a full tummy) with little exercise makes him chubby.
+const IDEAL_WEIGHT := 4000.0
+const FOOD_GRAMS := 1.1
+const OVEREAT_GRAMS := 2.0
+const SUGAR_GRAMS := 0.13
+const METABOLISM := 0.1     # share of the gap to his ideal weight closed per hour
+const WALK_GRAMS := 65.0
+const EXERCISE := {"wander": 0.1, "zoomies": 9.0, "binky": 2.2, "play_ball": 3.3, "roll_feeder": 3.3,
+	"tunnel": 4.4, "dig": 3.3, "castle": 4.4, "butterfly": 6.6, "hurdles": 9.0, "forage": 1.1,
+	"lookout": 2.2, "show_off": 1.1, "bowl_flip": 0.7, "come": 0.7}
+## Weight bands, as a share above (or below) his ideal weight.
+const WEIGHT_BANDS := [-0.12, -0.06, 0.06, 0.12]
+const WEIGHT_NAMES := [{"name": "Underweight"}, {"name": "Slim"}, {"name": "Just right"}, {"name": "Chubby"},
+	{"name": "Overweight"}]
+
+
+## 0 underweight, 1 slim, 2 just right, 3 chubby, 4 overweight.
+func weight_band(weight: float, ideal: float) -> int:
+	var r := (weight - ideal) / ideal
+	var band := 0
+	for b in WEIGHT_BANDS:
+		if r >= b:
+			band += 1
+	return band
+
+
+func weight_name(band: int) -> String:
+	return tr(WEIGHT_NAMES[band].name)
+
+
+## Walks with the leash: once a day, each place opening after so many walks (after).
+const WALKS := {
+	"park": {"name": "Park", "after": 0},
+	"field": {"name": "Meadow", "after": 2},
+	"beach": {"name": "Beach", "after": 4},
+	"city": {"name": "City", "after": 7},
+	"cinema": {"name": "Cinema", "after": 10},
+}
+const WALK_TRUST := 5.0     # trust a walk brings (not slowed down by the daily limit)
+const WALK_FUN := 40.0
+
+
+func walk_name(id: String) -> String:
+	return tr(WALKS[id].name)
+
 
 ## Late in the game Bubák can get a friend from the rescue's hutch.
 const MATE_TRUST := 6
@@ -378,13 +439,13 @@ func mate_cozy() -> int:
 	return FAST_MATE.cozy if Game.fast_game else MATE_COZY
 ## trust: how much the newcomer trusts you at first; trust_rate: how fast that grows.
 const MATES := {
-	"luna": {"name": "Luna", "price": 600, "trust": 5.0, "trust_rate": 0.8,
+	"luna": {"name": "Luna", "weight": 3600, "price": 600, "trust": 5.0, "trust_rate": 0.8,
 		"desc": "A gentle cream bunny. Shy at first, but oh so sweet."},
-	"caramel": {"name": "Caramel", "price": 750, "trust": 15.0, "trust_rate": 1.3,
+	"caramel": {"name": "Caramel", "weight": 4300, "price": 750, "trust": 15.0, "trust_rate": 1.3,
 		"desc": "Golden, bouncy and friendly with everyone."},
-	"hazel": {"name": "Hazel", "price": 650, "trust": 10.0, "trust_rate": 1.0,
+	"hazel": {"name": "Hazel", "weight": 4000, "price": 650, "trust": 10.0, "trust_rate": 1.0,
 		"desc": "Chocolate brown with a white nose. Loves digging."},
-	"shadow": {"name": "Shadow", "price": 900, "trust": 0.0, "trust_rate": 0.7,
+	"shadow": {"name": "Shadow", "weight": 4500, "price": 900, "trust": 0.0, "trust_rate": 0.7,
 		"desc": "Sleek, black and a little mysterious. Bubák can't stop staring."},
 }
 

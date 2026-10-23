@@ -28,6 +28,8 @@ of the real Bubák; a `.gdignore` keeps them out of the build.)
   programming (memory), Video call and Crate stacking. Streaks raise a points multiplier (up to x4),
   the last 5 seconds count double, and each shift is rated 1–3 stars (more stars, more pay; best
   scores are kept). One job a day is the boss's pick, with double XP. There's a coffee break between shifts.
+- **Prices:** home things and upgrades are an investment (60–680 coins), and balcony things more so
+  (180–750, plus 400 for the netting).
 - **Upgrades:** each care item has 3 tiers (bigger bowl, fountain, hay house, luxury litter box), and
   desk gear makes work pay better.
 - **Coziness:** furniture, toys and upgrades raise the Cozy level (shown under the trust bar). It
@@ -74,6 +76,24 @@ of the real Bubák; a `.gdignore` keeps them out of the build.)
      Bubák competes against rival bunnies. There are Neighbourhood, Regional and National
      shows; two wins open the next level. Ribbons and the championship cup go on a shelf on
      the wall.
+- **Weight:** Bubák's healthy weight is about 4 kg (the Journal's Bubák tab shows it). Every
+  bite adds a little, food eaten on an already full tummy (piles of treats) adds a lot more, and
+  sugar a bit extra. Exercise burns it off: zoomies, binkies, the ball, tunnel, dig box and castle,
+  the new **hop hurdles** (a jumping course) and **treat ball** (he rolls it around for kibble),
+  and walks most of all. His metabolism slowly pulls him back towards 4 kg, and it does so while the
+  game is closed too, so he only gets chubby if he's fed lots of treats for hours. A chubby or thin
+  bunny is a bit grumpier, a heavy one binkies less, and show judges mark down his figure. The
+  numbers are in `scripts/catalog.gd` (`IDEAL_WEIGHT`, `*_GRAMS`, `EXERCISE`, `METABOLISM`), and
+  `-- --weightsim=normal|bare|treats|treats_bare|sweets_bare[:hours]` plays a sped-up day and logs
+  his weight, for tuning them.
+- **Walks:** once Bubák is Bonded and has 6 trick stars, the Shop's Club tab sells a harness and
+  leash. Then the Walk button takes him out once a day: the park first, then the meadow (after 2
+  walks), the beach (4), the city (7) and the cinema (10). Each walk is a half-minute cutscene (no
+  buttons) with a string of little adventures: a butterfly on his nose in the park, binkies,
+  zoomies and a dandelion in the meadow, a wave, a crab, a seagull and a sunset at the beach, a
+  pigeon, a café carrot and a crowd of fans in town, and popcorn, a scary bit and a nap in the
+  cinema; it brings trust past the daily limit and lots of
+  fun, and the city brings new followers. Goals: a first walk, and all 5 places.
 - **A friend for Bubák:** late in the game (Best buds and Cozy level 5) the bunny rescue opens.
   Pick a rabbit from the hutch and take it home. The newcomer has their own needs, trust and
   card. Happy rabbits slowly bond, and close friends snuggle together.
@@ -83,7 +103,7 @@ of the real Bubák; a `.gdignore` keeps them out of the build.)
   alone. "Back to my game" returns to it.
 
 Trust is the main progression (Shy → Curious → Friendly → Trusting → Cuddly → Bonded → Best
-buds), and it takes many days: the balcony opens at Trusting, selfies at Cuddly, and the friend
+buds; the hearts next to his name show it, one per level), and it takes many days: the balcony opens at Trusting, selfies at Cuddly, and the friend
 only after a long game. Each level is slower to fill than the last, and the more he has warmed up
 to you today, the less each extra bit counts, so a little every day beats one long session. Each
 treat he already had today counts less too. Each level unlocks new behaviours: chinning, begging
@@ -143,6 +163,7 @@ scripts/show_ring.gd    a show: performance, judging, rivals
 scripts/main.gd         room, input, day/night, photos
 scripts/hud.gd          HUD, shop, journal, club, rescue hutch, settings, pop-ups
 scripts/work_game.gd    remote-work mini-game
+scripts/walk_scene.gd   the walk cutscene
 scripts/sfx.gd          sound effects and music
 tools/gen_art.py        generates all placeholder art in assets/art/ (SVG)
 tools/gen_sounds.py     generates all sounds and music in assets/sounds/ (Ogg)

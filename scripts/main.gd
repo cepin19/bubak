@@ -108,6 +108,12 @@ func _ready() -> void:
 			add_child(t)
 		elif arg == "--testplay":   # same as Settings > Test play
 			Game.start_test_play()
+		elif arg.begins_with("--weightsim="):   # tune the weight numbers (tools/weightsim.gd)
+			Game.use_scratch_game("user://weightsim_save.json")
+			Game.new_game()
+			var sim: Node = load("res://tools/weightsim.gd").new()
+			sim.set_meta("arg", arg.get_slice("=", 1))
+			add_child.call_deferred(sim)
 		elif arg == "--demo":   # a furnished flat, for trying things out
 			Game.use_scratch_game("user://demo_save.json")
 			_demo.call_deferred()
@@ -1249,9 +1255,23 @@ func _screenshot(path: String) -> void:
 				"chest": hud.open_toy_chest()
 				"wardrobe": hud.open_wardrobe()
 				"settings": hud.open_settings()
-	await get_tree().create_timer(delay * 0.5).timeout
-	await RenderingServer.frame_post_draw
-	get_viewport().get_texture().get_image().save_png(path)
+				"walks": hud.open_walks()
+				var w when w.begins_with("walk_"): hud.play_walk(w.substr(5), false)
+	var times: Array = []   # --shots=4,10,16: several screenshots (seconds after opening), path_1.png ...
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--shots="):
+			times = Array(arg.get_slice("=", 1).split(",")).map(func(x): return float(x))
+	if times.is_empty():
+		await get_tree().create_timer(delay * 0.5).timeout
+		await RenderingServer.frame_post_draw
+		get_viewport().get_texture().get_image().save_png(path)
+	else:
+		var waited := 0.0
+		for i in times.size():
+			await get_tree().create_timer(times[i] - waited).timeout
+			waited = times[i]
+			await RenderingServer.frame_post_draw
+			get_viewport().get_texture().get_image().save_png(path.get_basename() + "_%d.png" % (i + 1))
 	get_tree().quit()
 
 

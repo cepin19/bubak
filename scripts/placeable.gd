@@ -75,6 +75,8 @@ func use_point(from: Vector2) -> Vector2:
 			return position + Vector2(-50, 8)
 		"tunnel":
 			return position + Vector2(-s.x / 2.0 + 20, 4)
+		"hurdles":   # the start of the course, on the left
+			return position + Vector2(-s.x * 0.45, 6)
 		"desk", "sofa":
 			return position + Vector2(randf_range(-s.x / 3.0, s.x / 3.0), 20)
 		"cable":

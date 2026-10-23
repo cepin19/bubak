@@ -12,6 +12,7 @@ const RARE := ["binky", "zoomies", "flop", "bonk", "beg", "bowl_flip", "show_off
 const BEHAVIOUR_OF := {
 	"idle": "idle", "wander": "hop", "eat_bowl": "nom", "eat_hay": "munch", "drink": "drink",
 	"potty": "potty", "loaf": "loaf", "groom": "groom", "play_ball": "ball", "hide_box": "hide",
+	"hurdles": "hurdles", "roll_feeder": "treat_ball",
 	"tunnel": "tunnel", "chew_toy": "chew", "chew_cable": "chew_cable", "chin": "chin",
 	"binky": "binky", "zoomies": "zoomies", "flop": "flop", "beg": "beg", "bowl_flip": "bowl_flip",
 	"bonk": "bonk", "thump": "thump", "eat_hand": "treat", "come": "idle", "petted": "loaf",
@@ -356,7 +357,7 @@ func start(name: String, it: Node2D = null, at = null) -> void:
 
 ## Sounds when he starts doing something (only heard in the room you're looking at).
 const ACT_SOUND := {"binky": "boing", "thump": "thump", "eat_bowl": "munch", "eat_hay": "munch", "graze": "munch",
-	"chew_toy": "munch", "chew_cable": "munch", "herb_thief": "munch", "drink": "lap", "bowl_flip": "ball",
+	"chew_toy": "munch", "chew_cable": "munch", "herb_thief": "munch", "drink": "lap", "bowl_flip": "ball", "roll_feeder": "ball",
 	"bonk": "love", "bird_friend": "chirp", "flop": "hop"}
 
 
@@ -420,11 +421,25 @@ func _begin() -> void:
 			_tw = create_tween().set_loops(6)
 			_tw.tween_property(self, "twist", -0.12, 0.17)
 			_tw.tween_property(self, "twist", 0.05, 0.17)
-		"play_ball":
+		"play_ball", "roll_feeder":
 			act_t = 1.2
 			_face(item)
 			_set_pose("eat")
 			_nudge_ball()
+		"hurdles":   # hop the course, left to right, over each little bar
+			act_t = 3.0
+			facing = 1.0
+			var step: float = item.size().x * 0.78 / 3.0
+			_tw = create_tween()
+			for i in 3:
+				_tw.tween_callback(_set_pose.bind("hop"))
+				_tw.tween_property(self, "position:x", position.x + step * (i + 1), 0.46)
+				_tw.parallel().tween_property(self, "air", 46.0, 0.23).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+				_tw.chain().tween_property(self, "air", 0.0, 0.23).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+				_tw.tween_callback(Sfx.play.bind("hop"))
+			_tw.tween_callback(_set_pose.bind("sit"))
+			_tw.tween_property(self, "squash", Vector2(1.15, 0.85), 0.07)
+			_tw.tween_property(self, "squash", Vector2.ONE, 0.18).set_trans(Tween.TRANS_BACK)
 		"hide_box":
 			act_t = randf_range(6, 10)
 			hidden_inside = true
@@ -615,6 +630,7 @@ func _begin() -> void:
 
 func _finish() -> void:
 	var done := act
+	pet.burn(Catalog.EXERCISE.get(done, 0.0))
 	match done:
 		"eat_bowl":
 			if not data.get("fail", false):
@@ -639,14 +655,19 @@ func _finish() -> void:
 			room.add_dropping(position + Vector2(-facing * 30, 4))
 		"loaf", "groom", "chin":
 			pet.add_need("fun", 3)
-		"play_ball":
-			pet.add_need("fun", 7)
+		"play_ball", "roll_feeder":
+			pet.add_need("fun", 7 if done == "play_ball" else 5)
+			if done == "roll_feeder":
+				pet.add_need("food", 3)   # a bite of kibble shakes out
 			if data.get("nudges", 0) < 2:
 				var n: int = data.get("nudges", 0) + 1
 				var ball := item
-				start("play_ball", ball)
+				start(done, ball)
 				data.nudges = n
 				return
+		"hurdles":
+			pet.add_need("fun", 12)
+			pet.energy -= 4
 		"hide_box":
 			pet.add_need("fun", 8)
 		"chew_toy":
@@ -827,7 +848,8 @@ func _choose_next() -> void:
 		if daytime and (Game.herbs > 40 or room.find_item("flowers", "balcony")):
 			opts.butterfly = [8.0, null]
 	for toy in [["ball", "play_ball"], ["box", "hide_box"], ["hut", "hide_box"], ["tunnel", "tunnel"],
-			["branch", "chew_toy"], ["digbox", "dig"], ["puzzle", "forage"], ["castle", "castle"]]:
+			["branch", "chew_toy"], ["digbox", "dig"], ["puzzle", "forage"], ["castle", "castle"],
+			["hurdles", "hurdles"], ["treat_ball", "roll_feeder"]]:
 		var it = room.find_item(toy[0], room_id)
 		if it and (not opts.has(toy[1]) or randf() < 0.5):
 			opts[toy[1]] = [(100 - n.fun) * 0.45 + 5, it]
@@ -841,8 +863,13 @@ func _choose_next() -> void:
 		opts.chin = [7.0, room.random_furniture(room_id)]
 	var crepuscular := (hour > 5.5 and hour < 9.0) or (hour > 17.5 and hour < 22.0)
 	if lvl >= 2 and mood > 60 and pet.energy > 35:
-		opts.binky = [9.0 * (1.6 if outside else 1.0), null]   # fresh air makes him bouncy
-		opts.zoomies = [5.0 + (6.0 if crepuscular else 0.0), null]
+		var bouncy: float = [0.8, 1.0, 1.0, 0.6, 0.3][pet.weight_band()]   # a heavy bunny is less bouncy
+		opts.binky = [9.0 * (1.6 if outside else 1.0) * bouncy, null]   # fresh air makes him bouncy
+		opts.zoomies = [(5.0 + (6.0 if crepuscular else 0.0)) * bouncy, null]
+	# a bit too heavy? he's keener on the exercise toys (and they're his best help)
+	for ex in ["hurdles", "roll_feeder", "tunnel", "play_ball"]:
+		if opts.has(ex) and pet.weight_band() >= 3:
+			opts[ex][0] *= 1.5
 	if pet.is_bubak() and mood > 55 and Catalog.TRICK_ORDER.any(func(id): return Game.trick_stars(id) >= 2):
 		opts.show_off = [5.0, null]
 	if partner and Game.bond >= 30 and partner.room_id == room_id and partner.phase == 1 and partner.act in SNUGGLY \
@@ -1132,6 +1159,7 @@ func _eat_from_hand() -> void:
 	pet.add_need("food", info.food)
 	pet.add_need("fun", info.fun)
 	pet.sugar += info.sugar
+	pet.gain(info.sugar * Catalog.SUGAR_GRAMS)
 	pet.add_trust(Catalog.treat_trust(treat) * (0.6 if shy else 1.0) * pet.treat_trust())
 	Game.stats.treats += 1
 	emote("heart")

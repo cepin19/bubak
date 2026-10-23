@@ -21,6 +21,7 @@ var trust := 0.0
 var asleep := false          # set by the bunny's AI; changes the energy rate
 var in_bed := false
 var _last_level := 0
+var weight := -1.0            # grams (set to his ideal weight on first use)
 var trust_day := ""          # the day trust_today and treats_today count
 var trust_today := 0.0
 var treats_today := 0
@@ -49,9 +50,13 @@ func tick(delta: float, clean: float, cozy: int) -> void:
 	if asleep:
 		energy = clampf(energy + (13.0 if in_bed else 8.0) * m, 0, 100)
 	else:
-		energy = clampf(energy - ENERGY_DECAY * m, 0, 100)
+		energy = clampf(energy - ENERGY_DECAY * m * (1.25 if weight_band() == 4 else 1.0), 0, 100)
 	bladder += BLADDER_RATE * m
 	sugar = maxf(0, sugar - SUGAR_DECAY * m)
+	_check_weight()
+	weight += (ideal_weight() - weight) * Catalog.METABOLISM * m / 60.0
+	if needs.food < 15:
+		burn(0.08 * m)   # going hungry
 	var md := mood(cozy)
 	if md > 65:
 		add_trust(0.15 * m * trust_rate())
@@ -65,6 +70,7 @@ func mood(cozy := -1) -> float:
 	var m: float = (needs.food + needs.water + needs.fun + needs.clean) / 4.0
 	if sugar > 60:
 		m -= 20  # tummy ache
+	m -= [12.0, 5.0, 0.0, 5.0, 12.0][weight_band()]   # too heavy or too thin: not quite himself
 	return m + ((Game.cozy_level() if cozy < 0 else cozy) - 1) * 2.0   # a cozy home makes a happy bunny
 
 
@@ -87,10 +93,11 @@ func trust_progress() -> float:
 
 
 ## Trust gained (positive amounts) comes slower at higher levels and after a lot of bonding today.
-func add_trust(amount: float) -> void:
+## daily = false: a special treat (a walk) that the daily limit doesn't slow down.
+func add_trust(amount: float, daily := true) -> void:
 	if amount > 0 and not Game.test_mode and not Game.fast_game:
 		_new_day()
-		amount *= Catalog.TRUST_PACE[trust_level()] / (1.0 + trust_today / Catalog.TRUST_DAILY)
+		amount *= Catalog.TRUST_PACE[trust_level()] / (1.0 + (trust_today / Catalog.TRUST_DAILY if daily else 0.0))
 		trust_today += amount
 	trust = clampf(trust + amount, 0, 100)
 	settle_level(true)
@@ -119,12 +126,44 @@ func _new_day() -> void:
 		treats_today = 0
 
 
+func ideal_weight() -> float:
+	return Catalog.IDEAL_WEIGHT if is_bubak() else float(Catalog.MATES[id].get("weight", Catalog.IDEAL_WEIGHT))
+
+
+func weight_band() -> int:
+	_check_weight()
+	return Catalog.weight_band(weight, ideal_weight())
+
+
+## A new rabbit starts at their ideal weight.
+func _check_weight() -> void:
+	if weight <= 0:
+		weight = ideal_weight()
+
+
+## Grams put on. The heavier he already is, the less sticks (it's hard to make him fat).
+func gain(grams: float) -> void:
+	_check_weight()
+	var off := (weight - ideal_weight()) / ideal_weight()   # a thin bunny makes the most of food
+	weight = clampf(weight + grams * clampf(1.0 - 4.0 * off, 0.3, 1.4), ideal_weight() * 0.7, ideal_weight() * 1.4)
+
+
+## Grams burnt by exercise. A skinny bunny's body holds on to what it has.
+func burn(grams: float) -> void:
+	_check_weight()
+	var under := maxf(0.0, (ideal_weight() - weight) / ideal_weight())
+	weight = clampf(weight - grams * clampf(1.0 - 8.0 * under, 0.3, 1.0), ideal_weight() * 0.7, ideal_weight() * 1.4)
+
+
 func add_need(need: String, amount: float) -> void:
+	if need == "food" and amount > 0:
+		var overflow := maxf(0.0, needs.food + amount - 100.0)   # eaten on a full tummy
+		gain(amount * Catalog.FOOD_GRAMS + overflow * Catalog.OVEREAT_GRAMS)
 	needs[need] = clampf(needs[need] + amount, 0, 100)
 
 
 func to_dict() -> Dictionary:
-	return {"id": id, "needs": needs, "energy": energy, "bladder": bladder, "sugar": sugar, "trust": trust,
+	return {"id": id, "needs": needs, "energy": energy, "bladder": bladder, "sugar": sugar, "trust": trust, "weight": weight,
 		"trust_day": trust_day, "trust_today": trust_today, "treats_today": treats_today}
 
 
@@ -137,6 +176,9 @@ static func from_dict(d: Dictionary) -> Pet:
 	p.bladder = float(d.get("bladder", 30))
 	p.sugar = float(d.get("sugar", 0))
 	p.trust = float(d.get("trust", 0))
+	p.weight = float(d.get("weight", -1.0))
+	if p.weight <= 0:
+		p.weight = p.ideal_weight()
 	p.trust_day = str(d.get("trust_day", ""))
 	p.trust_today = float(d.get("trust_today", 0))
 	p.treats_today = int(d.get("treats_today", 0))

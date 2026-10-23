@@ -88,6 +88,7 @@ var _cozy_label: Label
 var _cozy_bar: ProgressBar
 var _journal_badge: PanelContainer
 var _club_button: Button
+var _walk_button: Button
 var _wardrobe_stage: StageBunny
 var _wardrobe_side: VBoxContainer
 var _wardrobe_info: Label
@@ -221,9 +222,9 @@ func _build_top() -> void:
 		bp.size_flags_vertical = SIZE_SHRINK_CENTER
 		bp.add_child(UI.label(tr("TEST"), 14, Color.WHITE))
 		h.add_child(bp)
-	var hearts := UI.hbox(1)
-	for i in 5:
-		var r := UI.icon_rect("heart", 22)
+	var hearts := UI.hbox(0)   # one heart per trust level
+	for i in Catalog.TRUST_LEVELS.size():
+		var r := UI.icon_rect("heart", 19)
 		hearts.add_child(r)
 		_hearts.append(r)
 	h.add_child(hearts)
@@ -249,7 +250,9 @@ func _build_top() -> void:
 	v.add_child(_cozy_bar)
 	card.gui_input.connect(func(e):
 		if e is InputEventMouseButton and e.pressed:
-			toast(tr("Coziness grows with furniture, toys and upgrades. Higher levels make Bubák happier, bring more followers and unlock new things in the shop.")
+			toast(tr("The hearts show how much Bubák trusts you: %s, %d of %d. Trust grows with care, petting and treats, a little every day.") % [
+				Catalog.level_name(Game.trust_level()), Game.trust_level() + 1, Catalog.TRUST_LEVELS.size()] + "\n"
+				+ tr("Coziness grows with furniture, toys and upgrades. Higher levels make Bubák happier, bring more followers and unlock new things in the shop.")
 				+ ("\n" + tr("Too cluttered right now (-%d)! Put a few things away in the toy chest by the desk.") % Game.clutter_penalty()
 					if Game.clutter_penalty() > 0 else "")))
 	if Game.mate:
@@ -304,9 +307,9 @@ func _build_mate_card(v: VBoxContainer) -> void:
 	h.add_child(UI.icon_rect("mate_" + Game.mate.id, 34))
 	_mate_name = UI.label(Game.mate.display_name(), 22)
 	h.add_child(_mate_name)
-	var hearts := UI.hbox(1)
-	for i in 5:
-		var r := UI.icon_rect("heart", 18)
+	var hearts := UI.hbox(0)
+	for i in Catalog.TRUST_LEVELS.size():
+		var r := UI.icon_rect("heart", 16)
 		hearts.add_child(r)
 		_mate_hearts.append(r)
 	hearts.size_flags_vertical = SIZE_SHRINK_CENTER
@@ -370,7 +373,7 @@ func _build_buttons() -> void:
 	_anchor(_buttons, 1, 1, Vector2(-14, -14))
 	add_child(_buttons)
 	var defs := [["treat", tr("Treats"), _toggle_tray], ["shop", tr("Shop"), open_shop],
-		["camera", tr("Photo"), func(): main.set_mode("photo")], ["club", tr("Club"), open_club],
+		["camera", tr("Photo"), func(): main.set_mode("photo")], ["leash", tr("Walk"), open_walks], ["club", tr("Club"), open_club],
 		["journal", tr("Journal"), open_journal],
 		["move", tr("Move"), func(): main.set_mode("move")]]
 	for d in defs:
@@ -379,6 +382,8 @@ func _build_buttons() -> void:
 		_buttons.add_child(b)
 		if d[0] == "club":
 			_club_button = b
+		if d[0] == "leash":
+			_walk_button = b
 		if d[0] == "journal":
 			_journal_badge = PanelContainer.new()
 			var bs := UI.box(Color("#e8505b"), 14, 2, false)
@@ -654,6 +659,7 @@ func _refresh() -> void:
 	_cozy_label.add_theme_color_override("font_color", Color("#c0392b") if messy else UI.INK)
 	_cozy_bar.value = Game.cozy_progress()
 	_club_button.visible = Game.club_stage >= 1
+	_walk_button.visible = "leash" in Game.gear
 	var claim := Game.claimable_goals()
 	_journal_badge.visible = claim > 0
 	(_journal_badge.get_child(0) as Label).text = str(claim)
@@ -1165,6 +1171,10 @@ func _fill_journal(holder: VBoxContainer) -> void:
 				"",
 				tr("Day %d together") % days,
 				tr("Trust: %s (%d%%)") % [Catalog.level_name(Game.trust_level()), int(Game.trust)],
+				tr("Weight: %s kg, %s (healthy: %s to %s kg)") % [kilos(Game.bubak.weight),
+					Catalog.weight_name(Game.bubak.weight_band()).to_lower(),
+					kilos(Game.bubak.ideal_weight() * (1.0 + Catalog.WEIGHT_BANDS[1])),
+					kilos(Game.bubak.ideal_weight() * (1.0 + Catalog.WEIGHT_BANDS[2]))],
 				tr("Followers: %d") % Game.followers,
 				tr("Photos taken: %d") % Game.stats.photos,
 				tr("Treats given: %d") % Game.stats.treats,
@@ -1179,6 +1189,8 @@ func _fill_journal(holder: VBoxContainer) -> void:
 				lines.append(tr("Coat: %d%%") % int(Game.coat))
 			if Game.club_stage >= 3:
 				lines.append(tr("Ribbons: %d") % Game.trophies.size())
+			lines.append("")
+			lines.append(tr("Keep his weight just right: playtime, exercise toys and walks burn it off, and only lots of extra treats pile it on."))
 			h.add_child(UI.wrap_label("\n".join(PackedStringArray(lines)), 20, 520))
 
 
@@ -1271,6 +1283,72 @@ func show_photo_result(img: Image, res: Dictionary) -> void:
 	ok.pressed.connect(close_top)
 	v.add_child(ok)
 	_open_modal("", v, Vector2(540, 0))
+
+
+## Grams as kilos with two decimals, with a decimal comma in Czech.
+static func kilos(grams: float) -> String:
+	var s := "%.2f" % (grams / 1000.0)
+	return s.replace(".", ",") if TranslationServer.get_locale().begins_with("cs") else s
+
+
+# ---- walks -------------------------------------------------------------------------
+
+## Where to go with Bubák today: the places open one by one as you go on more walks.
+func open_walks() -> void:
+	var v := UI.vbox(10)
+	var walks: int = Game.stats.get("walks", 0)
+	v.add_child(UI.wrap_label(tr("You've been out today already. Bubák is still dreaming about it. Next walk tomorrow!")
+		if Game.walked_today() else tr("Where shall we go today? A walk makes Bubák happy and brings you closer."), 19, 760))
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 12)
+	grid.add_theme_constant_override("v_separation", 10)
+	v.add_child(grid)
+	for id in Catalog.WALKS:
+		var card := PanelContainer.new()
+		card.add_theme_stylebox_override("panel", UI.box(Color.WHITE if Game.walk_open(id) else Color("#efe6da"), 16, 3, false))
+		card.custom_minimum_size = Vector2(380, 0)
+		var h := UI.hbox(12)
+		card.add_child(h)
+		var ic := UI.icon_rect(id, 56)
+		if not Game.walk_open(id):
+			ic.modulate = Color(1, 1, 1, 0.4)
+		h.add_child(ic)
+		var tv := UI.vbox(2)
+		tv.size_flags_horizontal = SIZE_EXPAND_FILL
+		h.add_child(tv)
+		tv.add_child(UI.label(Catalog.walk_name(id), 22))
+		var note := tr("Visited") if id in Game.walk_places else tr("New!")
+		if not Game.walk_open(id):
+			var left: int = Catalog.WALKS[id].after - walks
+			note = tr_n("Opens after %d more walk", "Opens after %d more walks", left) % left
+		tv.add_child(UI.label(note, 15, Color(UI.INK, 0.7)))
+		var go := UI.text_button(tr("Go!"), "", 20)
+		go.disabled = Game.walk_problem(id) != ""
+		go.size_flags_vertical = SIZE_SHRINK_CENTER
+		go.pressed.connect(func():
+			close_top()
+			play_walk(id))
+		h.add_child(go)
+		grid.add_child(card)
+	_open_modal(tr("Walk with Bubák"), v, Vector2(820, 0))
+
+
+## Off we go: the walk counts straight away, then the cutscene plays.
+func play_walk(id: String, count := true, speed := 1.0) -> void:
+	main.set_mode("")
+	var res := Game.go_walk(id) if count else {}
+	var w := WalkScene.new()
+	w.place = id
+	w.speed = speed
+	add_child(w)
+	await w.finished
+	if res.is_empty():
+		return
+	var msg := tr("%s: back home again. Bubák is beaming!") % Catalog.walk_name(id)
+	if res.followers > 0:
+		msg += " " + tr_n("+%d follower", "+%d followers", res.followers) % res.followers
+	toast(msg, "heart", true)
 
 
 # ---- settings ------------------------------------------------------------------

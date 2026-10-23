@@ -650,11 +650,17 @@ func _run() -> void:
 		var g = w._game
 		match job:
 			"inbox", "bugs":
-				for node in g.get_children():
-					if node is TextureButton and not node.get_meta("lady", false) and not node.get_meta("hit", false) \
-							and node.texture_normal != Catalog.icon("paw"):
-						node.pressed.emit()
+				var tapped := false
+				for i in 30:   # only ladybugs may be out yet
+					for node in g.get_children():
+						if node is TextureButton and not node.get_meta("lady", false) and not node.get_meta("hit", false) \
+								and node.get_meta("kind", "") not in ["paw", "spam"]:
+							node.pressed.emit()
+							tapped = true
+							break
+					if tapped:
 						break
+					await wait(0.1)
 			"memory":
 				var cards: Array = g._grid.get_children()
 				var first = cards[0]
@@ -897,6 +903,104 @@ func _run() -> void:
 	check(Game.load_named(found[0].file) and Game.coins == 1234 and Game.club_stage == 3, "load a named save")
 	Game.delete_named(found[0].file)
 	check(Game.list_saves().filter(func(x): return x.name == "Autotest save").is_empty(), "delete a named save")
+
+	# ---- weight ----------------------------------------------------------------------
+	var pw: Pet = Game.bubak
+	pw.weight = pw.ideal_weight()
+	hud._journal_tab = "Bubák"
+	hud.open_journal()
+	await wait(0.3)
+	var jtext := str(hud._modal.find_children("*", "Label", true, false).map(func(l): return l.text))
+	check(pw.weight_band() == 2 and "kg" in jtext, "weight in the journal, just right")
+	await shot("journal_weight")
+	hud.close_top()
+	pw.needs.food = 30.0
+	var w0: float = pw.weight
+	pw.add_need("food", 28.0)   # a bowl when hungry
+	var hungry_gain: float = pw.weight - w0
+	pw.needs.food = 100.0
+	w0 = pw.weight
+	pw.add_need("food", 28.0)   # the same, on a full tummy
+	var full_gain: float = pw.weight - w0
+	check(hungry_gain > 0 and full_gain > 2.5 * hungry_gain, "eating on a full tummy puts on far more (%.1f g vs %.1f g)" % [full_gain, hungry_gain])
+	pw.weight = pw.ideal_weight() * 1.13
+	w0 = pw.weight
+	pw.needs.food = 100.0
+	pw.add_need("food", 28.0)
+	check(pw.weight - w0 < full_gain * 0.6, "the heavier he is, the less sticks")
+	var mood_ok: float = pw.mood()
+	var cond_heavy: float = Game.condition()
+	pw.weight = pw.ideal_weight()
+	check(pw.mood() > mood_ok and Game.condition() > cond_heavy, "overweight: grumpier, and judges notice")
+	pw.weight = pw.ideal_weight() * 1.08
+	await wait(0.3)
+	check(hud._toasts.get_children().any(func(c): return "chubby" in str(c.find_children("*", "Label", true, false).map(func(l): return l.text))),
+		"a toast when he gets chubby")
+	Game.coins += 2000
+	check(Game.buy("hurdles") == "" and Game.buy("treat_ball") == "", "buy the hurdles and treat ball")
+	await wait(0.3)
+	var hurdles: Node2D = main.find_item("hurdles")
+	w0 = pw.weight
+	b.teleport(hurdles.use_point(b.position))
+	b.start("hurdles", hurdles)
+	await wait(0.2)
+	check(b.act == "hurdles" and b.phase == 1, "he runs the hurdle course")
+	await shot("hurdles")
+	for i in 40:
+		if b.act != "hurdles":
+			break
+		await wait(0.1)
+	check(pw.weight < w0 - 2.0 and "hurdles" in Game.seen, "exercise burns weight (%.1f g)" % (w0 - pw.weight))
+	var tb: Node2D = main.find_item("treat_ball")
+	b.teleport(tb.use_point(b.position))
+	b.start("roll_feeder", tb)
+	await wait(1.6)
+	check("treat_ball" in Game.seen, "he rolls the treat ball")
+	pw.weight = pw.ideal_weight()
+	await wait(0.3)
+	await close_popups()
+
+	# ---- walks with the leash -------------------------------------------------------
+	var keep_walk_trust: float = Game.trust
+	Game.trust = 50.0
+	check(Game.lock_reason("leash") != "", "the leash needs more trust")
+	Game.trust = 80.0
+	Game.tricks.come = 450
+	Game.tricks.stand = 450
+	check(Game.lock_reason("leash") == "", "Bonded and trained: the leash is for sale")
+	Game.coins += 2000
+	check(Game.buy("leash") == "" and "leash" in Game.gear, "buy the harness and leash")
+	await wait(0.3)
+	check(hud._walk_button.visible, "a Walk button appears")
+	Game.walk_day = ""
+	Game.stats.walks = 0
+	check(Game.walk_problem("park") == "" and Game.walk_problem("field") != "", "only the park at first")
+	hud.open_walks()
+	await wait(0.3)
+	await shot("walks")
+	hud.close_top()
+	Game.bubak.trust_day = Time.get_date_string_from_system()
+	Game.bubak.trust_today = 100.0   # a lot of bonding already today
+	Game.bubak.weight = Game.bubak.ideal_weight()
+	var t_walk: float = Game.trust
+	hud.play_walk("park", true, 6.0)
+	await wait(1.2)
+	check(not hud.find_children("*", "WalkScene", true, false).is_empty(), "the walk cutscene plays")
+	await shot("walk_scene")
+	for i in 200:
+		if hud.find_children("*", "WalkScene", true, false).is_empty():
+			break
+		await wait(0.1)
+	check(hud.find_children("*", "WalkScene", true, false).is_empty(), "the cutscene ends by itself")
+	check(Game.trust - t_walk > 1.0, "a walk brings trust, even past the daily limit (+%.1f)" % (Game.trust - t_walk))
+	check(Game.bubak.weight < Game.bubak.ideal_weight() - 10.0, "a walk burns weight")
+	check(Game.walked_today() and Game.walk_problem("park") != "" and Game.stats.walks == 1, "one walk a day")
+	Game.stats.walks = Catalog.WALKS.cinema.after
+	check(Game.walk_open("cinema"), "more walks open more places")
+	Game.walk_day = ""
+	Game.trust = keep_walk_trust
+	Game.bubak.settle_level()
+	await close_popups()
 
 	# ---- a mate for Bubák ---------------------------------------------------------
 	Game.mate_stage = 0

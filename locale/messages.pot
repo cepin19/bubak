@@ -206,6 +206,18 @@ msgstr ""
 msgid "A hideaway that smells like a forest."
 msgstr ""
 
+msgid "Hop hurdles"
+msgstr ""
+
+msgid "A little jumping course. The best exercise there is: he clears it again and again for fun."
+msgstr ""
+
+msgid "Treat ball"
+msgstr ""
+
+msgid "He rolls it all over the room to shake out a bite of kibble. Keeps him moving."
+msgstr ""
+
 msgid "Bunny castle"
 msgstr ""
 
@@ -428,6 +440,12 @@ msgstr ""
 msgid "Protects the laptop charger from Bubák's teeth. Forever."
 msgstr ""
 
+msgid "Harness & leash"
+msgstr ""
+
+msgid "A comfy harness and a soft leash. Take Bubák out once a day: to the park, and further as you go."
+msgstr ""
+
 msgid "Clicker"
 msgstr ""
 
@@ -576,6 +594,18 @@ msgid "Puzzle solver"
 msgstr ""
 
 msgid "Flips the lids with his nose to find the snacks."
+msgstr ""
+
+msgid "Show jumper"
+msgstr ""
+
+msgid "Clears the whole course without touching a bar."
+msgstr ""
+
+msgid "Snack roller"
+msgstr ""
+
+msgid "Roll, roll, kibble! Roll, roll, kibble!"
 msgstr ""
 
 msgid "King of the castle"
@@ -872,10 +902,46 @@ msgstr ""
 msgid "Become National champion"
 msgstr ""
 
+msgid "Take Bubák out on a walk"
+msgstr ""
+
+msgid "Go on walks to all %d places"
+msgstr ""
+
 msgid "Adopt a friend for Bubák"
 msgstr ""
 
 msgid "Make them best friends"
+msgstr ""
+
+msgid "Underweight"
+msgstr ""
+
+msgid "Slim"
+msgstr ""
+
+msgid "Just right"
+msgstr ""
+
+msgid "Chubby"
+msgstr ""
+
+msgid "Overweight"
+msgstr ""
+
+msgid "Park"
+msgstr ""
+
+msgid "Meadow"
+msgstr ""
+
+msgid "Beach"
+msgstr ""
+
+msgid "City"
+msgstr ""
+
+msgid "Cinema"
 msgstr ""
 
 msgid "Luna"
@@ -1022,6 +1088,12 @@ msgstr ""
 msgid "Needs Cozy level %d"
 msgstr ""
 
+msgid "Needs trust: %s"
+msgstr ""
+
+msgid "Needs %d trick stars"
+msgstr ""
+
 msgid "Needs career: %s"
 msgstr ""
 
@@ -1040,13 +1112,25 @@ msgstr ""
 msgid "Not yet! Bubák needs to trust you more and get more followers."
 msgstr ""
 
-msgid "Needs trust: %s"
-msgstr ""
-
 msgid "Needs: %s"
 msgstr ""
 
 msgid "Bubák kicked and squirmed away. He needs to trust you more for this.\n(Trust went down.)"
+msgstr ""
+
+msgid "%s is back to a healthy weight. Well done!"
+msgstr ""
+
+msgid "%s is getting a bit chubby. Fewer treats and more exercise: toys, playtime and walks."
+msgstr ""
+
+msgid "%s is overweight! Fewer treats, and lots of toys and walks."
+msgstr ""
+
+msgid "%s is getting a bit thin. Keep the bowls and hay rack full."
+msgstr ""
+
+msgid "%s is underweight! Full bowls and plenty of hay, please."
 msgstr ""
 
 msgid "Locked"
@@ -1065,6 +1149,12 @@ msgid "%d h %d min"
 msgstr ""
 
 msgid "%d min"
+msgstr ""
+
+msgid "You need a harness and leash (Shop > Club)."
+msgstr ""
+
+msgid "You've been out today already. Bubák is still dreaming about it. Next walk tomorrow!"
 msgstr ""
 
 msgid "Needs Bubák at trust %s and Cozy level %d"
@@ -1142,6 +1232,9 @@ msgstr ""
 msgid "TEST"
 msgstr ""
 
+msgid "The hearts show how much Bubák trusts you: %s, %d of %d. Trust grows with care, petting and treats, a little every day."
+msgstr ""
+
 msgid "Coziness grows with furniture, toys and upgrades. Higher levels make Bubák happier, bring more followers and unlock new things in the shop."
 msgstr ""
 
@@ -1173,6 +1266,9 @@ msgid "Shop"
 msgstr ""
 
 msgid "Photo"
+msgstr ""
+
+msgid "Walk"
 msgstr ""
 
 msgid "Journal"
@@ -1367,6 +1463,9 @@ msgstr ""
 msgid "Trust: %s (%d%%)"
 msgstr ""
 
+msgid "Weight: %s kg, %s (healthy: %s to %s kg)"
+msgstr ""
+
 msgid "Followers: %d"
 msgstr ""
 
@@ -1394,6 +1493,9 @@ msgstr ""
 msgid "Ribbons: %d"
 msgstr ""
 
+msgid "Keep his weight just right: playtime, exercise toys and walks burn it off, and only lots of extra treats pile it on."
+msgstr ""
+
 msgid "Oops, missed him!"
 msgstr ""
 
@@ -1419,6 +1521,24 @@ msgid "Nice!"
 msgstr ""
 
 msgid "OK"
+msgstr ""
+
+msgid "Where shall we go today? A walk makes Bubák happy and brings you closer."
+msgstr ""
+
+msgid "Visited"
+msgstr ""
+
+msgid "New!"
+msgstr ""
+
+msgid "Go!"
+msgstr ""
+
+msgid "Walk with Bubák"
+msgstr ""
+
+msgid "%s: back home again. Bubák is beaming!"
 msgstr ""
 
 msgid "Language"
@@ -1991,6 +2111,102 @@ msgstr ""
 msgid "+1 in %s"
 msgstr ""
 
+msgid "A walk in the park"
+msgstr ""
+
+msgid "Off to the meadow"
+msgstr ""
+
+msgid "A day at the beach"
+msgstr ""
+
+msgid "A stroll through town"
+msgstr ""
+
+msgid "Movie night"
+msgstr ""
+
+msgid "Time to head home."
+msgstr ""
+
+msgid "He sniffs every single flower."
+msgstr ""
+
+msgid "A butterfly! It lands right on his nose."
+msgstr ""
+
+msgid "...and off it goes. After it!"
+msgstr ""
+
+msgid "Phew. A little nap under the tree."
+msgstr ""
+
+msgid "So much grass! He does a binky..."
+msgstr ""
+
+msgid "...and another one!"
+msgstr ""
+
+msgid "Zoomies!"
+msgstr ""
+
+msgid "A dandelion! Munch, munch, munch."
+msgstr ""
+
+msgid "Full and happy. Flop!"
+msgstr ""
+
+msgid "He digs a very serious hole."
+msgstr ""
+
+msgid "Look what he found: a seashell!"
+msgstr ""
+
+msgid "Here comes a wave! Nope, nope, nope."
+msgstr ""
+
+msgid "A crab! They have a long, serious stare."
+msgstr ""
+
+msgid "A seagull eyes him up. THUMP! Off you go."
+msgstr ""
+
+msgid "Then they watch the sun go down together."
+msgstr ""
+
+msgid "A pigeon joins the walk."
+msgstr ""
+
+msgid "A café stop. The waiter brings him a carrot!"
+msgstr ""
+
+msgid "Everyone on the street stops to say hi."
+msgstr ""
+
+msgid "He shows off a trick for them!"
+msgstr ""
+
+msgid "Applause! Some of them already follow him online."
+msgstr ""
+
+msgid "Popcorn and a film about carrots."
+msgstr ""
+
+msgid "Crunch, crunch, crunch."
+msgstr ""
+
+msgid "Uh oh, a scary bit!"
+msgstr ""
+
+msgid "Phew, a happy ending! The carrot is safe."
+msgstr ""
+
+msgid "The End"
+msgstr ""
+
+msgid "...and he's asleep before the credits."
+msgstr ""
+
 msgid "Next promotion: %d/%d XP"
 msgstr ""
 
@@ -2007,9 +2223,6 @@ msgid "Best: %d points"
 msgstr ""
 
 msgid "Ready..."
-msgstr ""
-
-msgid "Go!"
 msgstr ""
 
 msgid "Nice streak! x%d"
@@ -2123,6 +2336,11 @@ msgstr ""
 msgid "Neck"
 msgstr ""
 
+msgid "Opens after %d walk"
+msgid_plural "Opens after %d walks"
+msgstr[0] ""
+msgstr[1] ""
+
 msgid "ate %d bowl of pellets"
 msgid_plural "ate %d bowls of pellets"
 msgstr[0] ""
@@ -2150,6 +2368,11 @@ msgstr[1] ""
 
 msgid "%d follower"
 msgid_plural "%d followers"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Opens after %d more walk"
+msgid_plural "Opens after %d more walks"
 msgstr[0] ""
 msgstr[1] ""
 

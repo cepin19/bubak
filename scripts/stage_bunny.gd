@@ -155,12 +155,13 @@ func _start() -> Tween:
 	return _tw
 
 
-func _hop(t: Tween, from: Vector2, to: Vector2, height: float, dur: float) -> void:
+## facing: -1 for a hop while facing left (he's flipped).
+func _hop(t: Tween, from: Vector2, to: Vector2, height: float, dur: float, facing := 1.0) -> void:
 	t.tween_callback(set_pose.bind("hop"))
 	t.tween_method(func(v: float): pivot.position = from.lerp(to, v) - Vector2(0, sin(v * PI) * height), 0.0, 1.0, dur)
 	t.tween_callback(set_pose.bind("sit"))
-	t.tween_property(pivot, "scale", Vector2(1.12, 0.88), 0.06)
-	t.tween_property(pivot, "scale", Vector2.ONE, 0.14).set_trans(Tween.TRANS_BACK)
+	t.tween_property(pivot, "scale", Vector2(1.12 * facing, 0.88), 0.06)
+	t.tween_property(pivot, "scale", Vector2(facing, 1.0), 0.14).set_trans(Tween.TRANS_BACK)
 
 
 ## Does a trick. Returns [peak, length] in seconds: the moment to reward him, and when he's done.

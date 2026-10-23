@@ -2193,3 +2193,228 @@ msgstr "Teď!"
 
 msgid "Pick a trick. When Bubák pulls it off, a star pops up: tap Reward before the bar runs out! Don't reward him if he gets distracted."
 msgstr "Vyber trik. Když se Bubákovi povede, vyskočí hvězdička: ťukni na Odměnit, než ubude proužek! Když se nechá rozptýlit, neodměňuj ho."
+
+msgid "The hearts show how much Bubák trusts you: %s, %d of %d. Trust grows with care, petting and treats, a little every day."
+msgstr "Srdíčka ukazují, jak moc ti Bubák důvěřuje: %s, %d z %d. Důvěra roste s péčí, mazlením a pamlsky, každý den kousek."
+
+msgid "Harness & leash"
+msgstr "Postroj a vodítko"
+
+msgid "A comfy harness and a soft leash. Take Bubák out once a day: to the park, and further as you go."
+msgstr "Pohodlný postroj a měkké vodítko. Jednou denně spolu můžete ven: do parku a časem i dál."
+
+msgid "Take Bubák out on a walk"
+msgstr "Vyraž na první procházku"
+
+msgid "Go on walks to all %d places"
+msgstr "Navštiv na procházkách všech %d míst"
+
+msgid "Park"
+msgstr "Park"
+
+msgid "Meadow"
+msgstr "Louka"
+
+msgid "Beach"
+msgstr "Pláž"
+
+msgid "City"
+msgstr "Město"
+
+msgid "Cinema"
+msgstr "Kino"
+
+msgid "Needs %d trick stars"
+msgstr "Potřeba: %d hvězd za triky"
+
+msgid "You need a harness and leash (Shop > Club)."
+msgstr "Potřebuješ postroj a vodítko (Obchod > Klub)."
+
+msgid "You've been out today already. Bubák is still dreaming about it. Next walk tomorrow!"
+msgstr "Dnešní procházka už proběhla. Bubák o ní ještě sní. Další zase zítra!"
+
+msgid "Walk"
+msgstr "Ven"
+
+msgid "Where shall we go today? A walk makes Bubák happy and brings you closer."
+msgstr "Kam dnes vyrazíme? Procházka potěší a sblíží vás ještě víc."
+
+msgid "Visited"
+msgstr "Navštíveno"
+
+msgid "New!"
+msgstr "Nové!"
+
+msgid "Walk with Bubák"
+msgstr "Na procházku"
+
+msgid "%s: back home again. Bubák is beaming!"
+msgstr "%s: zase doma. Bubák září štěstím!"
+
+msgid "A walk in the park"
+msgstr "Procházka parkem"
+
+msgid "Off to the meadow"
+msgstr "Hurá na louku"
+
+msgid "A day at the beach"
+msgstr "Den na pláži"
+
+msgid "A stroll through town"
+msgstr "Toulky městem"
+
+msgid "Movie night"
+msgstr "Večer v kině"
+
+msgid "Time to head home."
+msgstr "Čas vyrazit domů."
+
+msgid "He sniffs every single flower."
+msgstr "Očichává každou kytičku."
+
+msgid "So much grass! He does a binky..."
+msgstr "Tolik trávy! Radostný skok..."
+
+msgid "...and another one!"
+msgstr "...a ještě jeden!"
+
+msgid "He digs a very serious hole."
+msgstr "Hrabe velmi vážnou díru."
+
+msgid "Here comes a wave! Nope, nope, nope."
+msgstr "Vlna! Ne, ne, ne."
+
+msgid "Everyone on the street stops to say hi."
+msgstr "Všichni na ulici se zastavují a zdraví."
+
+msgid "Opens after %d walk"
+msgid_plural "Opens after %d walks"
+msgstr[0] "Otevře se po %d procházce"
+msgstr[1] "Otevře se po %d procházkách"
+msgstr[2] "Otevře se po %d procházkách"
+
+msgid "Opens after %d more walk"
+msgid_plural "Opens after %d more walks"
+msgstr[0] "Otevře se po %d další procházce"
+msgstr[1] "Otevře se po %d dalších procházkách"
+msgstr[2] "Otevře se po %d dalších procházkách"
+
+msgid "A butterfly! It lands right on his nose."
+msgstr "Motýl! Přistává mu přímo na čumáčku."
+
+msgid "...and off it goes. After it!"
+msgstr "...a už zase letí. Za ním!"
+
+msgid "Phew. A little nap under the tree."
+msgstr "Uf. Malé zdřímnutí pod stromem."
+
+msgid "Zoomies!"
+msgstr "Zoomies!"
+
+msgid "A dandelion! Munch, munch, munch."
+msgstr "Pampeliška! Chroup, chroup, chroup."
+
+msgid "Full and happy. Flop!"
+msgstr "Najedený a šťastný. Žuch!"
+
+msgid "Look what he found: a seashell!"
+msgstr "Podívej, co našel: mušli!"
+
+msgid "A crab! They have a long, serious stare."
+msgstr "Krab! Dlouze a vážně se na sebe dívají."
+
+msgid "A seagull eyes him up. THUMP! Off you go."
+msgstr "Racek si ho prohlíží. DUP! Jen si leť."
+
+msgid "Then they watch the sun go down together."
+msgstr "Pak spolu sledujete západ slunce."
+
+msgid "A pigeon joins the walk."
+msgstr "K procházce se přidává holub."
+
+msgid "A café stop. The waiter brings him a carrot!"
+msgstr "Zastávka v kavárně. Číšník nese mrkev!"
+
+msgid "He shows off a trick for them!"
+msgstr "Předvádí jim trik!"
+
+msgid "Applause! Some of them already follow him online."
+msgstr "Potlesk! Někteří ho už sledují na síti."
+
+msgid "Popcorn and a film about carrots."
+msgstr "Popcorn a film o mrkvích."
+
+msgid "Crunch, crunch, crunch."
+msgstr "Křup, křup, křup."
+
+msgid "Uh oh, a scary bit!"
+msgstr "Jejda, strašidelná scéna!"
+
+msgid "Phew, a happy ending! The carrot is safe."
+msgstr "Uf, šťastný konec! Mrkev je v bezpečí."
+
+msgid "The End"
+msgstr "Konec"
+
+msgid "...and he's asleep before the credits."
+msgstr "...a ještě před titulky usíná."
+
+msgid "Hop hurdles"
+msgstr "Překážky"
+
+msgid "A little jumping course. The best exercise there is: he clears it again and again for fun."
+msgstr "Malá skoková dráha. Nejlepší pohyb vůbec: skáče ji znovu a znovu pro radost."
+
+msgid "Treat ball"
+msgstr "Míček na pamlsky"
+
+msgid "He rolls it all over the room to shake out a bite of kibble. Keeps him moving."
+msgstr "Koulí ho po celém pokoji, aby z něj vypadlo pár granulí. Pořádný pohyb."
+
+msgid "Show jumper"
+msgstr "Parkurový skokan"
+
+msgid "Clears the whole course without touching a bar."
+msgstr "Celou dráhu bez shození jediné laťky."
+
+msgid "Snack roller"
+msgstr "Kutálení pamlsků"
+
+msgid "Roll, roll, kibble! Roll, roll, kibble!"
+msgstr "Kutálí, kutálí, granule! Kutálí, kutálí, granule!"
+
+msgid "%s is back to a healthy weight. Well done!"
+msgstr "%s: zase zdravá váha. Výborně!"
+
+msgid "%s is getting a bit chubby. Fewer treats and more exercise: toys, playtime and walks."
+msgstr "%s: pár gramů navíc. Méně pamlsků a víc pohybu: hračky, hraní a procházky."
+
+msgid "%s is overweight! Fewer treats, and lots of toys and walks."
+msgstr "%s: nadváha! Méně pamlsků a hodně hraček a procházek."
+
+msgid "%s is getting a bit thin. Keep the bowls and hay rack full."
+msgstr "%s: trochu pod váhou. Udržuj misky a seník plné."
+
+msgid "%s is underweight! Full bowls and plenty of hay, please."
+msgstr "%s: podváha! Plné misky a hodně sena, prosím."
+
+msgid "Keep his weight just right: playtime, exercise toys and walks burn it off, and only lots of extra treats pile it on."
+msgstr "Hlídej mu váhu: hraní, hračky na pohyb a procházky ji spalují, přibírá jen z hodně pamlsků navíc."
+
+msgid "Underweight"
+msgstr "Podváha"
+
+msgid "Slim"
+msgstr "Pod váhou"
+
+msgid "Just right"
+msgstr "Tak akorát"
+
+msgid "Chubby"
+msgstr "Pár gramů navíc"
+
+msgid "Overweight"
+msgstr "Nadváha"
+
+msgid "Weight: %s kg, %s (healthy: %s to %s kg)"
+msgstr "Váha: %s kg, %s (zdravá: %s až %s kg)"

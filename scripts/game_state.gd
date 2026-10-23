@@ -73,6 +73,8 @@ var next_uid := 1
 var seen := {}           # behaviour -> unix time first seen
 var photos: Array = []   # [{file, behaviour, likes, coins, time}, ...]
 var photo_recent := {}   # behaviour -> unix time last photographed
+var walk_day := ""        # the day of the last walk (one a day)
+var walk_places: Array = []   # places visited on walks
 var feed := 1.0           # followers' attention (0-1) at feed_time; see feed_attention()
 var feed_time := 0.0
 var work_ready_at := 0.0
@@ -154,6 +156,7 @@ func _process(delta: float) -> void:
 	var cozy := cozy_level()
 	for p in pets:
 		p.tick(delta, clean, cozy)
+		_watch_weight(p)
 	if mate and bubak.mood(cozy) > 50 and mate.mood(cozy) > 50:
 		bond = minf(100, bond + 0.5 * m)   # about 3 hours of contented living to bond fully
 	herbs = minf(100, herbs + 4.0 * m * _growth("herbs"))
@@ -482,6 +485,8 @@ func goal_value(g: Dictionary) -> int:
 		"work": return stats.work
 		"followers": return followers
 		"trust": return trust_level()
+		"walks": return stats.get("walks", 0)
+		"places": return walk_places.size()
 		"cozy": return cozy_level()
 		"upgrades": return upgrades_count()
 		"wardrobe": return wardrobe.size()
@@ -562,6 +567,10 @@ func lock_reason(id: String) -> String:
 		return tr("For the balcony, once it's open")
 	if cozy_level() < item.get("req_cozy", 0):
 		return tr("Needs Cozy level %d") % item.req_cozy
+	if trust_level() < item.get("req_trust", 0):
+		return tr("Needs trust: %s") % Catalog.level_name(item.req_trust)
+	if trick_stars_total() < item.get("req_stars", 0):
+		return tr("Needs %d trick stars") % item.req_stars
 	if career_level() < item.get("req_career", 0):
 		return tr("Needs career: %s") % Catalog.career_title(item.req_career)
 	if item.has("slot") and item.tier > 1 and tier(item.slot) < item.tier - 1:
@@ -816,7 +825,29 @@ func trim_nails() -> String:
 
 ## How show-ready he looks, 0..100: coat, nails and how content he is.
 func condition() -> float:
-	return coat * 0.55 + (100.0 - nails) * 0.2 + mood() * 0.25
+	var fit: float = [0.65, 0.85, 1.0, 0.85, 0.65][bubak.weight_band()]   # judges check his figure too
+	return (coat * 0.55 + (100.0 - nails) * 0.2 + mood() * 0.25) * fit
+
+
+var _weight_bands := {}   # pet id -> last weight band seen
+
+
+## Says so when a rabbit's weight moves into another band.
+func _watch_weight(p: Pet) -> void:
+	var band := p.weight_band()
+	var was: int = _weight_bands.get(p.id, band)
+	_weight_bands[p.id] = band
+	if band == was:
+		return
+	var who := p.display_name()
+	if band == 2:
+		toast.emit(tr("%s is back to a healthy weight. Well done!") % who)
+	elif band > was and band >= 3:
+		toast.emit((tr("%s is getting a bit chubby. Fewer treats and more exercise: toys, playtime and walks.")
+			if band == 3 else tr("%s is overweight! Fewer treats, and lots of toys and walks.")) % who)
+	elif band < was and band <= 1:
+		toast.emit((tr("%s is getting a bit thin. Keep the bowls and hay rack full.")
+			if band == 1 else tr("%s is underweight! Full bowls and plenty of hay, please.")) % who)
 
 
 ## Best in Show's style mark: 20 with nothing on, about 98 in the fanciest full outfit.
@@ -961,6 +992,48 @@ func _set_mate(p: Pet) -> void:
 		p.settle_level()
 
 
+# ---- walks -------------------------------------------------------------------------
+
+func walk_open(place: String) -> bool:
+	return test_mode or stats.get("walks", 0) >= Catalog.WALKS[place].after
+
+
+func walked_today() -> bool:
+	return not test_mode and walk_day == Time.get_date_string_from_system()
+
+
+## Why a walk can't happen now ("" if it can).
+func walk_problem(place: String) -> String:
+	if not "leash" in gear:
+		return tr("You need a harness and leash (Shop > Club).")
+	if walked_today():
+		return tr("You've been out today already. Bubák is still dreaming about it. Next walk tomorrow!")
+	if not walk_open(place):
+		return tr_n("Opens after %d walk", "Opens after %d walks", Catalog.WALKS[place].after) % Catalog.WALKS[place].after
+	return ""
+
+
+## Off on a walk: trust (beyond the daily limit), lots of fun, and in the city some new fans.
+## Returns {trust, followers, new}.
+func go_walk(place: String) -> Dictionary:
+	walk_day = Time.get_date_string_from_system()
+	stats.walks = stats.get("walks", 0) + 1
+	var is_new := not place in walk_places
+	if is_new:
+		walk_places.append(place)
+	var before := bubak.trust
+	bubak.add_trust(Catalog.WALK_TRUST, false)
+	bubak.add_need("fun", Catalog.WALK_FUN)
+	bubak.burn(Catalog.WALK_GRAMS)
+	var fans := 0
+	if place == "city":
+		fans = 10 + int(followers * 0.04)
+		followers += fans
+	save_game()
+	changed.emit()
+	return {"trust": bubak.trust - before, "followers": fans, "new": is_new}
+
+
 ## Late in the game Bubák gets lonely: the rescue's hutch opens.
 func _check_mate() -> void:
 	if mate_stage == 0 and trust_level() >= Catalog.mate_trust() and cozy_level() >= Catalog.mate_cozy():
@@ -1051,7 +1124,7 @@ func to_dict() -> Dictionary:
 		"balcony": balcony, "herbs": herbs, "grass": grass, "seeds": seeds, "watered": watered, "upgrades": upgrades, "wardrobe": wardrobe,
 		"wearing": wearing, "career_xp": career_xp, "job_best": job_best, "goals_claimed": goals_claimed,
 		"sponsor_day": sponsor_day, "sponsor_streak": sponsor_streak, "placed": placed, "stored": stored, "next_uid": next_uid, "seen": seen, "photos": photos,
-		"photo_recent": photo_recent, "feed": feed, "feed_time": feed_time, "work_ready_at": work_ready_at, "stats": stats,
+		"photo_recent": photo_recent, "feed": feed, "feed_time": feed_time, "walk_day": walk_day, "walk_places": walk_places, "work_ready_at": work_ready_at, "stats": stats,
 		"club_stage": club_stage, "gear": gear, "tricks": tricks, "focus": focus, "coat": coat, "nails": nails,
 		"fur": fur, "groom_start": groom_start, "trophies": trophies, "show_ready_at": show_ready_at,
 		"mate_stage": mate_stage, "mate": mate.to_dict() if mate else {}, "bond": bond, "test_mode": test_mode,
@@ -1143,6 +1216,8 @@ func _apply(data: Dictionary) -> void:
 	photos = d.photos
 	photo_recent = d.photo_recent
 	feed = float(d.get("feed", 1.0))
+	walk_day = str(d.get("walk_day", ""))
+	walk_places = d.get("walk_places", [])
 	feed_time = float(d.get("feed_time", 0.0))
 	work_ready_at = float(d.work_ready_at)
 	stats = {}
@@ -1327,6 +1402,8 @@ func _catch_up(seconds: float) -> void:
 		p.needs.fun = clampf(p.needs.fun - mins * Pet.FUN_DECAY * 0.35, 20, 100)
 		p.energy = 100.0
 		p.sugar = 0.0
+		p._check_weight()
+		p.weight += (p.ideal_weight() - p.weight) * (1.0 - exp(-Catalog.METABOLISM * 0.5 * mins / 60.0))   # a quiet life while away
 		p.bladder = 20.0
 	var potties := int(mins / 10.0)
 	litter = minf(100, litter + potties * n * 8 * [1.0, 0.67, 0.45][tier("litter") - 1])

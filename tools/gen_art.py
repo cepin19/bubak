@@ -1457,6 +1457,270 @@ for i in range(4):
     mesh.append(f'<rect x="{x + 166}" y="170" width="12" height="34" rx="4" fill="#f3cf7a" {stroke(3)}/>')
 save("hutch_mesh.svg", svg(HUTCH_W, HUTCH_H, "\n".join(mesh)))
 
+# ---- walks: the leash, and the places Bubák visits ------------------------------------
+WALK_W, WALK_H = 1600, 720
+GROUND = 640   # where Bubák's feet go
+
+
+def _sky(top, bottom, gid):
+    return (f'<linearGradient id="{gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{top}"/>'
+            f'<stop offset="1" stop-color="{bottom}"/></linearGradient>'
+            f'<rect width="{WALK_W}" height="{WALK_H}" fill="url(#{gid})"/>')
+
+
+def _cloud(x, y, s=1.0):
+    return "".join(f'<ellipse cx="{x + dx * s}" cy="{y + dy * s}" rx="{rx * s}" ry="{ry * s}" fill="#ffffff" opacity="0.9"/>'
+                   for dx, dy, rx, ry in ((0, 0, 60, 26), (44, -14, 46, 30), (88, 2, 52, 24)))
+
+
+def _tree(x, ground, h=200, crown="#8cc47e", seed=0):
+    rnd = random.Random(seed)
+    p = [f'<rect x="{x - 12}" y="{ground - h * 0.45}" width="24" height="{h * 0.45}" rx="6" fill="#a7774f" {stroke(4)}/>']
+    for i in range(4):
+        p.append(wobble_ellipse(x + rnd.uniform(-40, 40), ground - h * 0.6 - rnd.uniform(0, h * 0.3),
+                                rnd.uniform(48, 66), rnd.uniform(40, 56), fill=crown, seed=seed * 10 + i))
+    return "".join(p)
+
+
+def _flower(x, y, col, r=7):
+    petals = "".join(f'<circle cx="{x + r * math.cos(a):.1f}" cy="{y + r * math.sin(a):.1f}" r="{r * 0.75:.1f}" fill="{col}"/>'
+                     for a in [i * math.pi * 2 / 5 for i in range(5)])
+    return f'<path d="M{x},{y} v{r * 3}" stroke="#5f9d62" stroke-width="3"/>' + petals + f'<circle cx="{x}" cy="{y}" r="{r * 0.55:.1f}" fill="#f6d84a"/>'
+
+
+def walk_park():
+    rnd = random.Random(3)
+    p = [_sky("#bfe3f5", "#eef7f0", "skyp"), _cloud(220, 110), _cloud(900, 80, 1.2), _cloud(1350, 140, 0.8)]
+    p.append(f'<path d="M0,430 Q400,360 800,420 T1600,410 V{WALK_H} H0z" fill="#b6dba0"/>')
+    p.append('<ellipse cx="1150" cy="470" rx="230" ry="38" fill="#9fd2e8" stroke="#7fb8cf" stroke-width="4"/>')
+    p.append('<path d="M1010,468 q20,-8 40,0 M1180,480 q20,-8 40,0" stroke="#ffffff" stroke-width="3" fill="none" opacity="0.8"/>')
+    for i, x in enumerate([90, 420, 700, 1480]):
+        p.append(_tree(x, 470, 230, ["#8cc47e", "#7fb872", "#9ccf86"][i % 3], seed=i + 1))
+    p.append(f'<rect x="0" y="470" width="{WALK_W}" height="{WALK_H - 470}" fill="#a5d48e"/>')
+    p.append(f'<path d="M0,560 Q800,540 1600,570 V{WALK_H} H0z" fill="#ecd9ad" {stroke(4)}/>')
+    for i in range(40):
+        p.append(f'<circle cx="{rnd.uniform(0, WALK_W):.0f}" cy="{rnd.uniform(590, 710):.0f}" r="{rnd.uniform(2, 4):.1f}" fill="#d6c08f"/>')
+    for i in range(26):
+        x = rnd.uniform(20, WALK_W - 20)
+        p.append(_flower(x, rnd.uniform(488, 530), rnd.choice(["#f39ab0", "#ffffff", "#f6d84a", "#c8a6f0"]), 6))
+    # bench and lamp post
+    p.append(f'<rect x="560" y="470" width="170" height="16" rx="5" fill="#c99a6b" {stroke(4)}/>'
+             f'<rect x="560" y="440" width="170" height="14" rx="5" fill="#c99a6b" {stroke(4)}/>'
+             f'<path d="M575,486 v30 M715,486 v30" {stroke(6)}/>')
+    p.append(f'<path d="M980,540 V330" {stroke(8)}/><path d="M980,540 V330" stroke="#5b6170" stroke-width="4"/>'
+             f'<path d="M958,330 h44 l-8,-34 h-28z" fill="#f6e7a8" {stroke(4)}/>')
+    return svg(WALK_W, WALK_H, "\n".join(p))
+
+
+def walk_field():
+    rnd = random.Random(5)
+    p = [_sky("#ffe9b8", "#fff7e6", "skyf"), f'<circle cx="1300" cy="140" r="70" fill="#ffd66e" opacity="0.9"/>',
+         _cloud(300, 120, 0.9), _cloud(780, 90)]
+    p.append(f'<path d="M0,400 Q300,330 650,390 T1300,370 T1600,380 V{WALK_H} H0z" fill="#c9e3a0"/>')
+    p.append(f'<path d="M0,450 Q400,400 900,450 T1600,440 V{WALK_H} H0z" fill="#b2d88a"/>')
+    # fence and hay bales on the hill
+    for x in range(40, 1600, 90):
+        p.append(f'<rect x="{x}" y="420" width="10" height="60" rx="3" fill="#c99a6b" {stroke(3)}/>')
+    p.append(f'<path d="M0,438 H1600 M0,462 H1600" stroke="#c99a6b" stroke-width="6"/>')
+    for x in (520, 1180):
+        p.append(f'<ellipse cx="{x}" cy="520" rx="70" ry="48" fill="#e6c96a" {stroke(4)}/>'
+                 f'<ellipse cx="{x - 40}" cy="520" rx="22" ry="40" fill="#d4b55a" {stroke(3)}/>')
+    p.append(f'<rect x="0" y="540" width="{WALK_W}" height="{WALK_H - 540}" fill="#a7d07c"/>')
+    for i in range(160):
+        x = rnd.uniform(0, WALK_W)
+        y = rnd.uniform(540, WALK_H)
+        p.append(f'<path d="M{x:.0f},{y:.0f} q{rnd.uniform(-6, 6):.0f},-14 {rnd.uniform(-8, 8):.0f},-24" stroke="#8cbf68" stroke-width="3" fill="none"/>')
+    for i in range(40):
+        p.append(_flower(rnd.uniform(10, WALK_W - 10), rnd.uniform(470, 700),
+                         rnd.choice(["#ffffff", "#f6d84a", "#e8505b", "#c8a6f0", "#f39ab0"]), rnd.uniform(5, 8)))
+    return svg(WALK_W, WALK_H, "\n".join(p))
+
+
+def walk_beach():
+    rnd = random.Random(8)
+    p = [_sky("#a9dcf3", "#eaf6fb", "skyb"), _cloud(400, 100), _cloud(1150, 130, 0.8)]
+    p.append('<rect x="0" y="330" width="1600" height="200" fill="#6fbfdf"/>')
+    p.append('<rect x="0" y="330" width="1600" height="40" fill="#8fd0ea"/>')
+    for y in range(360, 520, 34):
+        for x in range(0, 1600, 120):
+            p.append(f'<path d="M{x + (y % 68)},{y} q20,-10 40,0" stroke="#ffffff" stroke-width="3" fill="none" opacity="0.7"/>')
+    p.append('<path d="M1300,330 l40,-24 l10,24 z" fill="#ffffff" stroke="#9bb" stroke-width="2"/>')   # a sail
+    p.append(f'<path d="M0,520 Q400,500 800,520 T1600,515 V{WALK_H} H0z" fill="#f3dca4"/>')
+    p.append('<path d="M0,520 Q400,500 800,520 T1600,515" stroke="#ffffff" stroke-width="8" fill="none" opacity="0.8"/>')
+    for i in range(70):
+        p.append(f'<circle cx="{rnd.uniform(0, WALK_W):.0f}" cy="{rnd.uniform(540, 715):.0f}" r="2" fill="#dcc188"/>')
+    # umbrella, towel, shells, starfish
+    p.append(f'<path d="M1250,600 V420" {stroke(6)}/>'
+             f'<path d="M1110,440 Q1250,330 1390,440 Z" fill="#e8505b" {stroke(4)}/>'
+             f'<path d="M1160,440 Q1200,380 1250,350 Q1300,380 1340,440" fill="#fff8ee" opacity="0.9"/>')
+    p.append(f'<rect x="1080" y="590" width="220" height="60" rx="8" fill="#9ccbe8" {stroke(4)}/>'
+             '<path d="M1080,610 H1300 M1080,630 H1300" stroke="#ffffff" stroke-width="6"/>')
+    p.append(f'<path d="M300,610 q14,-26 28,0 z" fill="#f7c6b6" {stroke(3)}/>')
+    p.append(f'<path d="M520,660 l8,-18 l8,18 l18,2 l-14,10 l6,18 l-18,-10 l-18,10 l6,-18 l-14,-10z" fill="#f39a3d" {stroke(3)}/>')
+    p.append(f'<path d="M180,250 q14,-10 26,0 q12,-10 26,0" stroke="{INK}" stroke-width="3" fill="none"/>')   # a gull
+    return svg(WALK_W, WALK_H, "\n".join(p))
+
+
+def walk_city():
+    rnd = random.Random(11)
+    p = [_sky("#cfe6f2", "#f6efe6", "skyc"), _cloud(600, 90, 0.9)]
+    x = -20
+    cols = ["#e9b9a0", "#f2d6a8", "#c9d6e8", "#e6c2d6", "#cfe0c4"]
+    i = 0
+    while x < WALK_W:
+        w = rnd.randint(200, 280)
+        top = rnd.randint(120, 220)
+        c = cols[i % len(cols)]
+        p.append(f'<rect x="{x}" y="{top}" width="{w}" height="{560 - top}" fill="{c}" {stroke(4)}/>')
+        for wy in range(top + 30, 420, 60):
+            for wx in range(x + 24, x + w - 40, 56):
+                p.append(f'<rect x="{wx}" y="{wy}" width="30" height="38" rx="4" fill="#fff8ee" {stroke(3)}/>')
+        # a shop at street level with a striped awning
+        aw = ["#e8505b", "#4fa3e0", "#7cc96a", "#f39a3d"][i % 4]
+        p.append(f'<rect x="{x + 20}" y="450" width="{w - 40}" height="110" fill="#fff8ee" {stroke(4)}/>')
+        p.append(f'<path d="M{x + 10},450 h{w - 20} l-10,-30 h{-(w - 40)}z" fill="{aw}" {stroke(4)}/>')
+        for sx in range(x + 30, x + w - 30, 30):
+            p.append(f'<rect x="{sx}" y="422" width="14" height="27" fill="#ffffff" opacity="0.6"/>')
+        x += w
+        i += 1
+    p.append(f'<rect x="0" y="560" width="{WALK_W}" height="{WALK_H - 560}" fill="#d9d2cc"/>')
+    for y in range(590, WALK_H, 40):
+        p.append(f'<path d="M0,{y} H{WALK_W}" stroke="#c4bcb5" stroke-width="3"/>')
+    for x in range(0, WALK_W, 80):
+        p.append(f'<path d="M{x},560 V{WALK_H}" stroke="#c4bcb5" stroke-width="3"/>')
+    p.append(f'<rect x="0" y="556" width="{WALK_W}" height="10" fill="#bdb4ac" {stroke(3)}/>')
+    # café tables, lamp posts, a potted tree
+    for tx in (380, 1040):
+        p.append(f'<ellipse cx="{tx}" cy="560" rx="46" ry="10" fill="#fff8ee" {stroke(4)}/><path d="M{tx},570 V610" {stroke(6)}/>'
+                 f'<path d="M{tx - 22},612 h44" {stroke(5)}/>')
+    for lx in (220, 820, 1420):
+        p.append(f'<path d="M{lx},600 V300" {stroke(8)}/><path d="M{lx},600 V300" stroke="#5b6170" stroke-width="4"/>'
+                 f'<circle cx="{lx}" cy="292" r="18" fill="#f6e7a8" {stroke(4)}/>')
+    p.append(f'<rect x="1230" y="560" width="60" height="50" rx="6" fill="#c97b5a" {stroke(4)}/>' + _tree(1260, 560, 160, seed=9))
+    return svg(WALK_W, WALK_H, "\n".join(p))
+
+
+def walk_cinema():
+    p = [f'<rect width="{WALK_W}" height="{WALK_H}" fill="#2c2438"/>']
+    # curtains and the screen showing a carrot cartoon
+    p.append('<rect x="0" y="0" width="1600" height="60" fill="#8e2f3f"/>')
+    for x in range(0, 1600, 40):
+        p.append(f'<path d="M{x},0 q20,40 0,60" stroke="#6e2230" stroke-width="4" fill="none"/>')
+    p.append(f'<rect x="300" y="80" width="1000" height="340" rx="10" fill="#fdf6e3" stroke="#5a4a66" stroke-width="8"/>')
+    p.append('<rect x="300" y="80" width="1000" height="340" rx="10" fill="#bfe3f5" opacity="0.6"/>')
+    p.append('<path d="M300,330 Q800,290 1300,340 V420 H300z" fill="#a5d48e"/>')
+    p.append(f'<g transform="translate(800,250) rotate(-20)"><path d="M-30,-60 q30,-8 60,0 l-24,150 q-6,10 -12,0z" fill="#f39a3d" {stroke(5)}/>'
+             f'<path d="M-6,-62 q-20,-40 -30,-30 M6,-62 q0,-46 12,-44 M14,-60 q30,-30 34,-14" fill="none" stroke="#5f9d62" stroke-width="7" stroke-linecap="round"/></g>')
+    p.append('<circle cx="560" cy="160" r="40" fill="#ffd66e"/>')
+    # projector beam
+    p.append('<path d="M800,0 L300,80 L1300,80 Z" fill="#fff6c0" opacity="0.06"/>')
+    # rows of seats in the dark
+    for row, (y, s, col) in enumerate([(470, 0.8, "#5b2a3a"), (540, 0.95, "#6a3045")]):
+        for x in range(-40 + row * 50, 1640, int(110 * s)):
+            p.append(f'<rect x="{x}" y="{y}" width="{90 * s:.0f}" height="{80 * s:.0f}" rx="{18 * s:.0f}" fill="{col}" stroke="#1e1828" stroke-width="4"/>')
+    # front row: the seat Bubák sits on (centre), with popcorn on the next one
+    p.append(f'<rect x="0" y="{GROUND - 10}" width="{WALK_W}" height="{WALK_H - GROUND + 10}" fill="#3a2d48"/>')
+    for x in range(-60, 1640, 220):
+        p.append(f'<rect x="{x}" y="{GROUND - 150}" width="200" height="150" rx="30" fill="#8e2f3f" stroke="#1e1828" stroke-width="5"/>'
+                 f'<rect x="{x + 10}" y="{GROUND - 30}" width="180" height="40" rx="14" fill="#a8394c" stroke="#1e1828" stroke-width="4"/>')
+    p.append(f'<path d="M1050,{GROUND - 30} l14,-70 h60 l14,70z" fill="#ffffff" {stroke(4)}/>'
+             f'<path d="M1060,{GROUND - 80} h80 M1056,{GROUND - 60} h88" stroke="#e8505b" stroke-width="10"/>'
+             + "".join(f'<circle cx="{1068 + i * 14}" cy="{GROUND - 104 + (i % 2) * 6}" r="11" fill="#fff4cc" {stroke(2.5)}/>' for i in range(5)))
+    return svg(WALK_W, WALK_H, "\n".join(p))
+
+
+save("walk_park.svg", walk_park())
+save("walk_field.svg", walk_field())
+save("walk_beach.svg", walk_beach())
+save("walk_city.svg", walk_city())
+save("walk_cinema.svg", walk_cinema())
+
+# props for the walk cutscenes
+save("walk_crab.svg", svg(120, 80,
+    f'<path d="M20,40 l-14,-10 M20,50 l-16,2 M100,40 l14,-10 M100,50 l16,2 M30,60 l-8,14 M90,60 l8,14" {stroke(4)}/>'
+    f'<path d="M22,28 q-16,-20 -2,-24 q10,-2 8,12 z" fill="#e8505b" {stroke(3.5)}/>'
+    f'<path d="M98,28 q16,-20 2,-24 q-10,-2 -8,12 z" fill="#e8505b" {stroke(3.5)}/>'
+    f'<ellipse cx="60" cy="48" rx="40" ry="24" fill="#f07060" {stroke(4)}/>'
+    f'<path d="M50,26 v-12 M70,26 v-12" {stroke(3)}/><circle cx="50" cy="12" r="6" fill="#fff" {stroke(2.5)}/>'
+    f'<circle cx="70" cy="12" r="6" fill="#fff" {stroke(2.5)}/><circle cx="51" cy="12" r="2.5" fill="{INK}"/><circle cx="71" cy="12" r="2.5" fill="{INK}"/>'
+    f'<path d="M52,54 q8,6 16,0" fill="none" {stroke(3)}/>'))
+save("walk_shell.svg", svg(60, 50,
+    f'<path d="M30,46 L6,20 Q30,-6 54,20 Z" fill="#f7c6b6" {stroke(3.5)}/>'
+    + "".join(f'<path d="M30,44 L{x},{y}" stroke="#e39c88" stroke-width="2.5"/>' for x, y in ((14, 16), (22, 8), (30, 6), (38, 8), (46, 16)))))
+save("walk_wave.svg", svg(1000, 140,
+    '<path d="M0,140 V60 Q120,20 240,60 T480,60 T720,60 T960,60 L1000,56 V140 Z" fill="#8fd0ea" opacity="0.85"/>'
+    '<path d="M0,60 Q120,20 240,60 T480,60 T720,60 T960,60 L1000,56" fill="none" stroke="#ffffff" stroke-width="12" stroke-linecap="round"/>'
+    + "".join(f'<circle cx="{x}" cy="{48 + (x % 3) * 6}" r="{6 + x % 5}" fill="#ffffff"/>' for x in range(30, 1000, 70))))
+save("walk_popcorn.svg", svg(110, 140,
+    "".join(f'<circle cx="{x}" cy="{y}" r="15" fill="#fff4cc" {stroke(3)}/>'
+            for x, y in ((28, 40), (50, 30), (72, 34), (90, 44), (40, 22), (62, 16), (80, 26), (20, 52), (55, 46)))
+    + f'<path d="M12,50 l12,86 h62 l12,-86 z" fill="#ffffff" {stroke(4)}/>'
+    + "".join(f'<path d="M{x},52 l{(x - 55) * 0.12:.1f},84" stroke="#e8505b" stroke-width="10"/>' for x in (26, 46, 66, 86))
+    + f'<path d="M12,50 l12,86 h62 l12,-86 z" fill="none" {stroke(4)}/>'))
+save("walk_kernel.svg", svg(30, 26,
+    f'<circle cx="11" cy="14" r="8" fill="#fff4cc" {stroke(2.5)}/><circle cx="19" cy="11" r="7" fill="#fff4cc" {stroke(2.5)}/>'))
+save("walk_plate.svg", svg(130, 60,
+    f'<ellipse cx="65" cy="40" rx="60" ry="16" fill="#ffffff" {stroke(4)}/><ellipse cx="65" cy="38" rx="40" ry="9" fill="#f3efe8"/>'
+    f'<path d="M40,34 q24,-16 54,-6 q-24,14 -54,6z" fill="#f39a3d" {stroke(3)}/>'
+    f'<path d="M92,28 q10,-14 18,-12 M92,30 q14,-4 18,2" fill="none" stroke="#5f9d62" stroke-width="4" stroke-linecap="round"/>'))
+
+save("walk_gull.svg", svg(110, 80,
+    f'<path d="M48,40 q-30,-34 -44,-20 q20,4 34,30z" fill="#dfe3ea" {stroke(3.5)}/>'
+    f'<ellipse cx="58" cy="50" rx="34" ry="18" fill="#ffffff" {stroke(4)}/>'
+    f'<circle cx="86" cy="36" r="13" fill="#ffffff" {stroke(4)}/>'
+    f'<path d="M97,36 l12,4 l-12,4z" fill="#f6c84a" {stroke(2.5)}/>'
+    f'<circle cx="89" cy="33" r="2.6" fill="{INK}"/>'
+    f'<path d="M26,52 l-18,6 l18,4z" fill="#aab1bd" {stroke(3)}/>'
+    f'<path d="M52,66 v12 M64,66 v12" stroke="#f6a84a" stroke-width="4" stroke-linecap="round"/>'))
+WALK_ICONS = {
+    "leash": f'<path d="M10,14 q30,-12 40,14 q6,18 -8,28" fill="none" stroke="#e8505b" stroke-width="6" stroke-linecap="round"/>'
+             f'<rect x="34" y="50" width="14" height="10" rx="3" fill="#c9ccd6" {stroke(3)}/>'
+             f'<circle cx="14" cy="14" r="8" fill="none" {stroke(4)}/><circle cx="14" cy="14" r="8" fill="none" stroke="#e8505b" stroke-width="3"/>',
+    "park": f'<rect x="28" y="36" width="8" height="22" rx="3" fill="#a7774f" {stroke(3)}/>'
+            + wobble_ellipse(24, 28, 14, 12, fill="#8cc47e", w=3, seed=1) + wobble_ellipse(40, 24, 15, 13, fill="#9ccf86", w=3, seed=2)
+            + wobble_ellipse(32, 14, 13, 11, fill="#7fb872", w=3, seed=3) + f'<path d="M6,58 h52" {stroke(4)}/>',
+    "field": _flower(22, 30, "#f39ab0", 8) + _flower(42, 22, "#f6d84a", 8) + f'<path d="M6,58 q26,-10 52,0" {stroke(4)} fill="none"/>',
+    "beach": f'<path d="M32,58 V18" {stroke(4)}/><path d="M8,26 Q32,0 56,26 Z" fill="#e8505b" {stroke(3)}/>'
+             f'<path d="M4,56 q14,-8 28,0 q14,-8 28,0" stroke="#4fa3e0" stroke-width="5" fill="none"/>',
+    "city": f'<rect x="8" y="20" width="22" height="38" fill="#e9b9a0" {stroke(3)}/><rect x="30" y="8" width="26" height="50" fill="#c9d6e8" {stroke(3)}/>'
+            + "".join(f'<rect x="{x}" y="{y}" width="6" height="7" fill="#fff8ee"/>' for x in (14, 36, 46) for y in (28, 40) ),
+    "cinema": f'<path d="M14,26 l6,32 h24 l6,-32z" fill="#ffffff" {stroke(3)}/><path d="M17,36 h30 M18,46 h28" stroke="#e8505b" stroke-width="5"/>'
+              + "".join(f'<circle cx="{18 + i * 7}" cy="{20 + (i % 2) * 4}" r="6" fill="#fff4cc" {stroke(2)}/>' for i in range(5)),
+}
+for name, body in WALK_ICONS.items():
+    save(f"icon_{name}.svg", svg(64, 64, body))
+
+# ---- exercise toys and the weight scale --------------------------------------------
+def hurdles():
+    p = [f'<rect x="6" y="92" width="308" height="16" rx="8" fill="#9cc5a1" {stroke(4)}/>']
+    for x in (60, 160, 260):
+        p.append(f'<rect x="{x - 34}" y="44" width="8" height="54" rx="3" fill="#fff8ee" {stroke(3)}/>'
+                 f'<rect x="{x + 26}" y="44" width="8" height="54" rx="3" fill="#fff8ee" {stroke(3)}/>')
+        p.append(f'<rect x="{x - 40}" y="50" width="80" height="12" rx="6" fill="#fff8ee" {stroke(3.5)}/>')
+        for k in range(4):
+            p.append(f'<rect x="{x - 36 + k * 20}" y="52" width="10" height="8" fill="#e8505b"/>')
+        p.append(f'<ellipse cx="{x - 30}" cy="98" rx="10" ry="4" fill="#7aa87e"/><ellipse cx="{x + 30}" cy="98" rx="10" ry="4" fill="#7aa87e"/>')
+    return svg(320, 112, "\n".join(p))
+
+
+def treat_ball():
+    p = [f'<circle cx="35" cy="35" r="30" fill="#a9dcd0" {stroke(4)}/>',
+         '<path d="M8,30 Q35,20 62,30" fill="none" stroke="#7fbcae" stroke-width="3"/>']
+    for x, y in ((22, 22), (44, 18), (30, 44), (50, 42), (14, 38)):
+        p.append(f'<circle cx="{x}" cy="{y}" r="5" fill="#4f6b63"/>')
+    p.append('<ellipse cx="24" cy="16" rx="8" ry="4" transform="rotate(-30 24 16)" fill="#fff" opacity="0.6"/>')
+    p.append(f'<ellipse cx="62" cy="64" rx="5" ry="3.5" fill="#c99a6b" {stroke(2)}/><ellipse cx="8" cy="65" rx="4.5" ry="3" fill="#c99a6b" {stroke(2)}/>')
+    return svg(72, 70, "\n".join(p))
+
+
+save("hurdles.svg", hurdles())
+save("treat_ball.svg", treat_ball())
+save("icon_scale.svg", svg(64, 64,
+    f'<rect x="8" y="14" width="48" height="42" rx="12" fill="#c9d6e8" {stroke(4)}/>'
+    f'<path d="M20,30 A12,12 0 0 1 44,30 Z" fill="#fff8ee" {stroke(3)}/>'
+    f'<path d="M32,30 L38,22" stroke="#e8505b" stroke-width="3" stroke-linecap="round"/>'
+    f'<rect x="16" y="40" width="32" height="8" rx="4" fill="#a7b8d0"/>'))
+
 # app icon: Bubák's face on a warm circle
 icon = (f'<circle cx="128" cy="128" r="120" fill="#f7e6d0" {stroke(8)}/>'
         f'<g transform="translate(122,170) scale(1.3)">{head(0, 0, 0, -8, "open", seed=11)}</g>')
