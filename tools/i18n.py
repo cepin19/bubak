@@ -15,8 +15,10 @@ import re
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 STR = r'"((?:[^"\\]|\\.)*)"'
 # Shown through tr(variable), so they can't be found from tr("...") calls.
-EXTRA = ["Goals", "Behaviours", "Photos", "Bubák", "Training", "Grooming", "Shows", "Trophies",
-         "1st", "2nd", "3rd", "4th", "Head", "Ears", "Eyes", "Neck"]
+EXTRA = ["Goals", "Behaviours", "Album", "Photos", "Memories", "Bubák", "Training", "Grooming", "Shows", "League", "Trophies",
+         "1st", "2nd", "3rd", "4th", "Head", "Ears", "Eyes", "Neck", "%d %s",
+         "January", "February", "March", "April", "May", "June", "July", "August", "September",
+         "October", "November", "December"]
 
 
 def extract():
@@ -25,8 +27,13 @@ def extract():
         src = open(path, encoding="utf-8").read()
         singles += re.findall(r'\btr\(\s*' + STR + r'\s*\)', src)
         plurals += re.findall(r'\btr_n\(\s*' + STR + r'\s*,\s*' + STR, src)
+        # scrapbook memories: remember(id, "text", ...) is translated when shown
+        singles += re.findall(r'\bremember\([^,]+,\s*' + STR, src)
         if path.endswith("catalog.gd"):
-            singles += re.findall(r'"(?:name|desc|title|text)":\s*' + STR, src)
+            singles += re.findall(r'"(?:name|desc|title|text|personality)":\s*' + STR, src)
+            for const in ("const MEMORY_FIRSTS", "const SOUVENIR_NAMES"):
+                block = src[src.index(const):]
+                singles += [m[1] for m in re.findall(STR + r':\s*' + STR, block[:block.index("}")])]
             tabs = src[src.index("const SHOP_TABS"):]
             tabs = tabs[:tabs.index("}")]
             singles += re.findall(STR + r':\s*\[', tabs)

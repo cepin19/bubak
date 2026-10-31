@@ -2,16 +2,61 @@ msgid ""
 msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 
+msgid "JUMP!"
+msgstr ""
+
+msgid "Perfect!"
+msgstr ""
+
+msgid "Time: %.1f s"
+msgstr ""
+
+msgid "Best today: %.1f s"
+msgstr ""
+
+msgid "huff"
+msgstr ""
+
+msgid "oops!"
+msgstr ""
+
+msgid "Through!"
+msgstr ""
+
+msgid "Over, not through!"
+msgstr ""
+
+msgid "Tap!"
+msgstr ""
+
+msgid "Missed the poles!"
+msgstr ""
+
+msgid "sniff sniff"
+msgstr ""
+
 msgid "The laptop charger is chewed through! Culprit: %s. A new one cost 25 coins.\nA cable cover from the shop would stop this for good."
 msgstr ""
 
 msgid "boop!"
 msgstr ""
 
+msgid "honk honk!"
+msgstr ""
+
 msgid "THUMP!"
 msgstr ""
 
+msgid "achoo!"
+msgstr ""
+
 msgid "A neighbour across the street spotted %s on the lookout and waved! +%d followers."
+msgstr ""
+
+msgid "%s got bored of hiding and hopped out. Next time, find him first!"
+msgstr ""
+
+msgid "Found you! %s pops out, very pleased with himself."
 msgstr ""
 
 msgid "Too many pokes! %s is scared now.\nTry gently holding your finger on the bunny instead."
@@ -35,6 +80,21 @@ msgstr ""
 msgid "%s doesn't quite trust you yet..."
 msgstr ""
 
+msgid "%s enjoys the cuddle, but petting builds trust only once an hour. Next time in %d min."
+msgstr ""
+
+msgid "%s stops trembling. Safe in your hands, storm or no storm."
+msgstr ""
+
+msgid "nip!"
+msgstr ""
+
+msgid "Ouch! %s nipped you. Keep the cuddles short for now."
+msgstr ""
+
+msgid "lick lick"
+msgstr ""
+
 msgid "purr~"
 msgstr ""
 
@@ -47,6 +107,9 @@ msgstr ""
 msgid "%s panics, kicks and bolts! Too soon to be picked up.\n(Trust went down.)"
 msgstr ""
 
+msgid "%s nibbles it politely, but isn't impressed. Only gourmet treats will win them over."
+msgstr ""
+
 msgid "%s! %s's favourite!"
 msgstr ""
 
@@ -54,6 +117,21 @@ msgid "Too many sweets... %s has a tummy ache.\nParsley and hay are kinder to a 
 msgstr ""
 
 msgid "Snatched it and ran! %s will get braver."
+msgstr ""
+
+msgid "Bubák groomed %s: you're safe here."
+msgstr ""
+
+msgid "Hide and seek: %s hid behind the furniture, and you found him."
+msgstr ""
+
+msgid "A thunderstorm, and %s felt safe in your hands."
+msgstr ""
+
+msgid "%s licked your hand while you petted him. You're family now."
+msgstr ""
+
+msgid "%s fell asleep in your hand."
 msgstr ""
 
 msgid "Blurry"
@@ -78,6 +156,9 @@ msgid "Bonded"
 msgstr ""
 
 msgid "Best buds"
+msgstr ""
+
+msgid "Inseparable"
 msgstr ""
 
 msgid "Pellets"
@@ -278,6 +359,48 @@ msgstr ""
 msgid "A shady spot, so he can nap outside."
 msgstr ""
 
+msgid "Veggie patch"
+msgstr ""
+
+msgid "Three little beds to grow carrots, dandelions and roses for treats."
+msgstr ""
+
+msgid "Cosy cream"
+msgstr ""
+
+msgid "The flat as it was when Bubák moved in."
+msgstr ""
+
+msgid "Mint garden"
+msgstr ""
+
+msgid "Fresh mint stripes and a pale birch floor."
+msgstr ""
+
+msgid "Lavender dreams"
+msgstr ""
+
+msgid "Soft lilac with little hearts, the colour of Bubák's fur."
+msgstr ""
+
+msgid "Sunny meadow"
+msgstr ""
+
+msgid "Butter-yellow walls with daisies, like summer all year."
+msgstr ""
+
+msgid "Starry night"
+msgstr ""
+
+msgid "Deep blue walls full of golden stars and a dark walnut floor."
+msgstr ""
+
+msgid "Enchanted forest"
+msgstr ""
+
+msgid "Leafy green walls and a mossy floor: a whole year together."
+msgstr ""
+
 msgid "Lookout deck"
 msgstr ""
 
@@ -372,6 +495,162 @@ msgid "Tiny top hat"
 msgstr ""
 
 msgid "For a bunny of distinction."
+msgstr ""
+
+msgid "Golden bow tie"
+msgstr ""
+
+msgid "Two weeks together. Only for very good bunnies."
+msgstr ""
+
+msgid "Golden crown"
+msgstr ""
+
+msgid "100 days together. Long live King Bubák!"
+msgstr ""
+
+msgid "Royal cushion"
+msgstr ""
+
+msgid "A velvet cushion with golden tassels. A month together."
+msgstr ""
+
+msgid "Bubák statue"
+msgstr ""
+
+msgid "A little golden statue of Bubák. 200 days together!"
+msgstr ""
+
+msgid "Souvenir cabinet"
+msgstr ""
+
+msgid "A glass cabinet with every souvenir from your walks."
+msgstr ""
+
+msgid "Party hat"
+msgstr ""
+
+msgid "A birthday present. Every day is a party in it."
+msgstr ""
+
+msgid "Egg rattle"
+msgstr ""
+
+msgid "A painted wooden egg that rattles when it rolls. An Easter present."
+msgstr ""
+
+msgid "Witch hat"
+msgstr ""
+
+msgid "A Halloween present. Spooky, but mostly cute."
+msgstr ""
+
+msgid "Jingle ball"
+msgstr ""
+
+msgid "A red ball with a little bell inside. A Christmas present."
+msgstr ""
+
+msgid "Blossom clip"
+msgstr ""
+
+msgid "Cherry blossom behind the ear. A spring find."
+msgstr ""
+
+msgid "Straw hat"
+msgstr ""
+
+msgid "Shade for long summer days. A summer find."
+msgstr ""
+
+msgid "Knitted scarf"
+msgstr ""
+
+msgid "Cosy stripes for chilly days. An autumn find."
+msgstr ""
+
+msgid "Snowflake clip"
+msgstr ""
+
+msgid "A snowflake that never melts. A winter find."
+msgstr ""
+
+msgid "Treasure chest"
+msgstr ""
+
+msgid "Found with a treasure map Bubák dug up, piece by piece. Full of gold!"
+msgstr ""
+
+msgid "Special dried apples"
+msgstr ""
+
+msgid "Dried from the best apples in the world. Only for the very greatest days."
+msgstr ""
+
+msgid "Golden carrot"
+msgstr ""
+
+msgid "Grown from a rare golden seed. He goes wild for it."
+msgstr ""
+
+msgid "Bunny Games cup"
+msgstr ""
+
+msgid "Champion of the Bunny Games. The biggest cup there is."
+msgstr ""
+
+msgid "Santa hat"
+msgstr ""
+
+msgid "Behind the 24th door of the advent calendar."
+msgstr ""
+
+msgid "Snow globe"
+msgstr ""
+
+msgid "A tiny Bubák in a snowstorm. For opening every door of the advent calendar."
+msgstr ""
+
+msgid "Tulip bed"
+msgstr ""
+
+msgid "The top of the spring ladder."
+msgstr ""
+
+msgid "Paddling pool"
+msgstr ""
+
+msgid "The top of the summer ladder. (He only dips a paw.)"
+msgstr ""
+
+msgid "Hay bale"
+msgstr ""
+
+msgid "The top of the autumn ladder. Also a snack."
+msgstr ""
+
+msgid "Little snowman"
+msgstr ""
+
+msgid "The top of the winter ladder. A carrot nose he keeps eyeing."
+msgstr ""
+
+msgid "Bubák's book"
+msgstr ""
+
+msgid "His life story, in print. Signed with a paw."
+msgstr ""
+
+msgid "Golden seed"
+msgstr ""
+
+msgid "Turned up in the veggie patch. Plant it and wait a whole day."
+msgstr ""
+
+msgid "Bigger veggie patch"
+msgstr ""
+
+msgid "Two more beds on the veggie patch."
 msgstr ""
 
 msgid "Red bow"
@@ -602,6 +881,18 @@ msgstr ""
 msgid "Clears the whole course without touching a bar."
 msgstr ""
 
+msgid "Christmas wonder"
+msgstr ""
+
+msgid "Up on his hind legs, eyes full of twinkling lights."
+msgstr ""
+
+msgid "Present ripper"
+msgstr ""
+
+msgid "Paper everywhere, and one very proud bunny."
+msgstr ""
+
 msgid "Snack roller"
 msgstr ""
 
@@ -755,6 +1046,84 @@ msgstr ""
 msgid "Soft teeth-clicking while petted. Bliss."
 msgstr ""
 
+msgid "Circling your feet"
+msgstr ""
+
+msgid "Honk honk! Laps around you: rabbit for \"you're the best\"."
+msgstr ""
+
+msgid "Grooming you"
+msgstr ""
+
+msgid "He licks your hand while you pet him. You're family now."
+msgstr ""
+
+msgid "Asleep in your hand"
+msgstr ""
+
+msgid "Dozes off while you stroke him. The ultimate trust."
+msgstr ""
+
+msgid "Petal chase"
+msgstr ""
+
+msgid "Blossom petals drifting down. He has to catch them all."
+msgstr ""
+
+msgid "Bunny puddle"
+msgstr ""
+
+msgid "Too hot to hop. Stretched out flat on the cool floor."
+msgstr ""
+
+msgid "Leaf pile dive"
+msgstr ""
+
+msgid "Straight into the crunchy leaves. Again!"
+msgstr ""
+
+msgid "First snow"
+msgstr ""
+
+msgid "Sniffs the snow, sneezes, shakes his ears. Snow is weird."
+msgstr ""
+
+msgid "Hide and seek"
+msgstr ""
+
+msgid "Two ears sticking out from behind the furniture. Found you!"
+msgstr ""
+
+msgid "Sofa parkour"
+msgstr ""
+
+msgid "Up onto the sofa, along the back and off again in one big leap."
+msgstr ""
+
+msgid "Melting in your hands"
+msgstr ""
+
+msgid "Petted until he goes completely floppy."
+msgstr ""
+
+msgid "Strike a pose"
+msgstr ""
+
+msgid "Sees the camera and holds his best angle. A natural."
+msgstr ""
+
+msgid "Nose to the ground"
+msgstr ""
+
+msgid "Sniffing out every corner, one square at a time."
+msgstr ""
+
+msgid "Big brother"
+msgstr ""
+
+msgid "Bubák grooms the shy foster bunny: you're safe here."
+msgstr ""
+
 msgid "Bare"
 msgstr ""
 
@@ -863,6 +1232,33 @@ msgstr ""
 msgid "Get 3 stars in %d different jobs"
 msgstr ""
 
+msgid "Find a foster bunny a new home"
+msgstr ""
+
+msgid "Find %d foster bunnies new homes"
+msgstr ""
+
+msgid "Finish a league season in the top 3"
+msgstr ""
+
+msgid "Win a league season"
+msgstr ""
+
+msgid "Win %d league seasons"
+msgstr ""
+
+msgid "Win an Agility show"
+msgstr ""
+
+msgid "Train his agility to %d"
+msgstr ""
+
+msgid "Perform a routine of %d tricks at a show"
+msgstr ""
+
+msgid "Earn %d coins from Bubák merch"
+msgstr ""
+
 msgid "Dress Bubák in a full outfit: something on all %d places"
 msgstr ""
 
@@ -881,7 +1277,7 @@ msgstr ""
 msgid "Earn %d trick stars"
 msgstr ""
 
-msgid "Master every trick"
+msgid "Master the four basic tricks"
 msgstr ""
 
 msgid "Groom Bubák %d times"
@@ -911,7 +1307,106 @@ msgstr ""
 msgid "Adopt a friend for Bubák"
 msgstr ""
 
+msgid "Play on %d different days"
+msgstr ""
+
+msgid "Give Bubák %d treats"
+msgstr ""
+
+msgid "Grant %d of Bubák's wishes"
+msgstr ""
+
+msgid "Complete every photo challenge"
+msgstr ""
+
+msgid "Fill the scrapbook with %d memories"
+msgstr ""
+
+msgid "Take Bubák to %d check-ups"
+msgstr ""
+
+msgid "Take Bubák to %d check-ups: a whole year"
+msgstr ""
+
+msgid "Pick %d crops from the veggie patch"
+msgstr ""
+
+msgid "Have %d playdates"
+msgstr ""
+
+msgid "Find %d souvenirs on walks"
+msgstr ""
+
+msgid "Find all %d souvenirs"
+msgstr ""
+
+msgid "Go on %d walks"
+msgstr ""
+
+msgid "Win %d ribbons at shows"
+msgstr ""
+
+msgid "Give the flat all %d makeovers"
+msgstr ""
+
 msgid "Make them best friends"
+msgstr ""
+
+msgid "Collect %d daily stickers"
+msgstr ""
+
+msgid "Fill a page of the photo album"
+msgstr ""
+
+msgid "Fill %d pages of the photo album"
+msgstr ""
+
+msgid "Find %d different things in the dig box"
+msgstr ""
+
+msgid "Find a buried treasure"
+msgstr ""
+
+msgid "Find something in all %d seasons"
+msgstr ""
+
+msgid "Shape Bubák's personality: one trait at its highest"
+msgstr ""
+
+msgid "Get %d postcards from adoptive families"
+msgstr ""
+
+msgid "Get a foster bunny into the Hall of Fame in gold"
+msgstr ""
+
+msgid "Earn a master's certificate"
+msgstr ""
+
+msgid "Earn all %d master's certificates"
+msgstr ""
+
+msgid "Win %d duels"
+msgstr ""
+
+msgid "Finish the Bunny Games in the top 3"
+msgstr ""
+
+msgid "Win the Bunny Games"
+msgstr ""
+
+msgid "Complete %d weekly challenges"
+msgstr ""
+
+msgid "Climb a seasonal ladder to the top"
+msgstr ""
+
+msgid "Climb %d seasonal ladders to the top"
+msgstr ""
+
+msgid "Publish Bubák's book"
+msgstr ""
+
+msgid "Run the daily agility course on %d days"
 msgstr ""
 
 msgid "Underweight"
@@ -944,10 +1439,73 @@ msgstr ""
 msgid "Cinema"
 msgstr ""
 
+msgid "Local cutie"
+msgstr ""
+
+msgid "Rising star"
+msgstr ""
+
+msgid "Bunnyfluencer"
+msgstr ""
+
+msgid "Celebrity"
+msgstr ""
+
+msgid "Superstar"
+msgstr ""
+
+msgid "Dressed up"
+msgstr ""
+
+msgid "Caught mid-binky"
+msgstr ""
+
+msgid "Zoomies in action"
+msgstr ""
+
+msgid "The big flop"
+msgstr ""
+
+msgid "Fast asleep at night"
+msgstr ""
+
+msgid "Sunset on the balcony"
+msgstr ""
+
+msgid "Showing off a trick"
+msgstr ""
+
+msgid "Chasing a butterfly"
+msgstr ""
+
+msgid "Dressed to the nines (3 accessories)"
+msgstr ""
+
+msgid "Snuggled up with a friend"
+msgstr ""
+
+msgid "By the Christmas tree"
+msgstr ""
+
+msgid "Party hat on!"
+msgstr ""
+
+msgid "Carrots"
+msgstr ""
+
+msgid "Dandelions"
+msgstr ""
+
+msgid "Roses"
+msgstr ""
+
 msgid "Luna"
 msgstr ""
 
 msgid "A gentle cream bunny. Shy at first, but oh so sweet."
+msgstr ""
+
+msgid "gentle, dreamy, loves a quiet cuddle."
 msgstr ""
 
 msgid "Caramel"
@@ -956,16 +1514,25 @@ msgstr ""
 msgid "Golden, bouncy and friendly with everyone."
 msgstr ""
 
+msgid "bouncy, chatty, first to every bowl."
+msgstr ""
+
 msgid "Hazel"
 msgstr ""
 
 msgid "Chocolate brown with a white nose. Loves digging."
 msgstr ""
 
+msgid "busy, clever, always digging somewhere."
+msgstr ""
+
 msgid "Shadow"
 msgstr ""
 
 msgid "Sleek, black and a little mysterious. Bubák can't stop staring."
+msgstr ""
+
+msgid "cool, curious, secretly a big softie."
 msgstr ""
 
 msgid "Come"
@@ -992,6 +1559,30 @@ msgstr ""
 msgid "Sails through the hoop."
 msgstr ""
 
+msgid "Take a bow"
+msgstr ""
+
+msgid "Down on his front paws, then back up. Reward the bow and the finish."
+msgstr ""
+
+msgid "High five"
+msgstr ""
+
+msgid "Up on his hind legs, then a paw against your hand."
+msgstr ""
+
+msgid "Fetch"
+msgstr ""
+
+msgid "After the ball, and back with it. Needs a rainbow ball."
+msgstr ""
+
+msgid "Leg slalom"
+msgstr ""
+
+msgid "Weaves in and out between your feet, there and back."
+msgstr ""
+
 msgid "Best in Show"
 msgstr ""
 
@@ -1008,6 +1599,12 @@ msgid "Photogenic"
 msgstr ""
 
 msgid "Your best photo goes in front of the judges."
+msgstr ""
+
+msgid "Agility"
+msgstr ""
+
+msgid "A jumping course. Tap Jump as he reaches each bar!"
 msgstr ""
 
 msgid "Neighbourhood show"
@@ -1049,6 +1646,456 @@ msgstr ""
 msgid "A cheerful ginger lop. Everyone's friend."
 msgstr ""
 
+msgid "Velvet"
+msgstr ""
+
+msgid "A silver champion from abroad. Unbeaten in three countries, until now?"
+msgstr ""
+
+msgid "Pip"
+msgstr ""
+
+msgid "A tiny grey dwarf who hides from everything."
+msgstr ""
+
+msgid "Bramble"
+msgstr ""
+
+msgid "A big agouti buck who nips when he's nervous."
+msgstr ""
+
+msgid "Tofu"
+msgstr ""
+
+msgid "White as snow, and only the finest treats will do."
+msgstr ""
+
+msgid "Ruby"
+msgstr ""
+
+msgid "A red-eyed rex who jumps at the slightest sound."
+msgstr ""
+
+msgid "Ziggy"
+msgstr ""
+
+msgid "A spotted English bunny with strong opinions."
+msgstr ""
+
+msgid "Maple"
+msgstr ""
+
+msgid "An orange lop who turns her nose up at cheap snacks."
+msgstr ""
+
+msgid "Very shy"
+msgstr ""
+
+msgid "Often runs off when you try to pet them. Keep trying, gently."
+msgstr ""
+
+msgid "Nips"
+msgstr ""
+
+msgid "Long petting makes them nervous: keep cuddles short or get nipped."
+msgstr ""
+
+msgid "Picky eater"
+msgstr ""
+
+msgid "Only gourmet treats build their trust."
+msgstr ""
+
+msgid "a bunny in a hat"
+msgstr ""
+
+msgid "a glossy, freshly brushed coat"
+msgstr ""
+
+msgid "neatly trimmed nails"
+msgstr ""
+
+msgid "a Spin in the routine"
+msgstr ""
+
+msgid "a routine of 4 tricks"
+msgstr ""
+
+msgid "a photo of a rare moment"
+msgstr ""
+
+msgid "a clear round, no bars down"
+msgstr ""
+
+msgid "Sticker sheet"
+msgstr ""
+
+msgid "Mug"
+msgstr ""
+
+msgid "Calendar"
+msgstr ""
+
+msgid "Plush Bubák"
+msgstr ""
+
+msgid "Hoodie"
+msgstr ""
+
+msgid "No sweets week"
+msgstr ""
+
+msgid "No sugary treats for 7 days: no carrots, apples, banana chips, dried apple or golden carrots. One and it's over."
+msgstr ""
+
+msgid "Budget week"
+msgstr ""
+
+msgid "Work pays half for 7 days. Make it through."
+msgstr ""
+
+msgid "Show every day"
+msgstr ""
+
+msgid "Enter a show on 5 of the 7 days."
+msgstr ""
+
+msgid "Fit week"
+msgstr ""
+
+msgid "An agility run on 5 of the 7 days, and his weight just right at the end."
+msgstr ""
+
+msgid "Photo diary"
+msgstr ""
+
+msgid "Photograph something he hasn't done yet this week on 5 of the 7 days."
+msgstr ""
+
+msgid "Watch him chase blossom petals %d times"
+msgstr ""
+
+msgid "Pick %d crops"
+msgstr ""
+
+msgid "Cuddle him %d times"
+msgstr ""
+
+msgid "Go for %d walks"
+msgstr ""
+
+msgid "Give %d treats"
+msgstr ""
+
+msgid "Enter %d shows"
+msgstr ""
+
+msgid "Find him melted flat on a hot day %d times"
+msgstr ""
+
+msgid "Do %d agility runs"
+msgstr ""
+
+msgid "Watch him dive into the leaves %d times"
+msgstr ""
+
+msgid "Let him dig %d times"
+msgstr ""
+
+msgid "Groom him %d times"
+msgstr ""
+
+msgid "Watch him sniff the snow %d times"
+msgstr ""
+
+msgid "Practise tricks %d times"
+msgstr ""
+
+msgid "Meet Bubák"
+msgstr ""
+
+msgid "It started with a shy lilac bunny who hid behind the hay rack and wouldn't come out for anyone."
+msgstr ""
+
+msgid "The first binky"
+msgstr ""
+
+msgid "One day he jumped, twisted in the air and landed looking very pleased with himself. That was the day we knew he was happy."
+msgstr ""
+
+msgid "The balcony door opened, and a whole new world of birds, sunshine and stolen herbs opened with it."
+msgstr ""
+
+msgid "Show business"
+msgstr ""
+
+msgid "Our first ribbon. He ate a corner of it, but it still counts."
+msgstr ""
+
+msgid "A friend for Bubák"
+msgstr ""
+
+msgid "Two bunnies, one loaf. He was never lonely again."
+msgstr ""
+
+msgid "Little guests"
+msgstr ""
+
+msgid "The rescue sent us scared little bunnies, and Bubák showed every one of them that people are kind."
+msgstr ""
+
+msgid "Thousands of people now wait for his next photo. He mostly waits for his next carrot."
+msgstr ""
+
+msgid "Champion"
+msgstr ""
+
+msgid "The National championship. Under the lights, in front of the judges, he did it."
+msgstr ""
+
+msgid "A year of seasons"
+msgstr ""
+
+msgid "Petals in spring, puddle naps in summer, leaf piles in autumn, the first snow in winter."
+msgstr ""
+
+msgid "The treasure"
+msgstr ""
+
+msgid "He dug up a map, piece by piece, and the X was in our own living room."
+msgstr ""
+
+msgid "Who he is"
+msgstr ""
+
+msgid "Every bunny becomes someone. This is who Bubák became."
+msgstr ""
+
+msgid "The Bunny Games"
+msgstr ""
+
+msgid "The biggest stage of all, and our little bunny right in the middle of it."
+msgstr ""
+
+msgid "He falls asleep in my hand now. Some things are worth every day it took."
+msgstr ""
+
+msgid "Photograph a rare moment (a sparkly one)"
+msgstr ""
+
+msgid "Cuddle Bubák %d times"
+msgstr ""
+
+msgid "Give Bubák a grooming"
+msgstr ""
+
+msgid "Enter a show"
+msgstr ""
+
+msgid "Go for a walk"
+msgstr ""
+
+msgid "Let Bubák dig %d times"
+msgstr ""
+
+msgid "Cuddle Bubák's friend %d times"
+msgstr ""
+
+msgid "Spring"
+msgstr ""
+
+msgid "Summer"
+msgstr ""
+
+msgid "Autumn"
+msgstr ""
+
+msgid "Winter"
+msgstr ""
+
+msgid "Shiny button"
+msgstr ""
+
+msgid "Glass marble"
+msgstr ""
+
+msgid "Bottle cap"
+msgstr ""
+
+msgid "Old coin"
+msgstr ""
+
+msgid "Tiny ring"
+msgstr ""
+
+msgid "Treasure map piece"
+msgstr ""
+
+msgid "Pip has a whole cardboard village now and visits every house twice a day. Still hides from the vacuum, but who doesn't?"
+msgstr ""
+
+msgid "Big news: Pip hopped onto the sofa all by himself and fell asleep next to us. We cried a little."
+msgstr ""
+
+msgid "Tofu inspects every salad leaf like a food critic. Five stars for coriander, one star for lettuce."
+msgstr ""
+
+msgid "Tofu now has her own little garden box. She guards it like a dragon guards gold."
+msgstr ""
+
+msgid "Bramble only nipped once this week, and it was the newspaper. We think he's proud of it."
+msgstr ""
+
+msgid "Bramble lets the kids brush him now. He pretends not to like it, then flops."
+msgstr ""
+
+msgid "Ruby jumped at the doorbell only twice today. A record! She loves her tunnel."
+msgstr ""
+
+msgid "Ruby did her first binky in the garden. Thank you for teaching her that people are kind."
+msgstr ""
+
+msgid "Maple has opinions about which bowl is hers (all of them). Doing great!"
+msgstr ""
+
+msgid "Maple has a best friend now: our old cat. They nap in the sun together."
+msgstr ""
+
+msgid "Ziggy has rearranged the living room twice. We let him. He has taste."
+msgstr ""
+
+msgid "Ziggy comes running when we say his name. Well, when we open the treat jar."
+msgstr ""
+
+msgid "Athletic"
+msgstr ""
+
+msgid "From agility, walks and exercise toys. More hang time on the course, and he gets restless without exercise."
+msgstr ""
+
+msgid "Lap bunny"
+msgstr ""
+
+msgid "From cuddles and snuggles. Petting makes him happier, and he melts in your hands."
+msgstr ""
+
+msgid "Little star"
+msgstr ""
+
+msgid "From shows, photos and tricks. More likes on his photos and points at shows, and he poses for the camera."
+msgstr ""
+
+msgid "Explorer"
+msgstr ""
+
+msgid "From walks, the balcony and digging. He finds more on walks and in the dig box."
+msgstr ""
+
+msgid "Everyday"
+msgstr ""
+
+msgid "Playtime"
+msgstr ""
+
+msgid "Outdoors"
+msgstr ""
+
+msgid "Feelings"
+msgstr ""
+
+msgid "Seasons"
+msgstr ""
+
+msgid "Personality"
+msgstr ""
+
+msgid "Friends"
+msgstr ""
+
+msgid "First binky! Pure joy."
+msgstr ""
+
+msgid "First zoomies around the flat."
+msgstr ""
+
+msgid "First flop: totally relaxed with you."
+msgstr ""
+
+msgid "First nose bonk. You're one of his favourite people now."
+msgstr ""
+
+msgid "The two bunnies snuggled up for the first time."
+msgstr ""
+
+msgid "First selfie together."
+msgstr ""
+
+msgid "First time out on the balcony."
+msgstr ""
+
+msgid "First nap in a proper bed."
+msgstr ""
+
+msgid "Acorn"
+msgstr ""
+
+msgid "Feather"
+msgstr ""
+
+msgid "Conker"
+msgstr ""
+
+msgid "Four-leaf clover"
+msgstr ""
+
+msgid "Poppy"
+msgstr ""
+
+msgid "Ear of wheat"
+msgstr ""
+
+msgid "Smooth pebble"
+msgstr ""
+
+msgid "Lucky horseshoe"
+msgstr ""
+
+msgid "Seashell"
+msgstr ""
+
+msgid "Starfish"
+msgstr ""
+
+msgid "Sea glass"
+msgstr ""
+
+msgid "Pearl"
+msgstr ""
+
+msgid "Postcard"
+msgstr ""
+
+msgid "Tram ticket"
+msgstr ""
+
+msgid "Café badge"
+msgstr ""
+
+msgid "Golden key"
+msgstr ""
+
+msgid "Ticket stub"
+msgstr ""
+
+msgid "Film reel"
+msgstr ""
+
+msgid "3D glasses"
+msgstr ""
+
+msgid "Star's autograph"
+msgstr ""
+
 msgid "Food"
 msgstr ""
 
@@ -1062,6 +2109,9 @@ msgid "Balcony"
 msgstr ""
 
 msgid "Home"
+msgstr ""
+
+msgid "Makeover"
 msgstr ""
 
 msgid "Upgrades"
@@ -1085,6 +2135,9 @@ msgstr ""
 msgid "For the balcony, once it's open"
 msgstr ""
 
+msgid "Opens after %d days together"
+msgstr ""
+
 msgid "Needs Cozy level %d"
 msgstr ""
 
@@ -1100,6 +2153,9 @@ msgstr ""
 msgid "Needs the previous upgrade"
 msgstr ""
 
+msgid "Needs: %s"
+msgstr ""
+
 msgid "Already installed."
 msgstr ""
 
@@ -1112,7 +2168,7 @@ msgstr ""
 msgid "Not yet! Bubák needs to trust you more and get more followers."
 msgstr ""
 
-msgid "Needs: %s"
+msgid "Needs %s with %d stars"
 msgstr ""
 
 msgid "Bubák kicked and squirmed away. He needs to trust you more for this.\n(Trust went down.)"
@@ -1145,10 +2201,97 @@ msgstr ""
 msgid "Take some photos first."
 msgstr ""
 
+msgid "Needs Hop hurdles (Shop) to practise on."
+msgstr ""
+
+msgid "He needs his yearly vaccination first (Journal > Bubák)."
+msgstr ""
+
 msgid "%d h %d min"
 msgstr ""
 
 msgid "%d min"
+msgstr ""
+
+msgid "Today Bubák wishes for: %s, from your hand."
+msgstr ""
+
+msgid "Today Bubák wishes for: playtime with the %s."
+msgstr ""
+
+msgid "Today Bubák wishes for: a long cuddle."
+msgstr ""
+
+msgid "Today Bubák wishes for: a photo shoot."
+msgstr ""
+
+msgid "Today Bubák wishes for: a walk."
+msgstr ""
+
+msgid "Today Bubák wishes for: fresh air on the balcony."
+msgstr ""
+
+msgid "Today Bubák wishes for: a good brushing."
+msgstr ""
+
+msgid "Cuddle"
+msgstr ""
+
+msgid "Photo shoot"
+msgstr ""
+
+msgid "Walk"
+msgstr ""
+
+msgid "Brushing"
+msgstr ""
+
+msgid "Bubák has a favourite toy now: %s!"
+msgstr ""
+
+msgid "Bubák has a favourite napping spot now: %s!"
+msgstr ""
+
+msgid "Bubák has a favourite walk now: %s!"
+msgstr ""
+
+msgid "Weight: %s kg, %s."
+msgstr ""
+
+msgid "Weight: %s kg, %s. More exercise and fewer sweets, please."
+msgstr ""
+
+msgid "Weight: %s kg, %s. A little more food, please."
+msgstr ""
+
+msgid "Teeth: nice and short. Hay keeps them that way."
+msgstr ""
+
+msgid "Teeth: needs more hay to chew on!"
+msgstr ""
+
+msgid "Mood: a happy, curious bunny."
+msgstr ""
+
+msgid "Mood: a bit low. More play and cuddles!"
+msgstr ""
+
+msgid "Nails: neat."
+msgstr ""
+
+msgid "Nails: too long. Time for the clippers."
+msgstr ""
+
+msgid "Coat: soft and shiny."
+msgstr ""
+
+msgid "Coat: needs a good brushing."
+msgstr ""
+
+msgid "Home: clean and fresh."
+msgstr ""
+
+msgid "Home: the litter box needs cleaning."
 msgstr ""
 
 msgid "You need a harness and leash (Shop > Club)."
@@ -1161,6 +2304,45 @@ msgid "Needs Bubák at trust %s and Cozy level %d"
 msgstr ""
 
 msgid "Bubák already has a friend."
+msgstr ""
+
+msgid "The %s is getting worn out. It won't last much longer."
+msgstr ""
+
+msgid "The rescue has no one for you right now."
+msgstr ""
+
+msgid "Take some new photos first: a new design needs a fresh one."
+msgstr ""
+
+msgid "Unlocks at fame: %s"
+msgstr ""
+
+msgid "Next Games: from the %d."
+msgstr ""
+
+msgid "Qualifying: %d of %d league points this month."
+msgstr ""
+
+msgid "This month's Games are over."
+msgstr ""
+
+msgid "Done: %d points."
+msgstr ""
+
+msgid "One round a day. Next round tomorrow!"
+msgstr ""
+
+msgid "Already published."
+msgstr ""
+
+msgid "Write every chapter first."
+msgstr ""
+
+msgid "%s sits very still, and Bubák hops right over for a sniff and a gentle pat. +30 followers: %s told the whole school!"
+msgstr ""
+
+msgid "Bubák thumps and hides from %s. Too soon: he needs to trust people more first. (Trust went down a little.)"
 msgstr ""
 
 msgid "Test play! Everything is unlocked and you have 10000 coins. Nothing here touches your real game.\n\nSettings > Back to my game returns to it."
@@ -1185,6 +2367,144 @@ msgid "Welcome back! You were away %s.\n\nMeanwhile Bubák %s."
 msgstr ""
 
 msgid "He's looking at his empty bowls rather pointedly..."
+msgstr ""
+
+msgid "%s now feels %s with you."
+msgstr ""
+
+msgid "First photo posted: %s."
+msgstr ""
+
+msgid "A master's certificate: %s!"
+msgstr ""
+
+msgid "First ribbon at a show!"
+msgstr ""
+
+msgid "Christmas %s: a %s under the tree."
+msgstr ""
+
+msgid "Birthday %s: a %s, and lots of binkies."
+msgstr ""
+
+msgid "Easter %s: all the eggs found, and a %s."
+msgstr ""
+
+msgid "Halloween %s: a %s. Spooky!"
+msgstr ""
+
+msgid "%s years together! A present: %s."
+msgstr ""
+
+msgid "%s days of wishes come true in a row!"
+msgstr ""
+
+msgid "A favourite toy: %s."
+msgstr ""
+
+msgid "A favourite napping spot: %s."
+msgstr ""
+
+msgid "A favourite walk: %s."
+msgstr ""
+
+msgid "%s days together!"
+msgstr ""
+
+msgid "Bubák is a %s now: %s followers!"
+msgstr ""
+
+msgid "Every souvenir from the %s!"
+msgstr ""
+
+msgid "The whole souvenir collection: a cabinet full of memories!"
+msgstr ""
+
+msgid "First harvest from the veggie patch: %s!"
+msgstr ""
+
+msgid "A golden carrot from the veggie patch!"
+msgstr ""
+
+msgid "The yearly vaccination: brave bunny!"
+msgstr ""
+
+msgid "A perfect check-up at the vet: a healthy, happy bunny!"
+msgstr ""
+
+msgid "First walk together: %s."
+msgstr ""
+
+msgid "Every walk explored, from the park to the cinema!"
+msgstr ""
+
+msgid "%s moved in. Bubák has a friend!"
+msgstr ""
+
+msgid "The first toy loved to pieces: %s."
+msgstr ""
+
+msgid "%s came to stay as a foster bunny."
+msgstr ""
+
+msgid "%s went home at trust %s: into the Hall of Fame!"
+msgstr ""
+
+msgid "%s found a loving home. Thank you for fostering!"
+msgstr ""
+
+msgid "Bubák won the %s show league season!"
+msgstr ""
+
+msgid "%s daily stickers: another page of the sticker book!"
+msgstr ""
+
+msgid "%s: %s, and a find: %s."
+msgstr ""
+
+msgid "Dug up in the dig box: %s."
+msgstr ""
+
+msgid "Treasure! Buried in the flat all along: %s coins."
+msgstr ""
+
+msgid "The first postcard from an adoptive family: %s is doing great!"
+msgstr ""
+
+msgid "A new side of Bubák: %s (level %s)."
+msgstr ""
+
+msgid "A full page in the photo album: %s."
+msgstr ""
+
+msgid "The whole photo album, every moment caught on camera!"
+msgstr ""
+
+msgid "A new rival: %s, a champion from abroad."
+msgstr ""
+
+msgid "Bubák won a duel against %s!"
+msgstr ""
+
+msgid "Bubák won the Bunny Games %s!"
+msgstr ""
+
+msgid "The Bunny Games %s: Bubák came %s."
+msgstr ""
+
+msgid "Challenge done: %s!"
+msgstr ""
+
+msgid "Every door of the advent calendar %s opened!"
+msgstr ""
+
+msgid "The %s ladder, all the way to the top!"
+msgstr ""
+
+msgid "Bubák's book is out! A book signing, a queue round the block and %s new followers."
+msgstr ""
+
+msgid "%s from next door came to meet Bubák."
 msgstr ""
 
 msgid "Coat"
@@ -1223,7 +2543,52 @@ msgstr ""
 msgid "Bubák has had enough and hops off. Good job anyway!"
 msgstr ""
 
+msgid "Bubák's trust can't grow any more today. More tomorrow!"
+msgstr ""
+
+msgid "Wish granted! +%d coins. Bubák is delighted."
+msgstr ""
+
+msgid "%d days in a row! A bonus and some rose petals."
+msgstr ""
+
+msgid "Streak: %d"
+msgstr ""
+
 msgid "%s trusts you more: %s"
+msgstr ""
+
+msgid "Today's task done: %s. +%d coins"
+msgstr ""
+
+msgid "All of today's tasks done! A sticker for the calendar, +%d coins."
+msgstr ""
+
+msgid "A whole page of %d stickers: +%d coins and two hay cookies!"
+msgstr ""
+
+msgid "Bubák's personality is growing: %s, level %d!"
+msgstr ""
+
+msgid "Watch out for something new he does now."
+msgstr ""
+
+msgid "%s demands a rematch! A one-on-one duel: Club > Shows, within %d days."
+msgstr ""
+
+msgid "Challenge done: %s! +%d coins"
+msgstr ""
+
+msgid "Challenge over: %s didn't work out this time."
+msgstr ""
+
+msgid "The %s ladder: all the way to the top! A present: %s."
+msgstr ""
+
+msgid "The %s ladder: step %d of %d done!"
+msgstr ""
+
+msgid "A full page in the photo album: %s! +%d coins"
 msgstr ""
 
 msgid "Bubák is molting! Brush him often and pick up the fur he leaves around."
@@ -1239,6 +2604,15 @@ msgid "Coziness grows with furniture, toys and upgrades. Higher levels make Bub�
 msgstr ""
 
 msgid "Too cluttered right now (-%d)! Put a few things away in the toy chest by the desk."
+msgstr ""
+
+msgid "Granted! See you tomorrow for the next one."
+msgstr ""
+
+msgid "Grant it for coins. Every day in a row brings more."
+msgstr ""
+
+msgid "foster bunny"
 msgstr ""
 
 msgid "Bond"
@@ -1268,13 +2642,16 @@ msgstr ""
 msgid "Photo"
 msgstr ""
 
-msgid "Walk"
-msgstr ""
-
 msgid "Journal"
 msgstr ""
 
 msgid "Move"
+msgstr ""
+
+msgid "Hide"
+msgstr ""
+
+msgid "Show"
 msgstr ""
 
 msgid "No treats left. The shop has some!"
@@ -1305,6 +2682,9 @@ msgid "%s is in your arms! Cheek to cheek... now snap a selfie before the wriggl
 msgstr ""
 
 msgid "%s is getting wriggly. Back on the floor!"
+msgstr ""
+
+msgid "Wish: %s"
 msgstr ""
 
 msgid "Followers' attention: %s"
@@ -1376,6 +2756,9 @@ msgstr ""
 msgid "He now feels %s with you."
 msgstr ""
 
+msgid "The deepest bond a bunny can give. Weeks and weeks of care made this happen. He'll never forget it."
+msgstr ""
+
 msgid "He'll let you pick him up now! Drag him upwards (or tap Selfie in Photo mode) and snap a selfie together."
 msgstr ""
 
@@ -1400,6 +2783,9 @@ msgstr ""
 msgid "Owned"
 msgstr ""
 
+msgid "In use"
+msgstr ""
+
 msgid "Locked: needs %s trust + %d followers"
 msgstr ""
 
@@ -1409,10 +2795,16 @@ msgstr ""
 msgid "Installed"
 msgstr ""
 
+msgid "Use"
+msgstr ""
+
 msgid "Wardrobe"
 msgstr ""
 
 msgid "The balcony door is open! Bubák will pop out when he feels like it.\nTap the door to go out yourself."
+msgstr ""
+
+msgid "A whole new look: %s!"
 msgstr ""
 
 msgid "%s is in the room now. Use Move to arrange it."
@@ -1422,6 +2814,12 @@ msgid "Bought %s (x%d)!"
 msgstr ""
 
 msgid "Bought %s!"
+msgstr ""
+
+msgid "Days together: %d"
+msgstr ""
+
+msgid "Next surprise at %d days"
 msgstr ""
 
 msgid "Goals completed: %d of %d"
@@ -1436,6 +2834,18 @@ msgstr ""
 msgid "Discovered %d of %d"
 msgstr ""
 
+msgid "Needs: %s, out on the balcony"
+msgstr ""
+
+msgid "Needs: a summer heatwave"
+msgstr ""
+
+msgid "Needs: %s at level 3 (Journal > Bubák)"
+msgstr ""
+
+msgid "Needs: a foster bunny, and Bubák at %s"
+msgstr ""
+
 msgid "Needs: a trick with 2 stars"
 msgstr ""
 
@@ -1448,7 +2858,13 @@ msgstr ""
 msgid "Keep watching..."
 msgstr ""
 
+msgid "Photo challenges: %d of %d"
+msgstr ""
+
 msgid "No photos yet. Tap Photo and catch Bubák doing something cute!"
+msgstr ""
+
+msgid "No memories yet. Firsts go here: the first binky, the first walk, presents..."
 msgstr ""
 
 msgid "Bubák, a lilac-grey bunny with one perky ear and one floppy one."
@@ -1458,6 +2874,12 @@ msgid "Personality: cheeky, curious, very food-motivated."
 msgstr ""
 
 msgid "Day %d together"
+msgstr ""
+
+msgid "(played on %d days)"
+msgstr ""
+
+msgid "Birthday: %s"
 msgstr ""
 
 msgid "Trust: %s (%d%%)"
@@ -1493,7 +2915,118 @@ msgstr ""
 msgid "Ribbons: %d"
 msgstr ""
 
+msgid "Master's certificates: %s"
+msgstr ""
+
+msgid "Duels won: %d of %d"
+msgstr ""
+
+msgid "Souvenirs found: %d of %d"
+msgstr ""
+
+msgid "Favourite toy: %s"
+msgstr ""
+
+msgid "Favourite napping spot: %s"
+msgstr ""
+
+msgid "Favourite walk: %s"
+msgstr ""
+
+msgid "Wishes granted: %d (streak: %d)"
+msgstr ""
+
+msgid "Season: %s"
+msgstr ""
+
+msgid "(heatwave!)"
+msgstr ""
+
+msgid "Vaccination: overdue! No shows, walks or playdates until he's had it."
+msgstr ""
+
+msgid "Vaccination: due now, at the vet."
+msgstr ""
+
+msgid "Vaccination: next one in %d days"
+msgstr ""
+
+msgid "His nails are very long: he skids on the floor and does fewer binkies. Time for the clippers!"
+msgstr ""
+
+msgid "His coat is scruffy and matted: photos get fewer likes. A good brushing will fix it."
+msgstr ""
+
 msgid "Keep his weight just right: playtime, exercise toys and walks burn it off, and only lots of extra treats pile it on."
+msgstr ""
+
+msgid "Check-up at the vet"
+msgstr ""
+
+msgid "Next check-up in %d days"
+msgstr ""
+
+msgid "Personality: %s"
+msgstr ""
+
+msgid "Day %d at home with Bubák"
+msgstr ""
+
+msgid "Friendship with Bubák: %d%%"
+msgstr ""
+
+msgid "Warms up to people quickly."
+msgstr ""
+
+msgid "Takes a while to trust people."
+msgstr ""
+
+msgid "Gets used to people at an easy pace."
+msgstr ""
+
+msgid "Pet and play with %s too to build trust. The two bunnies grow closer just by living happily together."
+msgstr ""
+
+msgid "Today's tasks"
+msgstr ""
+
+msgid "+%d coins each. All three: a sticker and +%d. Every %d stickers fill a page: +%d."
+msgstr ""
+
+msgid "Stickers: %d"
+msgstr ""
+
+msgid "Photo album: %d of %d moments"
+msgstr ""
+
+msgid "Your best photo of each moment goes in its slot. A full page: +%d coins. The whole album: +%d."
+msgstr ""
+
+msgid "He becomes what you do together. Only his two strongest traits can grow all the way."
+msgstr ""
+
+msgid "(held back by his stronger traits)"
+msgstr ""
+
+msgid "Dug up in the dig box"
+msgstr ""
+
+msgid "Nothing yet. Bubák digs in the dig box (Shop > Toys), and sometimes he turns something up..."
+msgstr ""
+
+msgid "Look at the treasure map"
+msgstr ""
+
+msgid "Treasure map: %d of %d pieces"
+msgstr ""
+
+msgid "Hall of Fame"
+msgstr ""
+
+msgid "Let a foster bunny stay longer before they go home: at %s they get a silver frame, at %s a gold one, and the rescue thanks you more."
+msgstr ""
+
+msgid "On the fridge"
 msgstr ""
 
 msgid "Oops, missed him!"
@@ -1517,10 +3050,91 @@ msgstr ""
 msgid "Your followers have seen this one a lot lately."
 msgstr ""
 
+msgid "Photo challenge done: %s! +%d coins"
+msgstr ""
+
 msgid "Nice!"
 msgstr ""
 
 msgid "OK"
+msgstr ""
+
+msgid "%d days together!"
+msgstr ""
+
+msgid "Thank you for looking after Bubák all this time."
+msgstr ""
+
+msgid "+%d coins"
+msgstr ""
+
+msgid "A present you can't buy anywhere: %s!"
+msgstr ""
+
+msgid "New in the shop (Makeover): %s"
+msgstr ""
+
+msgid "Next surprise at %d days."
+msgstr ""
+
+msgid "Bubák is a %s!"
+msgstr ""
+
+msgid "Bubák: the bunny everyone's talking about"
+msgstr ""
+
+msgid "%d followers! Sponsors pay more now (+%d%%)."
+msgstr ""
+
+msgid "Your best photo made the cover of a magazine!"
+msgstr ""
+
+msgid "Wow!"
+msgstr ""
+
+msgid "Watered: growing three times faster."
+msgstr ""
+
+msgid "Plant something, water it, and pick it when it's ripe."
+msgstr ""
+
+msgid "Water"
+msgstr ""
+
+msgid "Golden seeds: %d. Plant one and wait a whole day for a golden carrot!"
+msgstr ""
+
+msgid "Empty bed"
+msgstr ""
+
+msgid "Pick"
+msgstr ""
+
+msgid "Picked: %d x %s. Into the treat bag!"
+msgstr ""
+
+msgid "Something glints in the soil: a golden seed!"
+msgstr ""
+
+msgid "Ripe in about %d min"
+msgstr ""
+
+msgid "Ripe in about %d h"
+msgstr ""
+
+msgid "The vet listens, looks and gently weighs everyone."
+msgstr ""
+
+msgid "All healthy! Here's a sticker and %d coins."
+msgstr ""
+
+msgid "Mostly fine. A few tips, and %d coins for coming in."
+msgstr ""
+
+msgid "And the yearly vaccination: a tiny pinch, a big treat. (-%d coins) See you next year!"
+msgstr ""
+
+msgid "Thank you, doctor!"
 msgstr ""
 
 msgid "Where shall we go today? A walk makes Bubák happy and brings you closer."
@@ -1539,6 +3153,18 @@ msgid "Walk with Bubák"
 msgstr ""
 
 msgid "%s: back home again. Bubák is beaming!"
+msgstr ""
+
+msgid "Bubák brought back another %s. Swapped for 10 coins."
+msgstr ""
+
+msgid "A souvenir from the walk: %s! (Walk > souvenirs)"
+msgstr ""
+
+msgid "A whole set from the %s! +%d coins"
+msgstr ""
+
+msgid "Every souvenir found! A souvenir cabinet for the flat."
 msgstr ""
 
 msgid "Language"
@@ -1679,6 +3305,438 @@ msgstr ""
 msgid "Later"
 msgstr ""
 
+msgid "This week the head judge loves %s (%s, +%d points)."
+msgstr ""
+
+msgid "Tricks routine:"
+msgstr ""
+
+msgid "Tap a slot to pick a trick. Longer routines and perfect tricks in a row score more. Leave it empty and he picks three himself."
+msgstr ""
+
+msgid "Agility: %d/100"
+msgstr ""
+
+msgid "Bars: jump in the gold zone. Double bars: the zone is shorter. Tunnels: don't jump, he runs through. Weave poles: tap as each pole reaches him. Each run uses a try of focus."
+msgstr ""
+
+msgid "Start a run"
+msgstr ""
+
+msgid "Daily course"
+msgstr ""
+
+msgid "Jump!"
+msgstr ""
+
+msgid "He needs Hop hurdles to practise on: they're in the Shop."
+msgstr ""
+
+msgid "Bubák has had enough training for now. Let him rest a bit."
+msgstr ""
+
+msgid "Today's course! Beat your best time: faults add %d seconds each."
+msgstr ""
+
+msgid "Go, go, go!"
+msgstr ""
+
+msgid "%d of %d cleared."
+msgstr ""
+
+msgid "Agility +%.1f"
+msgstr ""
+
+msgid "A new best for today!"
+msgstr ""
+
+msgid "Show league, season %s"
+msgstr ""
+
+msgid "Shows earn league points: %d / %d / %d / %d for 1st to 4th, twice that at the Regional show and four times at the National championship. The season ends with the month (%d days left)."
+msgstr ""
+
+msgid "nemesis"
+msgstr ""
+
+msgid "%d points"
+msgstr ""
+
+msgid "This month's nemesis is %s: finish above them for +%d coins. The winner gets %d coins and %d followers."
+msgstr ""
+
+msgid "Past seasons: %s"
+msgstr ""
+
+msgid "The league season is over!"
+msgstr ""
+
+msgid "Bubák finished in place %d of 6 with %d points."
+msgstr ""
+
+msgid "Bubák WON the league with %d points! Champion of the month!"
+msgstr ""
+
+msgid "+%d coins, +%d followers"
+msgstr ""
+
+msgid "And he beat his nemesis, %s! (bonus included)"
+msgstr ""
+
+msgid "His nemesis, %s, finished ahead. Next month!"
+msgstr ""
+
+msgid "A new season starts now."
+msgstr ""
+
+msgid "Hooray!"
+msgstr ""
+
+msgid "Foster bunnies"
+msgstr ""
+
+msgid "%s is staying with you. %s: %s"
+msgstr ""
+
+msgid "Trust: %s. A family can adopt them at %s."
+msgstr ""
+
+msgid "Bubák is helping: %s settles in faster with him around."
+msgstr ""
+
+msgid "Let the family adopt %s now"
+msgstr ""
+
+msgid "Take in %s"
+msgstr ""
+
+msgid "The rescue will have another bunny for you tomorrow."
+msgstr ""
+
+msgid "Found loving homes: %s"
+msgstr ""
+
+msgid "%s is here! Go slowly: %s"
+msgstr ""
+
+msgid "Pet them gently and offer treats. At %s, the rescue will find them a forever family."
+msgstr ""
+
+msgid "The rescue needs a foster home"
+msgstr ""
+
+msgid "%s needs somewhere calm to learn that people are kind. %s"
+msgstr ""
+
+msgid "Win their trust up to %s and the rescue will find them a forever family."
+msgstr ""
+
+msgid "Not now"
+msgstr ""
+
+msgid "Take them in"
+msgstr ""
+
+msgid "A family wants to adopt %s!"
+msgstr ""
+
+msgid "Thanks to you, %s isn't scared of people any more. A lovely family has come to take them home."
+msgstr ""
+
+msgid "The rescue sends their thanks: +%d coins, +%d followers."
+msgstr ""
+
+msgid "Or let them stay a while longer: the more they trust you when they go, the bigger the thanks, and at %s they join the Hall of Fame."
+msgstr ""
+
+msgid "A little longer"
+msgstr ""
+
+msgid "%s stays a bit longer. When you're ready: Journal > %s."
+msgstr ""
+
+msgid "Say goodbye"
+msgstr ""
+
+msgid "%s went home with their new family. Bubák watched from the window."
+msgstr ""
+
+msgid "They trusted you so much that they're in the Hall of Fame now!"
+msgstr ""
+
+msgid "The rescue will have another bunny who needs you tomorrow."
+msgstr ""
+
+msgid "A new rival: %s!"
+msgstr ""
+
+msgid "Now that Bubák is a national champion, the best bunnies in the world want to beat him. And the old rivals are training harder too."
+msgstr ""
+
+msgid "Bring it on!"
+msgstr ""
+
+msgid "Master's certificate!"
+msgstr ""
+
+msgid "Bubák has mastered %s, one of the hardest tricks there is. +%d coins"
+msgstr ""
+
+msgid "Duel: %s wants a rematch"
+msgstr ""
+
+msgid "One on one, %s. Win: +%d coins, +%d followers. Ends in %s."
+msgstr ""
+
+msgid "Accept"
+msgstr ""
+
+msgid "Every month, in its last %d days: four rounds (Best in Show, Tricks, Agility, Photogenic), one a day, against every rival at their very best. To qualify, earn %d league points at shows that month."
+msgstr ""
+
+msgid "Qualifying:"
+msgstr ""
+
+msgid "qualified!"
+msgstr ""
+
+msgid "This month's Games start on the %d."
+msgstr ""
+
+msgid "Standings: %s"
+msgstr ""
+
+msgid "Past Games: %s"
+msgstr ""
+
+msgid "Bubák finished %s overall with %d points."
+msgstr ""
+
+msgid "And the Bunny Games cup! It's in the flat now."
+msgstr ""
+
+msgid "The champion's prize: %d bags of special dried apples, made from the best apples in the world! Find them with the treats."
+msgstr ""
+
+msgid "Next month's Games: qualify again with league points."
+msgstr ""
+
+msgid "Bunny Games champion!"
+msgstr ""
+
+msgid "The Bunny Games are over"
+msgstr ""
+
+msgid "Challenge of the week"
+msgstr ""
+
+msgid "%d days left. Reward: %d coins."
+msgstr ""
+
+msgid "Days done: %d of %d"
+msgstr ""
+
+msgid "Done: %s. Well played!"
+msgstr ""
+
+msgid "This week's challenge is over."
+msgstr ""
+
+msgid "New challenges next week."
+msgstr ""
+
+msgid "Up for it? Pick one: it runs for 7 days."
+msgstr ""
+
+msgid "Take it"
+msgstr ""
+
+msgid "Challenge accepted: %s. Good luck!"
+msgstr ""
+
+msgid "The %s ladder"
+msgstr ""
+
+msgid "All the way to the top! A new ladder comes with the next season."
+msgstr ""
+
+msgid "Step %d: %s"
+msgstr ""
+
+msgid "Ten steps a season, one after another. At the top: %s."
+msgstr ""
+
+msgid "Published! It's on sale with the merch."
+msgstr ""
+
+msgid "Chapters written: %d of %d (%d ready to write). Big moments open new chapters."
+msgstr ""
+
+msgid "Open the book"
+msgstr ""
+
+msgid "Chapter %d"
+msgstr ""
+
+msgid "Write this chapter"
+msgstr ""
+
+msgid "+50 coins"
+msgstr ""
+
+msgid "This chapter hasn't happened yet."
+msgstr ""
+
+msgid "Publish the book (%d coins)"
+msgstr ""
+
+msgid "Bubák's book is out!"
+msgstr ""
+
+msgid "A book signing, a queue round the block, and +%d followers. It's on sale with the merch now, and a copy is in the flat."
+msgstr ""
+
+msgid "A door a day until Christmas Eve. Behind the last one: something to wear. Open all 24 for an extra surprise."
+msgstr ""
+
+msgid "Door %d: %s!"
+msgstr ""
+
+msgid "Every door opened! An extra present: %s."
+msgstr ""
+
+msgid "Advent calendar"
+msgstr ""
+
+msgid "Lovely!"
+msgstr ""
+
+msgid "Bubák is enjoying the season again. He found another little something: +150 coins and some rose petals."
+msgstr ""
+
+msgid "Found in %s!"
+msgstr ""
+
+msgid "Bubák found a %s. It's in his wardrobe now."
+msgstr ""
+
+msgid "Each season brings its own find, once a year. Keep an eye on the balcony!"
+msgstr ""
+
+msgid "Bubák dug up a piece of a treasure map! (%d of %d)"
+msgstr ""
+
+msgid "Bubák dug something up: %s!"
+msgstr ""
+
+msgid "(new for the collection)"
+msgstr ""
+
+msgid "A treasure map!"
+msgstr ""
+
+msgid "All the pieces fit together: it's the living room! Tap the spot marked X on the floor to dig up the treasure."
+msgstr ""
+
+msgid "Let's dig!"
+msgstr ""
+
+msgid "Treasure!"
+msgstr ""
+
+msgid "Right where the X was: %d gold coins!"
+msgstr ""
+
+msgid "And the chest itself: it's yours to keep, a treasure chest for the flat."
+msgstr ""
+
+msgid "And at the bottom, wrapped in a cloth: a golden carrot."
+msgstr ""
+
+msgid "Bubák is already digging for the next map."
+msgstr ""
+
+msgid "Ding dong!"
+msgstr ""
+
+msgid "%s from next door is at the door and would love to say hello to Bubák."
+msgstr ""
+
+msgid "A friendly visit is lovely for a bunny who trusts people. A shy one might get scared."
+msgstr ""
+
+msgid "Not today"
+msgstr ""
+
+msgid "Come in, gently!"
+msgstr ""
+
+msgid "A postcard from %s's family!"
+msgstr ""
+
+msgid "Pin it to the fridge"
+msgstr ""
+
+msgid "Love, %s and family"
+msgstr ""
+
+msgid "Fans want Bubák merch!"
+msgstr ""
+
+msgid "Bubák is famous enough for his own merch. Order stickers and mugs, put your best photo on them, and they sell by the hour, even while you're away.\n\nYou'll find it on the laptop."
+msgstr ""
+
+msgid "Let's see!"
+msgstr ""
+
+msgid "Sales waiting: %d coins"
+msgstr ""
+
+msgid "Collect"
+msgstr ""
+
+msgid "+%d coins from merch sales!"
+msgstr ""
+
+msgid "Earned so far: %d coins. Designs go stale after a few weeks: refresh them with a new photo."
+msgstr ""
+
+msgid "Bubák merch"
+msgstr ""
+
+msgid "Publish Bubák's book first (Journal > Memories)."
+msgstr ""
+
+msgid "Sells for %d coins  ·  a batch of %d costs %d"
+msgstr ""
+
+msgid "Out of stock"
+msgstr ""
+
+msgid "In stock: %d  ·  about %.1f sold a day"
+msgstr ""
+
+msgid "fresh design"
+msgstr ""
+
+msgid "design getting old"
+msgstr ""
+
+msgid "stale design: sells less"
+msgstr ""
+
+msgid "%d sold"
+msgstr ""
+
+msgid "Order %d (%d)"
+msgstr ""
+
+msgid "New design"
+msgstr ""
+
+msgid "New design: your latest best photo is on the %s now."
+msgstr ""
+
 msgid "Bubák seems a little lonely..."
 msgstr ""
 
@@ -1692,15 +3750,6 @@ msgid "These rabbits are looking for a home. Tap one to meet them."
 msgstr ""
 
 msgid "Bunny rescue"
-msgstr ""
-
-msgid "Warms up to people quickly."
-msgstr ""
-
-msgid "Takes a while to trust people."
-msgstr ""
-
-msgid "Gets used to people at an easy pace."
 msgstr ""
 
 msgid "Adopt for %d"
@@ -1727,7 +3776,10 @@ msgstr ""
 msgid "Photo likes +%d%%"
 msgstr ""
 
-msgid "Tap something to put it on. He can wear one thing in each place."
+msgid "Tap something to put it on. One thing in each place."
+msgstr ""
+
+msgid "There's one of each, so it moves from one bunny to the other."
 msgstr ""
 
 msgid "Nothing"
@@ -1736,7 +3788,7 @@ msgstr ""
 msgid "%s for %d coins: %s Tap again to buy it."
 msgstr ""
 
-msgid "New: %s! He's wearing it already."
+msgid "New: %s! %s has it on already."
 msgstr ""
 
 msgid "Toy chest"
@@ -1773,6 +3825,9 @@ msgid "Put away"
 msgstr ""
 
 msgid "Take out"
+msgstr ""
+
+msgid "worn %d%%"
 msgstr ""
 
 msgid "Not the ladybug!"
@@ -1832,16 +3887,25 @@ msgstr ""
 msgid "Whoops!"
 msgstr ""
 
-msgid "Perfect!"
+msgid "New pallet!"
 msgstr ""
 
-msgid "New pallet!"
+msgid "Bubák's yearly vaccination is due: Journal > Bubák > the vet."
+msgstr ""
+
+msgid "Bubák's vaccination is overdue: no shows, walks or playdates until he's had it (Journal > Bubák)."
+msgstr ""
+
+msgid "Bubák's weekly check-up at the vet is due: Journal > Bubák."
 msgstr ""
 
 msgid "No bunny came this time. The treat went back in the bag."
 msgstr ""
 
 msgid "A new charger arrived. Keep an eye on Bubák!"
+msgstr ""
+
+msgid "Bubák loved the %s to pieces! Get a new one in the Shop."
 msgstr ""
 
 msgid "The balcony"
@@ -1857,6 +3921,15 @@ msgid "%s is back inside."
 msgstr ""
 
 msgid "The whole branch is eaten! Time for a fresh one."
+msgstr ""
+
+msgid "Shoo! The cat strolls off along the windowsill."
+msgstr ""
+
+msgid "Boo!"
+msgstr ""
+
+msgid "Bubák isn't here. The present can wait!"
 msgstr ""
 
 msgid "The bowl is full."
@@ -1970,7 +4043,70 @@ msgstr ""
 msgid "You're out of those."
 msgstr ""
 
+msgid "Happy Easter! %d painted eggs are hidden around the flat. Can you find them?"
+msgstr ""
+
+msgid "Today's door of the advent calendar is waiting. Tap the calendar on the wall!"
+msgstr ""
+
+msgid "Happy birthday, Bubák! There's a present waiting. Tap it!"
+msgstr ""
+
+msgid "You met Bubák on this day! There's a present for him. Tap it!"
+msgstr ""
+
+msgid "All the eggs found! And look: a present for Bubák. Tap it!"
+msgstr ""
+
+msgid "Happy Halloween! There's a present by the pumpkin. Tap it!"
+msgstr ""
+
+msgid "Merry Christmas! There's a present for Bubák under the tree. Tap it!"
+msgstr ""
+
+msgid "Happy birthday, Bubák! In the present: %s. Pure joy!"
+msgstr ""
+
+msgid "The paper is in shreds! Inside: %s. Merry Christmas!"
+msgstr ""
+
+msgid "The paper is in shreds! Inside: %s."
+msgstr ""
+
 msgid "Uh oh! %s is nibbling the laptop cable! Tap to stop it."
+msgstr ""
+
+msgid "A thunderstorm! The bunnies are scared. Hold your finger on them to comfort them."
+msgstr ""
+
+msgid "The storm has passed. The sun peeks out again."
+msgstr ""
+
+msgid "Bubák wants to play hide and seek! He's hiding somewhere in the room. Can you find him?"
+msgstr ""
+
+msgid "The neighbour's cat is peeking in at the window! Bubák is not amused. Tap the window to shoo it."
+msgstr ""
+
+msgid "Knock knock! A friend dropped by with their bunny, %s. Playdate!"
+msgstr ""
+
+msgid "%s hops home. What a playdate! Bubák had a great time."
+msgstr ""
+
+msgid "The first thunderstorm. Bubák hid, trembling, until you came."
+msgstr ""
+
+msgid "The neighbour's cat came to stare. Bubák thumped at it!"
+msgstr ""
+
+msgid "%s came over for a playdate."
+msgstr ""
+
+msgid "Duel"
+msgstr ""
+
+msgid "Bunny Games"
 msgstr ""
 
 msgid "Judges' table"
@@ -1979,7 +4115,16 @@ msgstr ""
 msgid "Reward!"
 msgstr ""
 
+msgid "A rematch! %s against Bubák, one on one: %s."
+msgstr ""
+
+msgid "The Bunny Games! Every rival at their very best. This round: %s."
+msgstr ""
+
 msgid "Welcome to the %s! Today's category: %s."
+msgstr ""
+
+msgid "The head judge beams: just what they love, %s! (+%d)"
 msgstr ""
 
 msgid "Glossy coat! The judge nods."
@@ -2015,10 +4160,16 @@ msgstr ""
 msgid "The judges study your photo..."
 msgstr ""
 
+msgid "%s has been studying your routine... the same one as last time!"
+msgstr ""
+
 msgid "The judge asks for: %s!"
 msgstr ""
 
 msgid "Perfect! The crowd goes \"aww\"."
+msgstr ""
+
+msgid "Perfect! That's %d in a row, the crowd is on its feet!"
 msgstr ""
 
 msgid "He did it! The reward came a little late."
@@ -2033,6 +4184,18 @@ msgstr ""
 msgid "He got distracted. Happens to the best of us."
 msgstr ""
 
+msgid "Ready on the start line... tap Jump for the bars, stay low for tunnels, tap each weave pole!"
+msgstr ""
+
+msgid "Clear!"
+msgstr ""
+
+msgid "Fault!"
+msgstr ""
+
+msgid "A clear round!"
+msgstr ""
+
 msgid "The judges add up the scores..."
 msgstr ""
 
@@ -2045,9 +4208,6 @@ msgstr ""
 msgid "4th place. No ribbon this time."
 msgstr ""
 
-msgid "+%d coins, +%d followers"
-msgstr ""
-
 msgid "Tip: brush him, trim his nails and dress him up."
 msgstr ""
 
@@ -2057,10 +4217,37 @@ msgstr ""
 msgid "Tip: photos of rare moments get the most likes."
 msgstr ""
 
+msgid "Tip: practise in the Club's Agility tab; he gets more hang time."
+msgstr ""
+
+msgid "+%d league points"
+msgstr ""
+
 msgid "The %s is now open to Bubák!"
 msgstr ""
 
 msgid "Continue"
+msgstr ""
+
+msgid "Bubák wins the duel! +%d coins, +%d followers"
+msgstr ""
+
+msgid "%s wins the rematch this time. Next time!"
+msgstr ""
+
+msgid "Round %s: %s place."
+msgstr ""
+
+msgid "Overall: %s of %d (%d points)"
+msgstr ""
+
+msgid "That was the last round! The final standings are in."
+msgstr ""
+
+msgid "Rounds left: %d. One a day."
+msgstr ""
+
+msgid "five!"
 msgstr ""
 
 msgid "Now!"
@@ -2075,16 +4262,22 @@ msgstr ""
 msgid "Pick a trick. When Bubák pulls it off, a star pops up: tap Reward before the bar runs out! Don't reward him if he gets distracted."
 msgstr ""
 
+msgid "master's certificate"
+msgstr ""
+
+msgid "advanced"
+msgstr ""
+
 msgid "Practise"
 msgstr ""
 
 msgid "Teach"
 msgstr ""
 
-msgid "Bubák has had enough training for now. Let him rest a bit."
+msgid "\"Bubák... %s!\""
 msgstr ""
 
-msgid "\"Bubák... %s!\""
+msgid "Two moments to reward this time!"
 msgstr ""
 
 msgid "Perfect timing! He's getting it."
@@ -2213,6 +4406,9 @@ msgstr ""
 msgid "Pay: x%.2f"
 msgstr ""
 
+msgid "Stickers, mugs and more with your photos on them."
+msgstr ""
+
 msgid "Unlocks at: %s"
 msgstr ""
 
@@ -2220,6 +4416,9 @@ msgid "Boss's pick today: double XP!"
 msgstr ""
 
 msgid "Best: %d points"
+msgstr ""
+
+msgid "Done a lot lately: pay %d%%"
 msgstr ""
 
 msgid "Ready..."
@@ -2270,6 +4469,9 @@ msgstr ""
 msgid "(+%d%% for stars)"
 msgstr ""
 
+msgid "Same job again: pay %d%%. A break or a different job fixes that."
+msgstr ""
+
 msgid "+%d XP (boss's pick: doubled!)"
 msgstr ""
 
@@ -2297,7 +4499,13 @@ msgstr ""
 msgid "Behaviours"
 msgstr ""
 
+msgid "Album"
+msgstr ""
+
 msgid "Photos"
+msgstr ""
+
+msgid "Memories"
 msgstr ""
 
 msgid "Bubák"
@@ -2307,6 +4515,9 @@ msgid "Training"
 msgstr ""
 
 msgid "Shows"
+msgstr ""
+
+msgid "League"
 msgstr ""
 
 msgid "Trophies"
@@ -2336,6 +4547,45 @@ msgstr ""
 msgid "Neck"
 msgstr ""
 
+msgid "%d %s"
+msgstr ""
+
+msgid "January"
+msgstr ""
+
+msgid "February"
+msgstr ""
+
+msgid "March"
+msgstr ""
+
+msgid "April"
+msgstr ""
+
+msgid "May"
+msgstr ""
+
+msgid "June"
+msgstr ""
+
+msgid "July"
+msgstr ""
+
+msgid "August"
+msgstr ""
+
+msgid "September"
+msgstr ""
+
+msgid "October"
+msgstr ""
+
+msgid "November"
+msgstr ""
+
+msgid "December"
+msgstr ""
+
 msgid "Opens after %d walk"
 msgid_plural "Opens after %d walks"
 msgstr[0] ""
@@ -2348,6 +4598,11 @@ msgstr[1] ""
 
 msgid "used the litter box %d time"
 msgid_plural "used the litter box %d times"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Bubák missed you yesterday. Trust -%.1f: a close bond needs a visit every day."
+msgid_plural "Bubák missed you for %d days. Trust -%.1f: a close bond needs a visit every day."
 msgstr[0] ""
 msgstr[1] ""
 
@@ -2381,6 +4636,11 @@ msgid_plural "%d saves"
 msgstr[0] ""
 msgstr[1] ""
 
+msgid "An egg! %d more to find."
+msgid_plural "An egg! %d more to find."
+msgstr[0] ""
+msgstr[1] ""
+
 msgid "%d like! The judges are charmed."
 msgid_plural "%d likes! The judges are charmed."
 msgstr[0] ""
@@ -2388,5 +4648,10 @@ msgstr[1] ""
 
 msgid "%d like. Sweet, but they've seen cuter."
 msgid_plural "%d likes. Sweet, but they've seen cuter."
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "%d fault."
+msgid_plural "%d faults."
 msgstr[0] ""
 msgstr[1] ""

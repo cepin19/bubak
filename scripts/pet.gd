@@ -4,6 +4,7 @@ extends RefCounted
 ## Bubák is Game.pets[0]; a mate can join him late in the game.
 
 signal trust_level_up(level: int)
+signal trust_day_full   # today's trust maximum was just reached
 
 const FOOD_DECAY := 1.1
 const WATER_DECAY := 1.4
@@ -25,13 +26,27 @@ var weight := -1.0            # grams (set to his ideal weight on first use)
 var trust_day := ""          # the day trust_today and treats_today count
 var trust_today := 0.0
 var treats_today := 0
+var pet_trust_at := 0.0     # when a petting session last built trust (unix time)
+var adopted_at := 0.0         # a friend: when they moved in
+var nickname := ""            # a visiting bunny's name (not one of the rescue's)
 
 
 func is_bubak() -> bool:
 	return id == "bubak"
 
 
+func is_foster() -> bool:
+	return Catalog.FOSTERS.has(id)
+
+
+## A foster bunny's quirk ("" for everyone else).
+func quirk() -> String:
+	return Catalog.FOSTERS[id].quirk if is_foster() else ""
+
+
 func display_name() -> String:
+	if nickname != "":
+		return nickname
 	return "Bubák" if is_bubak() else Catalog.mate_name(id)
 
 
@@ -76,7 +91,7 @@ func mood(cozy := -1) -> float:
 
 ## Some rabbits warm up to people faster than others.
 func trust_rate() -> float:
-	return 1.0 if is_bubak() else Catalog.MATES[id].get("trust_rate", 1.0)
+	return 1.0 if is_bubak() else Catalog.rabbit(id).get("trust_rate", 1.0)
 
 
 func trust_level() -> int:
@@ -93,14 +108,28 @@ func trust_progress() -> float:
 
 
 ## Trust gained (positive amounts) comes slower at higher levels and after a lot of bonding today.
-## daily = false: a special treat (a walk) that the daily limit doesn't slow down.
+## daily = false: a special treat (a walk) that the daily slowdown doesn't affect (the daily maximum still does).
 func add_trust(amount: float, daily := true) -> void:
+	if amount > 0 and is_foster() and Game.mentor_active():
+		amount *= Catalog.MENTOR_RATE   # Bubák shows them there's nothing to be afraid of
 	if amount > 0 and not Game.test_mode and not Game.fast_game:
 		_new_day()
-		amount *= Catalog.TRUST_PACE[trust_level()] / (1.0 + (trust_today / Catalog.TRUST_DAILY if daily else 0.0))
+		var lvl := trust_level()
+		amount *= Catalog.TRUST_PACE[lvl] / (1.0 + (trust_today / Catalog.TRUST_DAILY if daily else 0.0))
+		var room: float = Catalog.TRUST_DAY_MAX[lvl] - trust_today
+		if room <= 0.0:
+			return
+		if amount >= room:
+			amount = room
+			trust_day_full.emit()
 		trust_today += amount
 	trust = clampf(trust + amount, 0, 100)
 	settle_level(true)
+
+
+## Seconds until petting builds trust again (0 when it does now).
+func pet_trust_wait() -> float:
+	return maxf(0.0, pet_trust_at + Catalog.PET_TRUST_EVERY - Time.get_unix_time_from_system())
 
 
 ## Remembers the trust level; with notify, says so when it went up.
@@ -127,7 +156,7 @@ func _new_day() -> void:
 
 
 func ideal_weight() -> float:
-	return Catalog.IDEAL_WEIGHT if is_bubak() else float(Catalog.MATES[id].get("weight", Catalog.IDEAL_WEIGHT))
+	return Catalog.IDEAL_WEIGHT if is_bubak() else float(Catalog.rabbit(id).get("weight", Catalog.IDEAL_WEIGHT))
 
 
 func weight_band() -> int:
@@ -164,7 +193,8 @@ func add_need(need: String, amount: float) -> void:
 
 func to_dict() -> Dictionary:
 	return {"id": id, "needs": needs, "energy": energy, "bladder": bladder, "sugar": sugar, "trust": trust, "weight": weight,
-		"trust_day": trust_day, "trust_today": trust_today, "treats_today": treats_today}
+		"trust_day": trust_day, "trust_today": trust_today, "treats_today": treats_today,
+		"adopted_at": adopted_at, "pet_trust_at": pet_trust_at}
 
 
 static func from_dict(d: Dictionary) -> Pet:
@@ -182,4 +212,6 @@ static func from_dict(d: Dictionary) -> Pet:
 	p.trust_day = str(d.get("trust_day", ""))
 	p.trust_today = float(d.get("trust_today", 0))
 	p.treats_today = int(d.get("treats_today", 0))
+	p.adopted_at = float(d.get("adopted_at", 0))
+	p.pet_trust_at = float(d.get("pet_trust_at", 0))
 	return p

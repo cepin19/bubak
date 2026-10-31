@@ -8,7 +8,10 @@ signal cable_alert(active: bool)
 const HOP_TIME := 0.34
 const AIR_PART := 0.72        # share of a hop cycle spent in the air
 ## Activities that make him sparkle: the rare, valuable photo moments.
-const RARE := ["binky", "zoomies", "flop", "bonk", "beg", "bowl_flip", "show_off", "snuggle", "bird_friend"]
+const RARE := ["binky", "zoomies", "flop", "bonk", "beg", "bowl_flip", "show_off", "snuggle", "bird_friend", "circle",
+	"leaf_pile", "snow_sniff", "petal_chase", "parkour", "pose", "inspect", "big_brother"]
+## The seasons' moments: the first each season brings a find (Game.season_moment).
+const SEASONAL := ["petal_chase", "melt", "leaf_pile", "snow_sniff"]
 const BEHAVIOUR_OF := {
 	"idle": "idle", "wander": "hop", "eat_bowl": "nom", "eat_hay": "munch", "drink": "drink",
 	"potty": "potty", "loaf": "loaf", "groom": "groom", "play_ball": "ball", "hide_box": "hide",
@@ -19,7 +22,10 @@ const BEHAVIOUR_OF := {
 	"held": "selfie", "door": "hop", "sunbathe": "sunbathe", "bird_watch": "bird_watch",
 	"herb_thief": "herb_thief", "dig": "dig", "forage": "forage", "castle": "castle",
 	"show_off": "show_off", "snuggle": "snuggle", "graze": "graze", "lookout": "lookout", "chill": "chill",
-	"bird_friend": "bird_friend", "butterfly": "butterfly",
+	"bird_friend": "bird_friend", "butterfly": "butterfly", "unwrap": "present", "tree_gaze": "xmas_tree",
+	"circle": "circle", "petal_chase": "petal_chase", "melt": "melt", "leaf_pile": "leaf_pile", "snow_sniff": "snow_sniff",
+	"hide_seek": "peekaboo", "parkour": "parkour", "pose": "pose", "inspect": "inspect", "big_brother": "big_brother",
+	"storm_hide": "loaf",
 }
 ## What the other bunny can be doing and still be up for a snuggle.
 const SNUGGLY := ["idle", "loaf", "groom", "sunbathe", "snuggle", "chill"]
@@ -34,14 +40,18 @@ const EAR_ANGLE := {"sit": -12, "blink": -12, "hop": -35, "loaf": -48, "sleep": 
 ## Where each accessory sits relative to the head, and the sprite's own offset.
 const WEAR_ANCHOR := {
 	"beanie": [Vector2(-4, -26), Vector2(0, -10)], "crown": [Vector2(-2, -32), Vector2(0, -10)],
-	"tophat": [Vector2(4, -36), Vector2(0, -24)],
+	"tophat": [Vector2(4, -36), Vector2(0, -24)], "party_hat": [Vector2(2, -36), Vector2(0, -26)],
+	"witch_hat": [Vector2(2, -34), Vector2(0, -24)], "gold_crown": [Vector2(-2, -32), Vector2(0, -12)],
+	"gold_bowtie": [Vector2(0, 36), Vector2.ZERO],
 	# ear clips: up along the perky ear from its base (they move with it)
 	"bow": [Vector2(0, -44), Vector2.ZERO], "daisy": [Vector2(0, -44), Vector2.ZERO],
 	"starclip": [Vector2(0, -44), Vector2.ZERO],
 	"glasses": [Vector2(14, -4), Vector2(-13, 0)], "sunglasses": [Vector2(14, -4), Vector2(-13, 0)],
 	"heartglasses": [Vector2(14, -4), Vector2(-13, 0)],
 	"bandana": [Vector2(-8, 32), Vector2(0, 10)], "bowtie": [Vector2(0, 36), Vector2.ZERO],
-	"pearls": [Vector2(-8, 32), Vector2(0, 6)]}
+	"pearls": [Vector2(-8, 32), Vector2(0, 6)],
+	"blossom": [Vector2(0, -44), Vector2.ZERO], "snowflake": [Vector2(0, -44), Vector2.ZERO],
+	"straw_hat": [Vector2(-2, -28), Vector2(0, -10)], "santa_hat": [Vector2(2, -34), Vector2(0, -24)], "scarf": [Vector2(-8, 32), Vector2(0, 10)]}
 
 var room: Node   # main.gd: finds items, spawns effects, tells the time
 var pet: Pet = Game.bubak   # whose needs and trust this bunny lives by
@@ -88,10 +98,13 @@ var _blink_t := 3.0
 var _taps: Array = []
 var _pet_time := 0.0
 var _pet_fatigue := 0.0
+var _pet_bonds := false   # this petting session builds trust (once an hour)
+var _pet_told := -1000.0  # when the "once an hour" hint was last shown
 var _hearts_t := 0.0
 var _flashes: Array = []   # when he was last photographed (seconds, _now())
 var _camera_shy_until := 0.0
 var _treat_joy := false    # just had his favourite treat: a binky comes next
+var calmed := false        # comforted in this storm: no more hiding
 
 
 func _ready() -> void:
@@ -145,9 +158,14 @@ static func wear_transform(p: String, wear: String) -> Array:
 	return [head + (a[0] as Vector2).rotated(rot), rot, a[1]]
 
 
-## Only Bubák dresses up.
+## Bubák or his friend: they learn, groom and grow a personality (fosters are only passing through).
+func _own() -> bool:
+	return pet.is_bubak() or pet == Game.mate
+
+
+## Bubák and his friend dress up; fosters don't.
 func _wearing() -> Dictionary:
-	return Game.wearing if pet.is_bubak() else {}
+	return Game.wearing_of(pet)
 
 
 func _place_wear() -> void:
@@ -223,6 +241,16 @@ func _arrive() -> void:
 		data.laps -= 1
 		target = _random_point()
 		return
+	if act in ["petal_chase", "inspect"] and data.get("laps", 0) > 0:   # another petal / another corner to sniff
+		data.laps -= 1
+		target = _clamp(position + Vector2(randf_range(-220, 220), randf_range(-60, 60)))
+		if act == "inspect":
+			emote_text(tr("sniff sniff"))
+		else:
+			_boing()
+			for i in 3:
+				room.spawn_fx("paper", position + Vector2(randf_range(-40, 40), -90), "#f6c1d0")
+		return
 	if act == "butterfly" and data.get("laps", 0) > 0:   # it flitted off again: after it!
 		data.laps -= 1
 		target = _clamp(position + Vector2(randf_range(-260, 260), randf_range(-70, 70)))
@@ -256,6 +284,16 @@ func _perform(delta: float) -> void:
 				act_t = 0
 		"eat_bowl", "eat_hay", "chew_toy", "eat_hand", "drink", "forage", "graze":
 			body.position.y = absf(sin(act_t * 14.0)) * 2.5
+		"unwrap":
+			body.position.y = absf(sin(act_t * 18.0)) * 4.0
+			_fx_t -= delta
+			if _fx_t <= 0 and is_instance_valid(item):
+				_fx_t = 0.09
+				item.wiggle(0.8)
+				room.spawn_fx("paper", item.position + Vector2(randf_range(-30, 30), -item.size().y * randf_range(0.3, 0.9)),
+					"#d9534f" if Game.special_day() != "birthday" else "#8fb8e0")
+				if randf() < 0.12:
+					Sfx.play("rip")
 		"dig":
 			body.position.y = absf(sin(act_t * 22.0)) * 4.0
 			_fx_t -= delta
@@ -358,7 +396,7 @@ func start(name: String, it: Node2D = null, at = null) -> void:
 ## Sounds when he starts doing something (only heard in the room you're looking at).
 const ACT_SOUND := {"binky": "boing", "thump": "thump", "eat_bowl": "munch", "eat_hay": "munch", "graze": "munch",
 	"chew_toy": "munch", "chew_cable": "munch", "herb_thief": "munch", "drink": "lap", "bowl_flip": "ball", "roll_feeder": "ball",
-	"bonk": "love", "bird_friend": "chirp", "flop": "hop"}
+	"bonk": "love", "bird_friend": "chirp", "flop": "hop", "circle": "love", "leaf_pile": "rip", "big_brother": "love"}
 
 
 func _begin() -> void:
@@ -367,7 +405,10 @@ func _begin() -> void:
 	if act == "snuggle" and (item == null or item.position.distance_to(position) > 150 or not item.act in SNUGGLY):
 		act = "idle"   # the other one wandered off
 	var b: String = BEHAVIOUR_OF.get(act, "")
-	if b != "" and b != "chew_cable":
+	if b in SEASONAL:
+		Game.stats.seasonal = Game.stats.get("seasonal", 0) + 1
+		Game.season_moment(b)
+	elif b != "" and not b in ["chew_cable", "present", "xmas_tree", "peekaboo"]:   # these only come on special days (or when found)
 		Game.discover(b)
 	if act in RARE:
 		rare = true
@@ -440,6 +481,23 @@ func _begin() -> void:
 			_tw.tween_callback(_set_pose.bind("sit"))
 			_tw.tween_property(self, "squash", Vector2(1.15, 0.85), 0.07)
 			_tw.tween_property(self, "squash", Vector2.ONE, 0.18).set_trans(Tween.TRANS_BACK)
+		"tree_gaze":   # up on his hind legs, gazing at the Christmas tree
+			act_t = randf_range(5, 8)
+			_face(item)
+			_set_pose("stand")
+			rare = true
+			_fx_t = 0.5
+			if randf() < 0.5:
+				emote("heart")
+		"unwrap":   # nose in, paws in, and the paper flies
+			act_t = 2.8
+			_face(item)
+			_set_pose("eat")
+			emote("!")
+			Sfx.play("rip")
+			_tw = create_tween().set_loops(8)
+			_tw.tween_property(self, "twist", -0.14, 0.17)
+			_tw.tween_property(self, "twist", 0.08, 0.17)
 		"hide_box":
 			act_t = randf_range(6, 10)
 			hidden_inside = true
@@ -505,6 +563,31 @@ func _begin() -> void:
 			t.tween_property(item.sprite, "rotation", -0.7, 0.12)
 			t.tween_property(item.sprite, "rotation", 0.0, 0.5).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
 			emote("!")
+		"greet":   # you're back! up on his hind legs, a big nose boop at the screen, then a binky
+			act_t = 2.2
+			facing = 1.0 if position.x < room.camera.position.x else -1.0
+			_set_pose("stand")
+			Sfx.play("love")
+			_tw = create_tween()
+			_tw.tween_interval(0.5)
+			_tw.tween_property(self, "squash", Vector2(1.35, 1.35), 0.14)
+			_tw.tween_callback(emote_text.bind(tr("boop!")))
+			_tw.tween_callback(emote.bind("heart"))
+			_tw.tween_property(self, "squash", Vector2.ONE, 0.3).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+			_tw.tween_callback(emote.bind("heart"))
+			_treat_joy = pet.trust_level() >= 2   # and a happy binky
+		"circle":
+			# laps around your feet, honking: rabbit for "you're the best"
+			act_t = 2.8
+			_set_pose("hop")
+			var c := position + Vector2(0, -26)
+			_tw = create_tween()
+			_tw.tween_method(func(a: float):
+				position = c + Vector2(sin(a) * 80.0, cos(a) * 26.0)
+				facing = 1.0 if cos(a) > 0 else -1.0, 0.0, TAU * 2.0, 2.4)
+			_tw.tween_callback(_set_pose.bind("sit"))
+			emote_text(tr("honk honk!"))
+			emote("heart")
 		"bonk":
 			act_t = 1.4
 			_set_pose("sit")
@@ -599,7 +682,7 @@ func _begin() -> void:
 			Game.bond = minf(100, Game.bond + 3)
 		"show_off":   # a trick he's good at, unasked
 			act_t = 1.8
-			var known: Array = ["stand", "spin"].filter(func(id): return Game.trick_stars(id) >= 2)
+			var known: Array = ["stand", "spin"].filter(func(id): return Game.trick_stars(id, pet) >= 2)
 			match (known + ["jump"]).pick_random():
 				"stand":
 					_set_pose("stand")
@@ -619,6 +702,95 @@ func _begin() -> void:
 					_tw.tween_property(self, "air", 0.0, 0.25).set_ease(Tween.EASE_IN)
 					_tw.tween_callback(_set_pose.bind("sit"))
 			emote("star")
+		"petal_chase":
+			act_t = 1.6
+			_set_pose("stand")
+			emote("heart")
+		"melt":   # too hot: flat out on the cool floor
+			act_t = randf_range(12, 18)
+			_set_pose("flop")
+			squash = Vector2(1.12, 0.88)
+		"leaf_pile":   # a running jump into the crunchy leaves
+			act_t = 3.2
+			_face(item)
+			_set_pose("hop")
+			_tw = create_tween()
+			_tw.tween_property(self, "air", 60.0, 0.25).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
+			_tw.tween_property(self, "air", 0.0, 0.25).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+			_tw.tween_callback(func():
+				_set_pose("loaf")
+				if is_instance_valid(item):
+					item.wiggle(1.4)
+				for i in 10:
+					room.spawn_fx("paper", position + Vector2(randf_range(-50, 50), -30), ["#d9822b", "#c8562e", "#e8b04a", "#9a5b2e"].pick_random()))
+			_tw.tween_interval(1.4)
+			_tw.tween_callback(func(): emote("heart"))
+		"snow_sniff":   # sniff, sniff... achoo! and a good ear shake
+			act_t = 3.6
+			_set_pose("eat")
+			_tw = create_tween()
+			_tw.tween_interval(1.6)
+			_tw.tween_callback(func():
+				_set_pose("sit")
+				emote_text(tr("achoo!")))
+			for i in 3:
+				_tw.tween_property(self, "twist", -0.15, 0.08)
+				_tw.tween_property(self, "twist", 0.15, 0.08)
+			_tw.tween_property(self, "twist", 0.0, 0.08)
+		"parkour":   # up onto the sofa, along the seat and off the far end in one big leap
+			act_t = 2.8
+			facing = 1.0
+			_set_pose("hop")
+			_tw = create_tween()
+			_tw.tween_property(self, "lift", 64.0, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			_tw.tween_property(self, "position:x", position.x + 190.0, 0.9)
+			_tw.tween_property(self, "air", 70.0, 0.22).set_ease(Tween.EASE_OUT)
+			_tw.parallel().tween_property(self, "twist", -0.4, 0.22)
+			_tw.tween_property(self, "lift", 0.0, 0.3).set_ease(Tween.EASE_IN)
+			_tw.parallel().tween_property(self, "air", 0.0, 0.3).set_ease(Tween.EASE_IN)
+			_tw.parallel().tween_property(self, "position:x", position.x + 300.0, 0.3)
+			_tw.parallel().tween_property(self, "twist", 0.0, 0.3)
+			_tw.tween_callback(_set_pose.bind("sit"))
+			_tw.tween_property(self, "squash", Vector2(1.2, 0.8), 0.07)
+			_tw.tween_property(self, "squash", Vector2.ONE, 0.18).set_trans(Tween.TRANS_BACK)
+			emote("star")
+		"inspect":
+			act_t = 2.4
+			_set_pose("eat")
+			emote("!")
+		"pose":   # chin up, best side to the camera
+			act_t = 4.0
+			facing = 1.0 if position.x < room.camera.position.x else -1.0
+			_set_pose("stand")
+			_tw = create_tween().set_loops(2)
+			_tw.tween_property(self, "twist", -0.08 * facing, 0.4)
+			_tw.tween_property(self, "twist", 0.0, 0.4)
+			emote("star")
+		"big_brother":   # sits by the foster bunny and washes their ears
+			if item == null or not is_instance_valid(item) or item.position.distance_to(position) > 150 or item.hidden_inside:
+				act = "idle"
+				act_t = 1.0
+				return
+			act_t = 6.0
+			_face(item)
+			_set_pose("eat")
+			item.join_snuggle(self, act_t)
+			item.pet.add_trust(0.6)
+			_tw = create_tween().set_loops(8)
+			_tw.tween_property(self, "twist", -0.1, 0.18)
+			_tw.tween_property(self, "twist", 0.06, 0.18)
+			Game.remember("big_brother", "Bubák groomed %s: you're safe here.", [item.pet.display_name()])
+		"hide_seek":   # tucked in behind the furniture: only his ears give him away
+			act_t = Catalog.HIDE_SEEK_TIME
+			_set_pose("loaf")
+			pivot.visible = false
+			room.show_peek_ears(self, true)
+		"storm_hide":   # trembling until the thunder stops
+			act_t = 999.0
+			_set_pose("loaf")
+			_tw = create_tween().set_loops()
+			_tw.tween_property(self, "squash", Vector2(0.96, 1.03), 0.06)
+			_tw.tween_property(self, "squash", Vector2.ONE, 0.06)
 		"approach_hand":
 			if not room.hand_active():
 				act = "idle"
@@ -628,9 +800,25 @@ func _begin() -> void:
 			_eat_from_hand()
 
 
+## Acts that use a toy: playing with one counts towards favourites and wishes.
+const TOY_ACTS := ["play_ball", "roll_feeder", "hide_box", "tunnel", "dig", "forage", "castle", "hurdles", "chew_toy"]
+
+
 func _finish() -> void:
 	var done := act
 	pet.burn(Catalog.EXERCISE.get(done, 0.0))
+	if pet.is_bubak() and done in TOY_ACTS and is_instance_valid(item) and item.get("uid") != null and item.uid != 0:
+		Game.note_fav("toy", item.id)
+		Game.wish_event("toy", item.id)
+	if pet.is_bubak() and done == "sleep" and is_instance_valid(item) and Catalog.ITEMS.has(item.id):
+		Game.note_fav("nap", item.id)
+	if (done in TOY_ACTS or done in ["sleep", "lookout"]) and is_instance_valid(item) and item.get("uid") != null and item.uid != 0:
+		Game.wear_item(item.uid)   # every use wears it a little
+	if _own():   # what they do shapes who they become
+		match done:
+			"hurdles", "zoomies", "binky", "parkour": Game.add_trait("athlete", 0.5, pet)
+			"snuggle": Game.add_trait("cuddler", 0.5, pet)
+			"inspect", "leaf_pile", "snow_sniff", "petal_chase": Game.add_trait("explorer", 0.5, pet)
 	match done:
 		"eat_bowl":
 			if not data.get("fail", false):
@@ -690,6 +878,8 @@ func _finish() -> void:
 			pet.add_need("fun", 6)
 		"dig":
 			pet.add_need("fun", 12)
+			if pet.is_bubak() and not Game.dig_find().is_empty():
+				emote("!")
 		"forage":
 			pet.add_need("fun", 12)
 			pet.add_need("food", 5)
@@ -700,14 +890,20 @@ func _finish() -> void:
 		"door":
 			var to := "balcony" if room_id == "living" else "living"
 			room_id = to
+			if to == "balcony" and pet.is_bubak():
+				Game.wish_event("balcony")
 			position = _clamp(room.door_of(to).use_point(position))
 			facing = -1.0 if to == "balcony" else 1.0
 			if to == "balcony":
 				_outside_since = _now()
-				_visit_length = randf_range(90, 200)
+				_visit_length = randf_range(90, 200) * (1.0 + 0.2 * Game.trait_level("explorer", pet))
 				Game.discover("balcony")
+				if _own():
+					Game.add_trait("explorer", 0.5, pet)
 			room.on_bunny_room_changed(self, to)
 			_boing()
+		"tree_gaze":
+			pet.add_need("fun", 5)
 		"sunbathe":
 			pet.add_need("fun", 6)
 			pet.energy = minf(100, pet.energy + 6)
@@ -742,6 +938,23 @@ func _finish() -> void:
 			Game.herbs = maxf(0, Game.herbs - 25)
 			pet.add_need("food", 10)
 			pet.add_need("fun", 5)
+		"unwrap":
+			if is_instance_valid(item):
+				item.remove_meta("opening")
+			_end_current()
+			if room.open_present(self):
+				return
+			_choose_next()
+			return
+		"melt":
+			pet.energy = minf(100, pet.energy + 5)
+		"leaf_pile", "snow_sniff", "petal_chase", "parkour", "inspect", "pose":
+			pet.add_need("fun", 10)
+		"big_brother":
+			pet.add_need("fun", 6)
+		"hide_seek":   # nobody came looking: out he comes
+			emote("?")
+			message.emit(tr("%s got bored of hiding and hopped out. Next time, find him first!") % pet.display_name())
 		"thump":
 			var box = room.find_item("box", room_id)
 			if box:
@@ -768,8 +981,13 @@ func _end_current() -> void:
 		pet.in_bed = false
 	if act == "chew_cable":
 		cable_alert.emit(false)
+	if act == "unwrap" and is_instance_valid(item):   # interrupted: the present waits for later
+		item.remove_meta("opening")
 	if act in ["hide_box", "tunnel", "held", "door"]:
 		hidden_inside = false
+	if act == "hide_seek":
+		pivot.visible = true
+		room.show_peek_ears(self, false)
 
 
 func _choose_next() -> void:
@@ -794,8 +1012,15 @@ func _choose_next() -> void:
 	# The balcony is for fun; food, water and the litter box are inside.
 	var parasol = room.find_item("parasol", "balcony")
 	if outside and (n.food < 45 or n.water < 45 or pet.bladder >= 85 or (pet.energy < 30 and parasol == null)
-			or Game.balcony != "open" or _now() - _outside_since > _visit_length):
+			or Game.balcony != "open" or _now() - _outside_since > _visit_length or room.storm_t > 0):
 		start("door", room.door_of("balcony"))
+		return
+	if room.storm_t > 0 and not calmed and not outside:   # thunder! somewhere to hide
+		var den = room.find_item("hut", room_id)
+		if den == null:
+			den = room.find_item("teepee", room_id)
+		start("storm_hide", null, den.use_point(position) if den else Vector2(randf_range(300, 520), 520))
+		speed = 300.0
 		return
 
 	var opts := {}   # activity -> [weight, item]
@@ -804,7 +1029,8 @@ func _choose_next() -> void:
 		if pet.energy < 30 or (sleepy_time and pet.energy < 45):
 			var bed = room.find_item("bed", room_id)
 			var tent = room.find_item("teepee", room_id)
-			if tent and (bed == null or randf() < 0.5):
+			if tent and (bed == null or randf() < (0.85 if Game.favourites.get("nap", "") == "teepee" else
+					0.15 if Game.favourites.get("nap", "") == "bed" else 0.5)):
 				bed = tent
 			opts.sleep = [90.0 if pet.energy < 15 else 30.0, bed]
 		var bowl = room.find_item("bowl", room_id)
@@ -849,10 +1075,10 @@ func _choose_next() -> void:
 			opts.butterfly = [8.0, null]
 	for toy in [["ball", "play_ball"], ["box", "hide_box"], ["hut", "hide_box"], ["tunnel", "tunnel"],
 			["branch", "chew_toy"], ["digbox", "dig"], ["puzzle", "forage"], ["castle", "castle"],
-			["hurdles", "hurdles"], ["treat_ball", "roll_feeder"]]:
+			["hurdles", "hurdles"], ["treat_ball", "roll_feeder"], ["jingle_ball", "play_ball"], ["egg_rattle", "play_ball"]]:
 		var it = room.find_item(toy[0], room_id)
-		if it and (not opts.has(toy[1]) or randf() < 0.5):
-			opts[toy[1]] = [(100 - n.fun) * 0.45 + 5, it]
+		if it and (not opts.has(toy[1]) or randf() < 0.5 or (pet.is_bubak() and Game.favourites.get("toy", "") == toy[0])):
+			opts[toy[1]] = [((100 - n.fun) * 0.45 + 5) * (1.6 if pet.is_bubak() and Game.favourites.get("toy", "") == toy[0] else 1.0), it]
 	if opts.has("chew_toy"):
 		opts.chew_toy[0] += (100 - n.food) * 0.4   # branches are food too
 	opts.wander = [26.0, null]
@@ -870,14 +1096,48 @@ func _choose_next() -> void:
 	for ex in ["hurdles", "roll_feeder", "tunnel", "play_ball"]:
 		if opts.has(ex) and pet.weight_band() >= 3:
 			opts[ex][0] *= 1.5
-	if pet.is_bubak() and mood > 55 and Catalog.TRICK_ORDER.any(func(id): return Game.trick_stars(id) >= 2):
+	if _own() and mood > 55 and Catalog.TRICK_ORDER.any(func(id): return Game.trick_stars(id, pet) >= 2):
 		opts.show_off = [5.0, null]
+	if not outside and room.xmas_tree:   # the lights! the baubles!
+		opts.tree_gaze = [7.0, room.xmas_tree]
+	if room.pumpkin and not daytime:   # Halloween night: what was that noise?!
+		opts.spooked = [4.0, null]
 	if partner and Game.bond >= 30 and partner.room_id == room_id and partner.phase == 1 and partner.act in SNUGGLY \
 			and not partner.hidden_inside:
 		opts.snuggle = [6.0 + Game.bond * 0.15, partner]
 	if lvl >= 3 and mood > 60:
 		opts.flop = [8.0, null]
 		opts.bonk = [3.0, null]
+	if lvl >= 5 and mood > 60 and pet.is_bubak() and not outside:
+		opts.circle = [3.0, null]
+	# the seasons
+	if outside:
+		match Game.season():
+			"spring":
+				if daytime:
+					opts.petal_chase = [8.0, null]
+			"autumn":
+				if room.leaf_pile:
+					opts.leaf_pile = [12.0, room.leaf_pile]
+			"winter":
+				if Game.snowing():
+					opts.snow_sniff = [10.0, null]
+	elif Game.heatwave():   # too hot for zooming about
+		opts.melt = [14.0 + (12.0 if hour > 11.0 and hour < 18.0 else 0.0), null]
+		for k in ["binky", "zoomies"]:
+			if opts.has(k):
+				opts[k][0] *= 0.4
+	if _own() and Game.nails_long(pet) and opts.has("binky"):
+		opts.binky[0] *= 0.4   # long nails: skidding on the floor
+	# their personality
+	if _own() and not outside and mood > 55:
+		if Game.trait_level("athlete", pet) >= 3:
+			opts.parkour = [4.0, null]
+		if Game.trait_level("explorer", pet) >= 3:
+			opts.inspect = [5.0, null]
+	if pet.is_bubak() and Game.mentor_active() and is_instance_valid(room.foster_bunny) and room.foster_bunny.room_id == room_id \
+			and room.foster_bunny.phase == 1 and not room.foster_bunny.hidden_inside and not room.foster_bunny.act in ["flee", "petted", "held"]:
+		opts.big_brother = [5.0, room.foster_bunny]
 
 	var total := 0.0
 	for k in opts:
@@ -908,6 +1168,26 @@ func _choose_next() -> void:
 			start("flop", null, rug.position + Vector2(randf_range(-60, 60), 0) if rug else position)
 		"bonk":
 			start("bonk", null, Vector2(f.position.x + randf_range(370, 750), f.end.y - 2))
+		"circle":
+			start("circle", null, Vector2(f.position.x + randf_range(420, 700), f.end.y - 40))
+		"melt":
+			start("melt", null, _clamp(position + Vector2(randf_range(-150, 150), randf_range(-40, 40))))
+		"petal_chase":
+			start("petal_chase", null, _clamp(position + Vector2(randf_range(-240, 240), randf_range(-60, 60))))
+			data.laps = 3
+			speed = 230.0
+		"snow_sniff":
+			start("snow_sniff", null, _clamp(position + Vector2(randf_range(-200, 200), randf_range(-40, 40))))
+		"leaf_pile":
+			start("leaf_pile", it, it.position + Vector2(-60 if position.x < it.position.x else 60, 4))
+		"parkour":
+			start("parkour", null, Vector2(250, 500))
+		"inspect":
+			start("inspect", null, _random_point())
+			data.laps = 3
+			speed = 110.0
+		"big_brother":
+			start("big_brother", it, it.position + Vector2(-70 if position.x < it.position.x else 70, 4))
 		"zoomies":
 			start("zoomies", null, _random_point())
 			data.laps = 5
@@ -930,11 +1210,23 @@ func _choose_next() -> void:
 			speed = 230.0
 			Game.discover("butterfly")
 			room.spawn_butterfly(self)
+		"spooked":
+			emote("!")
+			start("thump", null, position)
+		"tree_gaze":
+			var side := -1.0 if randf() < 0.5 else 1.0
+			start("tree_gaze", it, it.position + Vector2(side * randf_range(70, 110), randf_range(40, 70)))
 		_:
 			start(pick, it)
 
 
 ## The other bunny came over for a cuddle: settle down together.
+## Back after a while: he hops over to the front to say hello.
+func greet() -> void:
+	start("greet", null, _clamp(Vector2(room.camera.position.x + randf_range(-120, 120), 690)))
+	speed = 300.0 if pet.trust_level() >= 2 else 180.0
+
+
 func join_snuggle(other: Node2D, length: float) -> void:
 	_end_current()
 	act = "snuggle"
@@ -946,6 +1238,26 @@ func join_snuggle(other: Node2D, length: float) -> void:
 	_face(other)
 	_set_pose("loaf")
 	emote("heart")
+
+
+## Found while playing hide and seek: out he pops.
+func found() -> void:
+	if act != "hide_seek":
+		return
+	Game.discover("peekaboo")
+	_end_current()
+	message.emit(tr("Found you! %s pops out, very pleased with himself.") % pet.display_name())
+	Game.stats.hide_seek = Game.stats.get("hide_seek", 0) + 1
+	pet.add_need("fun", 15)
+	Game.remember("peekaboo", "Hide and seek: %s hid behind the furniture, and you found him.", [pet.display_name()])
+	start("binky", null, position)
+
+
+## The camera came out: a show-off strikes a pose.
+func on_camera() -> void:
+	if _own() and Game.trait_level("showoff", pet) >= 3 and phase == 1 and act in ["idle", "loaf", "groom", "sunbathe", "chill"] \
+			and randf() < 0.6:
+		start("pose", null, position)
 
 
 ## Puts him somewhere instantly (keeps track of which room that is).
@@ -961,6 +1273,9 @@ func _now() -> float:
 # ---- player interaction -------------------------------------------------------
 
 func on_tap() -> void:
+	if act == "hide_seek":
+		found()
+		return
 	if act in ["thump", "flee"]:
 		return
 	var now := Time.get_ticks_msec() / 1000.0
@@ -1032,15 +1347,20 @@ func on_floor_tap(pos: Vector2) -> void:
 
 ## Returns true if Bubák accepts being petted.
 func on_pet_start() -> bool:
+	if act == "hide_seek":
+		found()
+		return false
 	if hidden_inside or act in ["thump", "flee", "approach_hand"] or (act == "zoomies" and phase == 0):
 		return false
 	if _pet_fatigue > 1.0:
 		message.emit(tr("%s has had enough cuddles for now.") % pet.display_name())
 		start("wander", null, _far_point(200))
 		return false
-	var shy: float = [0.55, 0.25, 0.08, 0.03, 0.0, 0.0, 0.0][pet.trust_level()]
+	var shy: float = [0.55, 0.25, 0.08, 0.03, 0.0, 0.0, 0.0, 0.0][pet.trust_level()]
 	if act == "sleep":
 		shy += 0.25
+	if pet.quirk() == "hider":
+		shy += 0.3
 	if randf() < shy:
 		emote("!")
 		start("flee", null, _far_point(220))
@@ -1057,6 +1377,15 @@ func on_pet_start() -> bool:
 	petting = true
 	_pet_time = 0.0
 	_hearts_t = 0.0
+	_pet_bonds = pet.pet_trust_wait() <= 0.0
+	if _own():
+		Game.add_trait("cuddler", 1.5 if _pet_bonds else 0.3, pet)
+	if _pet_bonds:
+		pet.pet_trust_at = Time.get_unix_time_from_system()
+	elif Time.get_unix_time_from_system() - _pet_told > 60.0:
+		_pet_told = Time.get_unix_time_from_system()
+		message.emit(tr("%s enjoys the cuddle, but petting builds trust only once an hour. Next time in %d min.")
+			% [pet.display_name(), ceili(pet.pet_trust_wait() / 60.0)])
 	return true
 
 
@@ -1070,9 +1399,51 @@ func on_pet_hold(delta: float) -> bool:
 	if _hearts_t <= 0:
 		_hearts_t = 0.45
 		emote("heart")
-	pet.add_trust(0.25 * delta / (1.0 + _pet_fatigue))
-	pet.add_need("fun", 1.2 * delta)
+	if _pet_bonds:
+		pet.add_trust(0.25 * delta / (1.0 + _pet_fatigue))
+	pet.add_need("fun", 1.2 * delta * (1.0 + 0.25 * Game.trait_level("cuddler", pet)))
+	if pet.is_bubak():
+		Game.wish_event("cuddle", "", delta)
+	if room.storm_t > 0 and not calmed and _pet_time > 2.0:   # safe in your hands while the thunder rolls
+		calmed = true
+		pet.add_trust(Catalog.STORM_COMFORT, false)
+		emote("heart")
+		message.emit(tr("%s stops trembling. Safe in your hands, storm or no storm.") % pet.display_name())
+		Game.remember("storm_" + pet.id, "A thunderstorm, and %s felt safe in your hands.", [pet.display_name()])
 	var lvl := pet.trust_level()
+	if pet.quirk() == "nipper" and _pet_time > 2.5:
+		emote("!")
+		emote_text(tr("nip!"))
+		Sfx.play("thump")
+		pet.add_trust(-1.0)   # more than the cuddle won, so a nip is a step back
+		message.emit(tr("Ouch! %s nipped you. Keep the cuddles short for now.") % pet.display_name())
+		on_pet_end()
+		start("flee", null, _far_point(180))
+		return false
+	if data.get("lick_t", 0.0) > 0.0:
+		data.lick_t -= delta
+		if data.lick_t <= 0.0:
+			data.lick = false
+	if pet.is_bubak() and lvl >= 6 and _pet_time > 3.0 and not data.has("lick"):
+		data.lick = randf() < 0.5
+		if data.lick:
+			data.lick_t = 2.5
+			emote_text(tr("lick lick"))
+			emote("heart")
+			Game.discover("hand_lick")
+			Game.remember("hand_lick", "%s licked your hand while you petted him. You're family now.", ["Bubák"])
+	if pet.is_bubak() and lvl >= 7 and _pet_time > 5.0 and not data.get("dozed", false):
+		data.dozed = true
+		_set_pose("sleep")
+		emote("z")
+		Game.discover("trust_nap")
+		Game.remember("trust_nap", "%s fell asleep in your hand.", ["Bubák"])
+	if _own() and Game.trait_level("cuddler", pet) >= 3 and _pet_time > 4.0 and not data.get("puddle", false) \
+			and not data.get("dozed", false):
+		data.puddle = true   # a lap bunny goes completely floppy
+		_set_pose("flop")
+		emote("heart")
+		Game.discover("puddle")
 	if lvl >= 5 and _pet_time > 2.5 and not data.get("purr", false):
 		data.purr = true
 		Sfx.play("purr")
@@ -1089,6 +1460,8 @@ func on_pet_end() -> void:
 		return
 	petting = false
 	Game.stats.pets += 1
+	if pet == Game.mate:
+		Game.stats.mate_pets = Game.stats.get("mate_pets", 0) + 1
 	if act == "petted":
 		if pet.trust_level() >= 2 and _pet_time > 3.0 and randf() < 0.35:
 			start("binky", null, position)
@@ -1104,7 +1477,7 @@ func try_pick_up() -> String:
 	if act in ["thump", "flee"]:
 		return "no"
 	var lvl := pet.trust_level()
-	var chance: float = [0.0, 0.0, 0.0, 0.2, 0.95, 1.0, 1.0][lvl]
+	var chance: float = [0.0, 0.0, 0.0, 0.2, 0.95, 1.0, 1.0, 1.0][lvl]
 	if randf() < chance:
 		_end_current()
 		act = "held"
@@ -1160,10 +1533,17 @@ func _eat_from_hand() -> void:
 	pet.add_need("fun", info.fun)
 	pet.sugar += info.sugar
 	pet.gain(info.sugar * Catalog.SUGAR_GRAMS)
-	pet.add_trust(Catalog.treat_trust(treat) * (0.6 if shy else 1.0) * pet.treat_trust())
+	var fussy: bool = pet.quirk() == "picky" and not info.get("fancy", false)
+	if not fussy:
+		pet.add_trust(Catalog.treat_trust(treat) * (0.6 if shy else 1.0) * pet.treat_trust())
 	Game.stats.treats += 1
+	Game.challenge_event("treat", treat)
+	if pet.is_bubak():
+		Game.wish_event("treat", treat)
 	emote("heart")
-	if info.get("favourite", false) and not shy:
+	if fussy:
+		message.emit(tr("%s nibbles it politely, but isn't impressed. Only gourmet treats will win them over.") % pet.display_name())
+	elif info.get("favourite", false) and not shy:
 		_treat_joy = true
 		message.emit(tr("%s! %s's favourite!") % [Catalog.item_name(treat), pet.display_name()])
 	elif pet.sugar > 60:
@@ -1183,6 +1563,10 @@ func current_behaviour() -> String:
 		return "sleep_bed" if item else ("shade_nap" if room_id == "balcony" else "nap")
 	if act == "flop" and pose != "flop":
 		return "loaf"
+	if act == "petted":
+		if data.get("puddle", false) and not data.get("dozed", false):
+			return "puddle"
+		return "trust_nap" if data.get("dozed", false) else ("hand_lick" if data.get("lick", false) else "loaf")
 	return BEHAVIOUR_OF.get(act, "idle")
 
 

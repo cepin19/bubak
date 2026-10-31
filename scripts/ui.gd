@@ -183,10 +183,13 @@ static func vbox(sep := 6) -> VBoxContainer:
 	return v
 
 
-static func pop_in(c: Control) -> void:
+## (Untyped: it's often called deferred, and the panel may be closed by then.)
+static func pop_in(c) -> void:
+	if not is_instance_valid(c):
+		return
 	c.pivot_offset = c.size / 2.0
 	c.scale = Vector2(0.85, 0.85)
 	c.modulate.a = 0.0
-	var t := c.create_tween().set_parallel()
+	var t: Tween = c.create_tween().set_parallel()
 	t.tween_property(c, "scale", Vector2.ONE, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	t.tween_property(c, "modulate:a", 1.0, 0.15)

@@ -203,21 +203,61 @@ BX, BY = 240, 160
 WALL_Y = 410
 
 
-def room():
+## The flat's looks (Shop > Makeover): wall, stripes, little motif, wainscoting, curtains, floor.
+ROOM_STYLES = {
+    "cream": dict(base="#f7e6d0", stripe="#f2dcc2", motif="dot", mcol="#e8c9b4", wains="#efd5b6", panel="#f4dec3",
+                  pstroke="#dcbd98", rail="#fff6e8", rline="#d9b896", curtain="#e9a3a0", floor="#e2bd92", fline="#d1a878",
+                  grain="#d6ab7c"),
+    "mint": dict(base="#e2f0e4", stripe="#d2e8d6", motif="leaf", mcol="#a9d0b4", wains="#cfe5d4", panel="#dcefe0",
+                 pstroke="#a9cdb2", rail="#f6fbf6", rline="#a9cdb2", curtain="#f3cf7a", floor="#ecd6b2", fline="#dcc195",
+                 grain="#e2c9a0"),
+    "lavender": dict(base="#ece2f2", stripe="#e2d5ec", motif="heart", mcol="#d0b8e2", wains="#dccfe8", panel="#e8def0",
+                     pstroke="#c2aed6", rail="#faf6fc", rline="#c2aed6", curtain="#a7c0e8", floor="#e2bd92", fline="#d1a878",
+                     grain="#d6ab7c"),
+    "sunny": dict(base="#fbf0c8", stripe="#f6e5a8", motif="daisy", mcol="#ffffff", wains="#f3e2a6", panel="#f8ebbd",
+                  pstroke="#dcc27e", rail="#fffaf0", rline="#dcc27e", curtain="#e8505b", floor="#e6c39a", fline="#d4ac7e",
+                  grain="#dbb588"),
+    "starry": dict(base="#3e4c78", stripe="#45548a", motif="star", mcol="#f3cf7a", wains="#34406a", panel="#3b4774",
+                   pstroke="#2a3358", rail="#c9d3f0", rline="#2a3358", curtain="#d8a7d0", floor="#9a6a48", fline="#845839",
+                   grain="#8e6142"),
+    "forest": dict(base="#a9cca5", stripe="#9cc398", motif="leaf", mcol="#77a874", wains="#8fb98c", panel="#9cc499",
+                   pstroke="#6f9b6c", rail="#eef5e6", rline="#6f9b6c", curtain="#f3cf7a", floor="#b5a77a", fline="#9d9064",
+                   grain="#a69a6c"),
+}
+
+
+def motif(kind, x, y, c):
+    if kind == "dot":
+        return f'<circle cx="{x}" cy="{y}" r="3" fill="{c}"/>'
+    if kind == "heart":
+        return f'<path d="M{x},{y + 4} C{x - 7},{y - 1} {x - 4},{y - 7} {x},{y - 3} C{x + 4},{y - 7} {x + 7},{y - 1} {x},{y + 4} Z" fill="{c}"/>'
+    if kind == "leaf":
+        return f'<ellipse cx="{x}" cy="{y}" rx="7" ry="3.5" transform="rotate(-35 {x} {y})" fill="{c}"/>'
+    if kind == "star":
+        pts = " ".join(f"{x + (6 if i % 2 == 0 else 2.6) * math.cos(math.radians(-90 + i * 36)):.1f},"
+                       f"{y + (6 if i % 2 == 0 else 2.6) * math.sin(math.radians(-90 + i * 36)):.1f}" for i in range(10))
+        return f'<polygon points="{pts}" fill="{c}"/>'
+    # daisy
+    return "".join(f'<circle cx="{x + 4 * math.cos(math.radians(a)):.1f}" cy="{y + 4 * math.sin(math.radians(a)):.1f}" r="2.6" fill="{c}"/>'
+                   for a in range(0, 360, 72)) + f'<circle cx="{x}" cy="{y}" r="2" fill="#f2b632"/>'
+
+
+def room(style="cream"):
+    S = ROOM_STYLES[style]
     W, H = 1760, 1040
-    p = [f'<rect width="{W}" height="{H}" fill="#f7e6d0"/>']
-    # wallpaper stripes + tiny polka hearts
+    p = [f'<rect width="{W}" height="{H}" fill="{S["base"]}"/>']
+    # wallpaper stripes + a tiny motif
     for x in range(0, W, 64):
-        p.append(f'<rect x="{x}" y="0" width="30" height="{WALL_Y + BY}" fill="#f2dcc2" opacity="0.6"/>')
+        p.append(f'<rect x="{x}" y="0" width="30" height="{WALL_Y + BY}" fill="{S["stripe"]}" opacity="0.6"/>')
     rnd = random.Random(3)
     for x in range(47, W, 64):
         for y in range(40, WALL_Y + BY - 40, 90):
             yy = y + (32 if (x // 64) % 2 else 0)
-            p.append(f'<circle cx="{x}" cy="{yy}" r="3" fill="#e8c9b4"/>')
+            p.append(motif(S["motif"], x, yy, S["mcol"]))
     # window cut out (sky is drawn behind the room by the game)
     wx, wy, ww, wh = 760 + BX, 60 + BY, 220, 240
     hole = f"M{wx},{wy} h{ww} v{wh} h{-ww} z"
-    p[0] = (f'<path fill="#f7e6d0" fill-rule="evenodd" d="M0,0 H{W} V{H} H0 Z {hole}"/>')
+    p[0] = (f'<path fill="{S["base"]}" fill-rule="evenodd" d="M0,0 H{W} V{H} H0 Z {hole}"/>')
     # stripes would paint over the window: clip them with an evenodd mask path instead
     p.insert(1, f'<defs><clipPath id="wall"><path clip-rule="evenodd" d="M0,0 H{W} V{H} H0 Z {hole}"/></clipPath></defs>')
     p.insert(2, '<g clip-path="url(#wall)">')
@@ -229,12 +269,12 @@ def room():
     p.append(f'<rect width="{W}" height="{WALL_Y + BY}" fill="url(#winlight)"/>')
     # wainscoting panels on the lower wall
     wy0 = 324 + BY
-    p.append(f'<rect x="0" y="{wy0}" width="{W}" height="{WALL_Y + BY - wy0}" fill="#efd5b6"/>')
+    p.append(f'<rect x="0" y="{wy0}" width="{W}" height="{WALL_Y + BY - wy0}" fill="{S["wains"]}"/>')
     for x in range(30, W, 170):
         p.append(f'<rect x="{x}" y="{wy0 + 18}" width="140" height="{WALL_Y + BY - wy0 - 34}" rx="6" '
-                 'fill="#f4dec3" stroke="#dcbd98" stroke-width="3"/>')
-    p.append(f'<rect x="0" y="{wy0 - 8}" width="{W}" height="12" fill="#fff6e8"/>')
-    p.append(f'<path d="M0,{wy0 - 8} H{W} M0,{wy0 + 4} H{W}" stroke="#d9b896" stroke-width="3"/>')
+                 f'fill="{S["panel"]}" stroke="{S["pstroke"]}" stroke-width="3"/>')
+    p.append(f'<rect x="0" y="{wy0 - 8}" width="{W}" height="12" fill="{S["rail"]}"/>')
+    p.append(f'<path d="M0,{wy0 - 8} H{W} M0,{wy0 + 4} H{W}" stroke="{S["rline"]}" stroke-width="3"/>')
     p.append('</g>')
     # window frame
     p.append(f'<rect x="{wx}" y="{wy}" width="{ww}" height="{wh}" rx="10" fill="none" '
@@ -247,7 +287,7 @@ def room():
     for side in (-1, 1):
         cx = wx - 30 if side < 0 else wx + ww + 30
         p.append(f'<path d="M{cx - 26},{wy - 24} q{-10 * side},120 {6 * side},{wh + 40} '
-                 f'q30,10 46,0 q{-24 * side},-130 {-4 * side},{-wh - 40} z" fill="#e9a3a0" {stroke(4)}/>')
+                 f'q30,10 46,0 q{-24 * side},-130 {-4 * side},{-wh - 40} z" fill="{S["curtain"]}" {stroke(4)}/>')
     p.append(f'<path d="M{wx - 70},{wy - 26} h{ww + 140}" {stroke(7)}/>')
     # picture frame with a carrot doodle
     fx, fy = 470 + BX, 110 + BY
@@ -259,19 +299,19 @@ def room():
     # (the wall above the sofa is where Bubák's wardrobe hangs, see closet())
     # skirting board + floor
     fy0 = WALL_Y + BY
-    p.append(f'<rect x="0" y="{fy0}" width="{W}" height="{H - fy0}" fill="#e2bd92"/>')
+    p.append(f'<rect x="0" y="{fy0}" width="{W}" height="{H - fy0}" fill="{S["floor"]}"/>')
     for i, y in enumerate(range(fy0 + 40, H, 52)):
-        p.append(f'<path d="M0,{y} H{W}" stroke="#d1a878" stroke-width="3"/>')
+        p.append(f'<path d="M0,{y} H{W}" stroke="{S["fline"]}" stroke-width="3"/>')
         off = (i * 173) % 260
         for x in range(off, W, 260):
-            p.append(f'<path d="M{x},{y - 52 if y - 52 > fy0 else fy0} V{y}" stroke="#d1a878" stroke-width="3"/>')
+            p.append(f'<path d="M{x},{y - 52 if y - 52 > fy0 else fy0} V{y}" stroke="{S["fline"]}" stroke-width="3"/>')
     # wood grain
     rnd = random.Random(17)
     for _ in range(160):
         x, y = rnd.uniform(0, W), rnd.uniform(fy0 + 30, H)
         l = rnd.uniform(40, 120)
         p.append(f'<path d="M{x:.0f},{y:.0f} q{l / 2:.0f},{rnd.uniform(-4, 4):.1f} {l:.0f},0" fill="none" '
-                 'stroke="#d6ab7c" stroke-width="2" stroke-linecap="round" opacity="0.7"/>')
+                 f'stroke="{S["grain"]}" stroke-width="2" stroke-linecap="round" opacity="0.7"/>')
     # depth: the floor darkens towards the wall, and a soft shadow under the skirting board
     p.append(f'<linearGradient id="floordepth" x1="0" y1="{fy0}" x2="0" y2="{H}" gradientUnits="userSpaceOnUse">'
              '<stop offset="0" stop-color="#7a5236" stop-opacity="0.28"/>'
@@ -288,6 +328,17 @@ def room():
 
 
 save("room.svg", room())
+for _s in ROOM_STYLES:
+    if _s != "cream":
+        save(f"room_{_s}.svg", room(_s))
+    _S = ROOM_STYLES[_s]   # a swatch for the shop
+    save(f"icon_style_{_s}.svg", svg(64, 64,
+        f'<rect x="4" y="4" width="56" height="56" rx="10" fill="{_S["base"]}"/>'
+        + "".join(f'<rect x="{x}" y="4" width="7" height="34" fill="{_S["stripe"]}"/>' for x in (10, 24, 38, 52))
+        + motif(_S["motif"], 32, 20, _S["mcol"]) + motif(_S["motif"], 18, 28, _S["mcol"]) + motif(_S["motif"], 46, 28, _S["mcol"])
+        + f'<rect x="4" y="38" width="56" height="22" fill="{_S["floor"]}"/><path d="M4,48 H60" stroke="{_S["fline"]}" stroke-width="2"/>'
+        + f'<path d="M4,38 H60" stroke="{_S["rail"]}" stroke-width="3"/>'
+        + f'<rect x="4" y="4" width="56" height="56" rx="10" fill="none" {stroke(4)}/>'))
 
 
 def sofa():
@@ -1252,6 +1303,11 @@ ICONS = {
     "journal": f'<rect x="12" y="8" width="40" height="48" rx="6" fill="#9cc5a1" {stroke(4)}/>'
                f'<path d="M20,8 v48" {stroke(3)}/>'
                '<path d="M33,30 q3,-4 6,0 q3,-4 6,0 q0,4 -6,8 q-6,-4 -6,-8z" fill="#fff"/>',
+    "eye": f'<path d="M4,32 q28,-30 56,0 q-28,30 -56,0z" fill="#fff" {stroke(4)}/>'
+           f'<circle cx="32" cy="32" r="10" fill="#7fb2d9" {stroke(3)}/><circle cx="32" cy="32" r="4" fill="{INK}"/>',
+    "eye_off": f'<path d="M4,32 q28,-30 56,0 q-28,30 -56,0z" fill="#fff" {stroke(4)}/>'
+               f'<circle cx="32" cy="32" r="10" fill="#7fb2d9" {stroke(3)}/><circle cx="32" cy="32" r="4" fill="{INK}"/>'
+               '<path d="M12,52 L52,12" stroke="#e8505b" stroke-width="6" stroke-linecap="round"/>',
     "move": f'<path d="M32,6 l9,10 h-6 v13 h13 v-6 l10,9 l-10,9 v-6 h-13 v13 h6 l-9,10 l-9,-10 h6 v-13 h-13 v6 l-10,-9 l10,-9 v6 h13 v-13 h-6z" fill="#f3cf7a" {stroke(3)}/>',
     "treat": f'<path d="M16,50 L44,20 q8,6 4,14 z" fill="#f4a259" {stroke(4)}/>'
              '<path d="M44,20 l4,-12 M46,22 l12,-6" stroke="#6aa86d" stroke-width="5" stroke-linecap="round"/>'
@@ -1281,6 +1337,13 @@ ICONS = {
     "banana_chips": "".join(f'<circle cx="{x}" cy="{y}" r="13" fill="#f7e3a0" {stroke(3)}/><circle cx="{x}" cy="{y}" r="7" fill="none" stroke="#e0c070" stroke-width="2"/>'
                             f'<circle cx="{x - 2}" cy="{y - 1}" r="1.6" fill="#9c7a45"/><circle cx="{x + 2}" cy="{y + 2}" r="1.6" fill="#9c7a45"/>'
                             for x, y in ((22, 40), (42, 42), (32, 22))),
+    "best_apples": f'<path d="M14,22 h36 l4,36 h-44z" fill="#e9d2a8" {stroke(3.5)}/>'
+                   f'<path d="M14,22 l6,-8 h24 l6,8" fill="#f3e2c0" {stroke(3)}/>'
+                   f'<circle cx="32" cy="40" r="11" fill="#f6d27a" {stroke(3)}/><circle cx="32" cy="40" r="7" fill="none" stroke="#c9534f" stroke-width="2.5"/>'
+                   f'<circle cx="32" cy="40" r="3" fill="#fbf1d3" {stroke(2)}/>'
+                   '<path d="M22,22 q10,8 20,0" fill="none" stroke="#c9534f" stroke-width="3"/>'
+                   '<path d="M54,4 l2.5,6 l6,2.5 l-6,2.5 l-2.5,6 l-2.5,-6 l-6,-2.5 l6,-2.5z" fill="#ffd27a" stroke="#4f3d33" stroke-width="1.5"/>'
+                   '<path d="M8,40 l1.5,3.5 l3.5,1.5 l-3.5,1.5 l-1.5,3.5 l-1.5,-3.5 l-3.5,-1.5 l3.5,-1.5z" fill="#ffd27a" stroke="#4f3d33" stroke-width="1.2"/>',
     "rose_petals": "".join(f'<path d="M{x},{y} q-10,-6 -6,-16 q10,0 12,10 q-2,6 -6,6z" transform="rotate({r} {x} {y})" fill="{c}" {stroke(2.5)}/>'
                            for x, y, r, c in ((24, 44, -20, "#e86f86"), (42, 46, 30, "#f08a9c"), (34, 30, 0, "#d9536f"), (18, 28, -60, "#f4a7b5"), (48, 28, 70, "#e86f86"))),
     "dried_apple": f'<circle cx="24" cy="38" r="17" fill="#f4dcb0" {stroke(3.5)}/><circle cx="24" cy="38" r="12" fill="none" stroke="#d98a5a" stroke-width="3"/>'
@@ -1394,6 +1457,7 @@ RIVALS = {
     "pusinka": {"fur": "#f1d7b6", "dark": "#dcbb93", "light": "#fbe8d0", "cream": "#fff7ee", "ears": -20, "bg": "#f8d9dc"},
     "baron": {"fur": "#3e3a44", "dark": "#2c2932", "light": "#57525e", "cream": "#f6f0e8", "ears": -10, "bg": "#d4def0"},
     "clover": {"fur": "#d98a4a", "dark": "#b56c33", "light": "#eaa468", "cream": "#fbe9d6", "ears": "lop", "bg": "#f6e4b8"},
+    "velvet": {"fur": "#b9bcc8", "dark": "#9599a8", "light": "#d4d7e0", "cream": "#f4f4f8", "ears": -16, "bg": "#2f3550"},
 }
 for rid, r in RIVALS.items():
     lop = r["ears"] == "lop"
@@ -1420,6 +1484,24 @@ def recolour(text, c):
 
 
 for mid, c in MATES.items():
+    for pose in ("sit", "blink", "hop", "loaf", "sleep", "eat", "flop", "stand"):
+        save(f"bunny_{pose}_{mid}.svg", recolour(bunny(pose), c))
+        save(f"bunny_{pose}_body_{mid}.svg", recolour(bunny(pose, parts=False), c))
+    save(f"bunny_ear_{mid}.svg", recolour(svg(60, 110, f'<g transform="translate(30,104)">{perky_ear()}</g>'), c))
+    save(f"mate_{mid}.svg", svg(256, 256,
+        f'<circle cx="128" cy="128" r="120" fill="{c["bg"]}" {stroke(8)}/>'
+        + recolour(f'<g transform="translate(122,170) scale(1.3)">{head(0, 0, 0, -8, "open", seed=11)}</g>', c)))
+
+# Foster bunnies: more coats, the same bunny underneath.
+FOSTERS = {
+    "pip": {"fur": "#9a9aa3", "dark": "#7c7c86", "light": "#b4b4bc", "cream": "#ecebef", "bg": "#e4e1f2"},
+    "bramble": {"fur": "#7e6a52", "dark": "#62513e", "light": "#988369", "cream": "#e9dcc8", "bg": "#e2ecd2"},
+    "tofu": {"fur": "#fbfaf6", "dark": "#e4e0d6", "light": "#ffffff", "cream": "#ffffff", "bg": "#dcebf3"},
+    "poppy": {"fur": "#c9744a", "dark": "#a75a35", "light": "#dd9068", "cream": "#f6dfcf", "bg": "#f6dccd"},
+    "ziggy": {"fur": "#3e3a40", "dark": "#2c292e", "light": "#58535a", "cream": "#f4f1ee", "bg": "#efe6d0"},
+    "maple": {"fur": "#e3893a", "dark": "#c36d23", "light": "#f0a560", "cream": "#fbe7cf", "bg": "#f7e2c4"},
+}
+for mid, c in FOSTERS.items():
     for pose in ("sit", "blink", "hop", "loaf", "sleep", "eat", "flop", "stand"):
         save(f"bunny_{pose}_{mid}.svg", recolour(bunny(pose), c))
         save(f"bunny_{pose}_body_{mid}.svg", recolour(bunny(pose, parts=False), c))
@@ -1721,8 +1803,582 @@ save("icon_scale.svg", svg(64, 64,
     f'<path d="M32,30 L38,22" stroke="#e8505b" stroke-width="3" stroke-linecap="round"/>'
     f'<rect x="16" y="40" width="32" height="8" rx="4" fill="#a7b8d0"/>'))
 
+# ---- special days -------------------------------------------------------------------
+
+def xmas_tree():
+    """A little Christmas tree in a red pot, with baubles, a garland and a star on top."""
+    p = [f'<rect x="96" y="232" width="28" height="22" fill="#8a5a3c" {stroke(3.5)}/>',
+         f'<path d="M72,252 L148,252 L140,292 L80,292 Z" fill="#d9534f" {stroke(4)}/>',
+         f'<rect x="66" y="246" width="88" height="14" rx="5" fill="#e8706b" {stroke(3.5)}/>']
+    tiers = [(110, 40, 46, 108), (110, 84, 70, 168), (110, 136, 96, 236)]
+    for i, (cx, top, half, bottom) in enumerate(tiers):
+        p.append(f'<path d="M{cx},{top} Q{cx + half * 0.5},{(top + bottom) / 2} {cx + half},{bottom} '
+                 f'Q{cx + half * 0.5},{bottom - 10} {cx},{bottom - 4} Q{cx - half * 0.5},{bottom - 10} {cx - half},{bottom} '
+                 f'Q{cx - half * 0.5},{(top + bottom) / 2} {cx},{top} Z" fill="{["#4f9a6a", "#4a9264", "#458a5e"][i]}" {stroke(4)}/>')
+    # garlands
+    for y0, y1, x0, x1 in ((96, 122, 82, 146), (150, 186, 64, 160), (200, 226, 46, 178)):
+        p.append(f'<path d="M{x0},{y0} Q{(x0 + x1) / 2},{y1 + 12} {x1},{y1 - 14}" fill="none" stroke="#f3cf7a" stroke-width="5" stroke-linecap="round"/>')
+    for x, y, c in ((92, 104, "#e8505b"), (128, 96, "#7fb0d8"), (78, 160, "#f3cf7a"), (112, 176, "#e8505b"),
+                    (146, 154, "#d8a7d0"), (64, 214, "#7fb0d8"), (98, 230, "#f3cf7a"), (138, 222, "#e8505b"), (172, 208, "#d8a7d0")):
+        p.append(f'<circle cx="{x}" cy="{y}" r="8" fill="{c}" {stroke(2.5)}/><circle cx="{x - 2.5}" cy="{y - 2.5}" r="2.5" fill="#fff" opacity="0.7"/>')
+    star = "M110,4 L117,22 L136,23 L121,35 L126,54 L110,43 L94,54 L99,35 L84,23 L103,22 Z"
+    p.append(f'<path d="{star}" fill="#f6dc6e" stroke="#4f3d33" stroke-width="3.5" stroke-linejoin="round"/>')
+    return svg(220, 296, "\n".join(p))
+
+
+def present(box, ribbon, dots=None):
+    """A wrapped present with a big bow."""
+    p = [f'<rect x="10" y="44" width="100" height="70" rx="6" fill="{box}" {stroke(4)}/>']
+    if dots:
+        for x, y in ((24, 60), (52, 74), (88, 58), (30, 98), (72, 100), (96, 90)):
+            p.append(f'<circle cx="{x}" cy="{y}" r="5" fill="{dots}"/>')
+    p.append(f'<rect x="4" y="30" width="112" height="22" rx="6" fill="{box}" {stroke(4)}/>')
+    p.append(f'<rect x="51" y="30" width="18" height="84" fill="{ribbon}" {stroke(3)}/>')
+    p.append(f'<path d="M60,30 C40,2 18,14 34,30 Z" fill="{ribbon}" {stroke(3.5)}/>'
+             f'<path d="M60,30 C80,2 102,14 86,30 Z" fill="{ribbon}" {stroke(3.5)}/>'
+             f'<circle cx="60" cy="29" r="7" fill="{ribbon}" {stroke(3)}/>')
+    return svg(120, 118, "\n".join(p))
+
+
+def jingle_ball():
+    p = [f'<circle cx="35" cy="35" r="30" fill="#e8505b" {stroke(4)}/>',
+         '<path d="M7,40 Q35,52 63,40" fill="none" stroke="#f3cf7a" stroke-width="5"/>',
+         '<path d="M10,24 Q35,34 60,24" fill="none" stroke="#f3cf7a" stroke-width="5"/>',
+         '<ellipse cx="24" cy="15" rx="8" ry="4" transform="rotate(-30 24 15)" fill="#fff" opacity="0.6"/>',
+         f'<circle cx="47" cy="56" r="8" fill="#f3cf7a" {stroke(2.5)}/>',
+         '<path d="M43,58 L51,58" stroke="#4f3d33" stroke-width="2" stroke-linecap="round"/>']
+    return svg(72, 70, "\n".join(p))
+
+
+def garland():
+    """A fir garland in two swags over the window, with red bows and fairy-light bulbs.
+    The bulbs sit on GARLAND_BULBS in scripts/main.gd (keep the two in step)."""
+    def q(x0, x1, t, dip=58):
+        xm = (x0 + x1) / 2
+        return ((1 - t) ** 2 * x0 + 2 * (1 - t) * t * xm + t * t * x1, (1 - t) ** 2 * 14 + 2 * (1 - t) * t * dip + t * t * 14)
+    p = []
+    for x0, x1 in ((14, 170), (170, 326)):
+        xm = (x0 + x1) / 2
+        p.append(f'<path d="M{x0},14 Q{xm},58 {x1},14" fill="none" stroke="#4f3d33" stroke-width="20" stroke-linecap="round"/>')
+        p.append(f'<path d="M{x0},14 Q{xm},58 {x1},14" fill="none" stroke="#4a9264" stroke-width="13" stroke-linecap="round"/>')
+        for k in range(1, 12):
+            x, y = q(x0, x1, k / 12)
+            p.append(f'<path d="M{x - 7:.1f},{y - 4:.1f} L{x + 7:.1f},{y + 4:.1f} M{x - 7:.1f},{y + 4:.1f} L{x + 7:.1f},{y - 4:.1f}" stroke="#5fae7a" stroke-width="2.5" stroke-linecap="round"/>')
+        for k, c in zip((0.2, 0.4, 0.6, 0.8), ("#f3cf7a", "#e8505b", "#7fb0d8", "#f3cf7a")):
+            x, y = q(x0, x1, k)
+            p.append(f'<circle cx="{x:.1f}" cy="{y + 7:.1f}" r="5.5" fill="{c}" {stroke(2)}/>')
+    for x in (14, 170, 326):
+        p.append(f'<path d="M{x},14 C{x - 22},-2 {x - 24},26 {x},16 C{x + 24},26 {x + 22},-2 {x},14 Z" fill="#e8505b" {stroke(3)}/>'
+                 f'<path d="M{x - 2},18 L{x - 10},38 M{x + 2},18 L{x + 10},38" stroke="#e8505b" stroke-width="6" stroke-linecap="round"/>'
+                 f'<circle cx="{x}" cy="15" r="5" fill="#d9534f" {stroke(2.5)}/>')
+    return svg(364, 76, '<g transform="translate(12,4)">' + "\n".join(p) + '</g>')
+
+
+save("garland.svg", garland())
+save("xmas_tree.svg", xmas_tree())
+save("present_xmas.svg", present("#d9534f", "#f3cf7a"))
+save("present_bday.svg", present("#8fb8e0", "#e98fae", dots="#fff4cf"))
+save("jingle_ball.svg", jingle_ball())
+save("wear_party_hat.svg", svg(52, 66,
+    f'<path d="M26,6 L46,56 L6,56 Z" fill="#a7c0e8" {stroke(3.5)}/>'
+    '<path d="M21,25 L31,23.5 M16,39 L36,36 M12,50 L40,46.5" stroke="#e98fae" stroke-width="5"/>'
+    f'<path d="M26,6 L46,56 L6,56 Z" fill="none" {stroke(3.5)}/>'
+    f'<rect x="3" y="52" width="46" height="10" rx="5" fill="#f6dc6e" {stroke(3)}/>'
+    f'<circle cx="26" cy="7" r="6.5" fill="#f6dc6e" {stroke(3)}/>'))
+
+
+# ---- more special days, the garden, visitors -------------------------------------------
+
+def egg(fill, band, dots):
+    p = [f'<path d="M30,4 C46,4 56,30 56,46 C56,62 44,72 30,72 C16,72 4,62 4,46 C4,30 14,4 30,4 Z" fill="{fill}" {stroke(3.5)}/>',
+         f'<path d="M6,40 Q30,50 54,40 L55,50 Q30,60 5,50 Z" fill="{band}"/>']
+    for x, y in ((20, 24), (38, 22), (30, 32), (16, 62), (42, 62)):
+        p.append(f'<circle cx="{x}" cy="{y}" r="3.5" fill="{dots}"/>')
+    p.append(f'<path d="M30,4 C46,4 56,30 56,46 C56,62 44,72 30,72 C16,72 4,62 4,46 C4,30 14,4 30,4 Z" fill="none" {stroke(3.5)}/>')
+    return svg(60, 76, "\n".join(p))
+
+
+def easter_decor():
+    """A vase of pussy willow with painted eggs hanging from the twigs."""
+    p = []
+    for x0, x1, y1 in ((80, 40, 30), (84, 70, 8), (88, 108, 12), (92, 136, 40), (86, 60, 60), (90, 118, 64)):
+        p.append(f'<path d="M{x0},170 Q{(x0 + x1) / 2 + 6},{(170 + y1) / 2} {x1},{y1}" fill="none" stroke="#6b4a36" stroke-width="4" stroke-linecap="round"/>')
+        for k in range(1, 5):
+            t = k / 5
+            x = (1 - t) ** 2 * x0 + 2 * (1 - t) * t * ((x0 + x1) / 2 + 6) + t * t * x1
+            y = (1 - t) ** 2 * 170 + 2 * (1 - t) * t * ((170 + y1) / 2) + t * t * y1
+            p.append(f'<ellipse cx="{x + 4:.1f}" cy="{y:.1f}" rx="5" ry="3.5" fill="#f1ece4" stroke="#bfb3a6" stroke-width="1.5"/>')
+    for x, y, c in ((52, 70, "#e98fae"), (112, 50, "#7fb0d8"), (126, 92, "#f3cf7a"), (66, 104, "#9cc5a1")):
+        p.append(f'<path d="M{x},{y - 16} L{x},{y - 8}" stroke="#e8505b" stroke-width="2"/>'
+                 f'<ellipse cx="{x}" cy="{y}" rx="8" ry="10" fill="{c}" {stroke(2.5)}/>'
+                 f'<path d="M{x - 8},{y} Q{x},{y + 4} {x + 8},{y}" fill="none" stroke="#fff" stroke-width="2"/>')
+    p.append(f'<path d="M62,166 L118,166 L110,232 Q90,240 70,232 Z" fill="#a7c0e8" {stroke(4)}/>'
+             f'<path d="M66,190 Q90,198 114,190" fill="none" stroke="#fff" stroke-width="4"/>')
+    return svg(176, 240, "\n".join(p))
+
+
+def pumpkin():
+    """A jack-o'-lantern with a friendly face (it glows at night)."""
+    p = [f'<path d="M78,14 Q84,4 92,6" fill="none" stroke="#5a8a50" stroke-width="7" stroke-linecap="round"/>',
+         f'<rect x="72" y="10" width="14" height="20" rx="4" fill="#6b8f4e" {stroke(3)}/>']
+    for cx, rx in ((48, 34), (110, 34), (79, 36)):
+        p.append(f'<ellipse cx="{cx}" cy="78" rx="{rx}" ry="54" fill="#f0913a" {stroke(4)}/>')
+    p.append(f'<path d="M50,64 L62,48 L72,66 Z M88,66 L98,48 L110,64 Z" fill="#ffd56b" {stroke(3)}/>'
+             f'<path d="M46,92 Q79,124 114,92 L104,96 L98,104 L88,98 L79,108 L70,98 L60,104 L54,96 Z" fill="#ffd56b" {stroke(3)}/>')
+    return svg(160, 136, "\n".join(p))
+
+
+def veg_patch():
+    """A raised wooden bed with three rows of soil."""
+    p = [f'<rect x="6" y="40" width="268" height="64" rx="8" fill="#b07d52" {stroke(4)}/>',
+         f'<path d="M6,72 L274,72" stroke="#8f6240" stroke-width="3"/>',
+         f'<path d="M14,40 Q140,18 266,40 Z" fill="#6f4a33" {stroke(3.5)}/>']
+    for x in (52, 140, 228):
+        p.append(f'<ellipse cx="{x}" cy="36" rx="34" ry="9" fill="#5b3b28"/>')
+    p.append(f'<rect x="96" y="80" width="88" height="16" rx="4" fill="#f1e2c4" {stroke(2.5)}/>')
+    return svg(280, 108, "\n".join(p))
+
+
+def crop(kind):
+    if kind == "sprout":
+        return svg(60, 50, f'<path d="M30,48 L30,26" stroke="#4f9a6a" stroke-width="5" stroke-linecap="round"/>'
+                           f'<ellipse cx="20" cy="22" rx="12" ry="7" transform="rotate(-25 20 22)" fill="#7fc48f" {stroke(2.5)}/>'
+                           f'<ellipse cx="40" cy="20" rx="12" ry="7" transform="rotate(25 40 20)" fill="#7fc48f" {stroke(2.5)}/>')
+    if kind == "carrot":
+        leaves = "".join(f'<path d="M40,46 Q{40 + dx},{20} {40 + dx * 1.4},4" fill="none" stroke="#4f9a6a" stroke-width="6" stroke-linecap="round"/>'
+                         for dx in (-14, -4, 6, 16))
+        return svg(80, 76, leaves + f'<path d="M24,48 Q40,40 56,48 L48,72 Q40,76 32,72 Z" fill="#f08a3c" {stroke(3)}/>')
+    if kind == "dandelion":
+        p = [f'<path d="M40,72 L40,30" stroke="#4f9a6a" stroke-width="5"/>']
+        for a in (-40, -10, 20, 50):
+            p.append(f'<ellipse cx="40" cy="64" rx="22" ry="6" transform="rotate({a} 40 64)" fill="#6fae6a" {stroke(2)}/>')
+        for a in range(0, 360, 30):
+            p.append(f'<ellipse cx="{40 + 10 * math.cos(math.radians(a)):.1f}" cy="{24 + 10 * math.sin(math.radians(a)):.1f}" rx="8" ry="4" '
+                     f'transform="rotate({a} {40 + 10 * math.cos(math.radians(a)):.1f} {24 + 10 * math.sin(math.radians(a)):.1f})" fill="#f6d33c" {stroke(1.5)}/>')
+        p.append('<circle cx="40" cy="24" r="7" fill="#f2b632"/>')
+        return svg(80, 76, "\n".join(p))
+    # a little rose bush
+    p = [f'<ellipse cx="40" cy="52" rx="34" ry="22" fill="#4f9a6a" {stroke(3)}/>']
+    for x, y in ((24, 40), (52, 34), (40, 56), (60, 54)):
+        p.append(f'<circle cx="{x}" cy="{y}" r="10" fill="#e8738a" {stroke(2.5)}/>'
+                 f'<path d="M{x - 5},{y} Q{x},{y - 6} {x + 5},{y} Q{x},{y + 4} {x - 3},{y - 1}" fill="none" stroke="#b84a62" stroke-width="2"/>')
+    return svg(80, 76, "\n".join(p))
+
+
+def window_cat():
+    """The neighbour's ginger cat, peeking over the windowsill: head and two paws."""
+    p = [f'<path d="M24,30 L18,2 L46,18 Z M96,30 L102,2 L74,18 Z" fill="#f0a35a" {stroke(3.5)}/>',
+         '<path d="M26,24 L22,10 L38,19 Z M94,24 L98,10 L82,19 Z" fill="#f6c6b0"/>',
+         f'<ellipse cx="60" cy="50" rx="46" ry="38" fill="#f0a35a" {stroke(4)}/>',
+         '<path d="M44,18 L50,30 M60,14 L60,28 M76,18 L70,30" stroke="#d9823a" stroke-width="4" stroke-linecap="round"/>',
+         '<ellipse cx="42" cy="50" rx="8" ry="10" fill="#9ccf6a"/><ellipse cx="78" cy="50" rx="8" ry="10" fill="#9ccf6a"/>',
+         '<ellipse cx="42" cy="51" rx="3" ry="8" fill="#2f2a2a"/><ellipse cx="78" cy="51" rx="3" ry="8" fill="#2f2a2a"/>',
+         '<path d="M56,62 L64,62 L60,67 Z" fill="#e98fae"/>',
+         '<path d="M60,67 Q54,74 48,70 M60,67 Q66,74 72,70" fill="none" stroke="#4f3d33" stroke-width="2.5" stroke-linecap="round"/>',
+         '<path d="M14,64 L34,66 M14,72 L34,70 M106,64 L86,66 M106,72 L86,70" stroke="#4f3d33" stroke-width="1.8"/>',
+         f'<ellipse cx="30" cy="88" rx="16" ry="10" fill="#f0a35a" {stroke(3.5)}/><ellipse cx="90" cy="88" rx="16" ry="10" fill="#f0a35a" {stroke(3.5)}/>']
+    return svg(120, 100, "\n".join(p))
+
+
+for i, (f, b, d) in enumerate((("#e98fae", "#fff4cf", "#fff"), ("#7fb0d8", "#f3cf7a", "#fff"), ("#9cc5a1", "#e8505b", "#fff4cf"))):
+    save(f"egg_{i}.svg", egg(f, b, d))
+save("easter_decor.svg", easter_decor())
+save("pumpkin.svg", pumpkin())
+save("present_easter.svg", present("#bfe3c4", "#f3cf7a", dots="#e98fae"))
+save("present_halloween.svg", present("#f0913a", "#3b3443", dots="#3b3443"))
+save("egg_rattle.svg", svg(60, 76, egg("#f3cf7a", "#e98fae", "#7fb0d8")[egg("#f3cf7a", "#e98fae", "#7fb0d8").index(">") + 1:egg("#f3cf7a", "#e98fae", "#7fb0d8").rindex("</svg>")]))
+save("wear_witch_hat.svg", svg(64, 66,
+    f'<path d="M30,4 Q40,30 50,48 L14,48 Q22,26 30,4 Z" fill="#4b3d5c" {stroke(3.5)}/>'
+    f'<rect x="16" y="38" width="32" height="8" fill="#f0913a"/>'
+    f'<ellipse cx="32" cy="52" rx="30" ry="8" fill="#4b3d5c" {stroke(3.5)}/>'
+    f'<path d="M30,4 Q40,30 50,48" fill="none" {stroke(3.5)}/>'))
+save("veg_patch.svg", veg_patch())
+for k in ("sprout", "carrot", "dandelion", "rose_petals"):
+    save(f"crop_{k}.svg", crop(k.replace("_petals", "")))
+save("window_cat.svg", window_cat())
+save("icon_wish.svg", svg(64, 64,
+    f'<circle cx="12" cy="56" r="5" fill="#fff8ee" {stroke(2.5)}/><circle cx="20" cy="46" r="7" fill="#fff8ee" {stroke(2.5)}/>'
+    f'<path d="M20,32 C10,32 10,14 24,14 C26,4 44,4 46,12 C58,10 62,26 54,30 C58,40 44,44 38,40 C32,46 20,42 20,32 Z" fill="#fff8ee" {stroke(3)}/>'
+    '<path d="M37,32 C30,26 30,19 34,18 C36,17.5 37,19 37,20 C37,19 38,17.5 40,18 C44,19 44,26 37,32 Z" fill="#e98fae"/>'))
+save("icon_vet.svg", svg(64, 64,
+    f'<rect x="8" y="16" width="48" height="40" rx="8" fill="#fff8ee" {stroke(4)}/>'
+    f'<path d="M24,16 L24,10 Q24,6 28,6 L36,6 Q40,6 40,10 L40,16" fill="none" {stroke(4)}/>'
+    '<path d="M32,24 L32,48 M20,36 L44,36" stroke="#e8505b" stroke-width="8" stroke-linecap="round"/>'))
+
+# ---- long-term rewards ---------------------------------------------------------------
+
+GOLD = "#f3c94f"
+save("wear_gold_bowtie.svg", svg(48, 28,
+    f'<path d="M24,14 L4,3 Q0,14 4,25 Z M24,14 L44,3 Q48,14 44,25 Z" fill="{GOLD}" {stroke(3)}/>'
+    '<path d="M8,9 L16,13 M8,19 L16,15 M40,9 L32,13 M40,19 L32,15" stroke="#fff4cf" stroke-width="2" stroke-linecap="round"/>'
+    f'<rect x="19" y="8" width="10" height="12" rx="3" fill="#e8b93a" {stroke(2.5)}/>'))
+save("wear_gold_crown.svg", svg(60, 44,
+    f'<path d="M6,38 L4,10 L18,22 L30,4 L42,22 L56,10 L54,38 Z" fill="{GOLD}" {stroke(3.5)}/>'
+    f'<circle cx="30" cy="27" r="5" fill="#e8505b" {stroke(2)}/><circle cx="15" cy="30" r="3.5" fill="#7fb0d8" {stroke(2)}/>'
+    f'<circle cx="45" cy="30" r="3.5" fill="#9cc5a1" {stroke(2)}/>'
+    f'<circle cx="4" cy="9" r="3.5" fill="{GOLD}" {stroke(2)}/><circle cx="30" cy="4" r="3.5" fill="{GOLD}" {stroke(2)}/>'
+    f'<circle cx="56" cy="9" r="3.5" fill="{GOLD}" {stroke(2)}/>'))
+save("royal_cushion.svg", svg(170, 80,
+    f'<path d="M14,30 Q85,4 156,30 Q166,52 156,70 Q85,80 14,70 Q4,52 14,30 Z" fill="#8a4d9e" {stroke(4)}/>'
+    '<path d="M30,40 Q85,26 140,40" fill="none" stroke="#a96bbd" stroke-width="5" stroke-linecap="round"/>'
+    f'<circle cx="85" cy="48" r="7" fill="{GOLD}" {stroke(2.5)}/>'
+    + "".join(f'<path d="M{x},{y} l{dx},10" stroke="{GOLD}" stroke-width="4" stroke-linecap="round"/>'
+              f'<circle cx="{x + dx}" cy="{y + 12}" r="4" fill="{GOLD}" {stroke(2)}/>' for x, y, dx in ((14, 30, -6), (156, 30, 6), (14, 70, -6), (156, 70, 6)))))
+
+
+def statue():
+    """A little golden Bubák on a marble plinth."""
+    p = [f'<rect x="20" y="150" width="120" height="44" rx="6" fill="#ece8e2" {stroke(4)}/>',
+         f'<rect x="12" y="140" width="136" height="16" rx="5" fill="#f6f3ee" {stroke(4)}/>',
+         f'<rect x="56" y="164" width="48" height="16" rx="3" fill="{GOLD}" {stroke(2)}/>',
+         f'<g transform="translate(6,4) scale(0.72)">{bunny("sit", parts=True)[bunny("sit", parts=True).index(">") + 1:bunny("sit", parts=True).rindex("</svg>")]}</g>']
+    body = "\n".join(p)
+    # gild the bunny: swap the fur colours for gold
+    for c, g in ((FUR, GOLD), (FUR_DARK, "#d9a92e"), (FUR_LIGHT, "#f8dc7c"), (CREAM, "#fbe9a6"), (PINK, "#f0c050"),
+                 (NOSE, "#d9a92e"), (BLUSH, "#f3c94f")):
+        body = body.replace(c, g)
+    return svg(160, 196, body)
+
+
+def curio():
+    """A glass cabinet with the souvenirs from all the walks."""
+    p = [f'<rect x="10" y="10" width="150" height="210" rx="10" fill="#c08a5c" {stroke(4)}/>',
+         f'<rect x="22" y="22" width="126" height="170" rx="6" fill="#e9f3f6" {stroke(3)}/>',
+         '<path d="M22,78 H148 M22,136 H148" stroke="#c08a5c" stroke-width="6"/>',
+         '<path d="M40,30 L60,180" stroke="#ffffff" stroke-width="6" opacity="0.6"/>',
+         f'<rect x="60" y="198" width="50" height="12" rx="4" fill="{GOLD}" {stroke(2)}/>']
+    things = [(48, 64, "#b07d52", 9), (85, 62, "#f6f3ee", 8), (120, 64, "#e8505b", 9), (50, 122, "#f3a35a", 10),
+              (88, 122, "#9cd3c8", 8), (124, 120, GOLD, 9), (52, 180, "#f2e4c9", 9), (90, 178, "#3b3443", 9), (124, 180, "#7fb0d8", 8)]
+    for x, y, c, r in things:
+        p.append(f'<circle cx="{x}" cy="{y}" r="{r}" fill="{c}" {stroke(2.5)}/>')
+    return svg(170, 228, "\n".join(p))
+
+
+save("statue.svg", statue())
+save("curio.svg", curio())
+
+
+def souvenir(kind):
+    """Little keepsakes Bubák brings back from walks (64x64 icons)."""
+    S = lambda w=3: stroke(w)
+    if kind == "acorn":
+        b = f'<ellipse cx="32" cy="38" rx="14" ry="18" fill="#c98a4b" {S()}/><path d="M14,26 Q32,8 50,26 Q32,32 14,26 Z" fill="#8a5a36" {S()}/><path d="M32,12 L34,4" {S(4)}/>'
+    elif kind == "feather":
+        b = f'<path d="M14,54 Q20,20 50,8 Q46,36 14,54 Z" fill="#a7c0e8" {S()}/><path d="M14,54 L44,16" stroke="#4f3d33" stroke-width="2.5"/>'
+    elif kind == "conker":
+        b = f'<circle cx="32" cy="34" r="20" fill="#8a4a2c" {S()}/><ellipse cx="32" cy="26" rx="12" ry="7" fill="#d9b48a"/><ellipse cx="24" cy="38" rx="4" ry="6" fill="#b06a44" opacity="0.7"/>'
+    elif kind == "clover":
+        b = f'<path d="M32,34 L36,58" stroke="#4f9a6a" stroke-width="5" stroke-linecap="round"/>' + "".join(
+            f'<circle cx="{32 + 11 * math.cos(math.radians(a)):.1f}" cy="{30 + 11 * math.sin(math.radians(a)):.1f}" r="10" fill="#5fb36f" {S(2.5)}/>' for a in (45, 135, 225, 315)) \
+            + f'<circle cx="32" cy="30" r="4" fill="{GOLD}"/>'
+    elif kind == "poppy":
+        b = f'<path d="M32,40 L32,60" stroke="#4f9a6a" stroke-width="4"/>' + "".join(
+            f'<circle cx="{32 + 10 * math.cos(math.radians(a)):.1f}" cy="{26 + 10 * math.sin(math.radians(a)):.1f}" r="11" fill="#e8505b" {S(2.5)}/>' for a in (0, 90, 180, 270)) \
+            + '<circle cx="32" cy="26" r="6" fill="#3b3443"/>'
+    elif kind == "wheat":
+        b = '<path d="M32,60 L32,14" stroke="#c99a4b" stroke-width="4"/>' + "".join(
+            f'<ellipse cx="{32 + s * 7}" cy="{18 + i * 9}" rx="6" ry="4" transform="rotate({s * 35} {32 + s * 7} {18 + i * 9})" fill="#f0c86a" {S(2)}/>'
+            for i in range(4) for s in (-1, 1))
+    elif kind == "pebble":
+        b = f'<ellipse cx="32" cy="36" rx="24" ry="16" fill="#b9b6c2" {S()}/><ellipse cx="24" cy="30" rx="8" ry="4" fill="#fff" opacity="0.5"/>'
+    elif kind == "horseshoe":
+        b = f'<path d="M14,12 L14,34 Q14,56 32,56 Q50,56 50,34 L50,12 L40,12 L40,34 Q40,46 32,46 Q24,46 24,34 L24,12 Z" fill="{GOLD}" {S()}/>' \
+            + "".join(f'<circle cx="{x}" cy="{y}" r="2" fill="#4f3d33"/>' for x, y in ((19, 22), (19, 36), (45, 22), (45, 36)))
+    elif kind == "shell":
+        b = f'<path d="M32,54 L8,28 Q32,0 56,28 Z" fill="#f6c6b0" {S()}/>' + "".join(
+            f'<path d="M32,54 L{x},{y}" stroke="#d99a86" stroke-width="2.5"/>' for x, y in ((16, 22), (24, 14), (32, 12), (40, 14), (48, 22)))
+    elif kind == "starfish":
+        pts = " ".join(f"{32 + (26 if i % 2 == 0 else 11) * math.cos(math.radians(-90 + i * 36)):.1f},"
+                       f"{34 + (26 if i % 2 == 0 else 11) * math.sin(math.radians(-90 + i * 36)):.1f}" for i in range(10))
+        b = f'<polygon points="{pts}" fill="#f3935a" stroke="#4f3d33" stroke-width="3" stroke-linejoin="round"/>' \
+            + "".join(f'<circle cx="{32 + 10 * math.cos(math.radians(-90 + i * 72)):.1f}" cy="{34 + 10 * math.sin(math.radians(-90 + i * 72)):.1f}" r="2" fill="#fff4cf"/>' for i in range(5))
+    elif kind == "seaglass":
+        b = f'<path d="M14,30 L28,12 L50,20 L52,42 L30,54 L12,44 Z" fill="#8fd0b8" opacity="0.85" {S()}/><path d="M22,26 L34,20" stroke="#fff" stroke-width="3" opacity="0.7"/>'
+    elif kind == "pearl":
+        b = f'<path d="M8,40 Q32,62 56,40 Z" fill="#c9b6d8" {S()}/><circle cx="32" cy="32" r="12" fill="#fbf6ee" {S()}/><circle cx="28" cy="28" r="4" fill="#fff"/>'
+    elif kind == "postcard":
+        b = f'<rect x="6" y="14" width="52" height="36" rx="3" fill="#fff8ee" {S()}/><rect x="40" y="18" width="14" height="14" fill="#e98fae" {S(2)}/>' \
+            '<path d="M12,26 H34 M12,34 H34 M12,42 H28" stroke="#a7c0e8" stroke-width="3"/>'
+    elif kind == "ticket":
+        b = f'<rect x="8" y="20" width="48" height="26" rx="3" fill="#f3cf7a" {S()}/><path d="M18,20 V46" stroke="#4f3d33" stroke-width="2" stroke-dasharray="3 3"/>' \
+            '<path d="M24,30 H50 M24,37 H44" stroke="#4f3d33" stroke-width="2.5"/>'
+    elif kind == "badge":
+        b = f'<circle cx="32" cy="32" r="22" fill="#9cd3c8" {S()}/><path d="M22,28 L42,28 L40,42 L24,42 Z" fill="#fff8ee" {S(2.5)}/>' \
+            '<path d="M42,31 Q48,33 42,38" fill="none" stroke="#4f3d33" stroke-width="2.5"/><path d="M28,24 Q30,18 28,14 M34,24 Q36,18 34,14" stroke="#fff" stroke-width="2" fill="none"/>'
+    elif kind == "key":
+        b = f'<circle cx="20" cy="32" r="12" fill="none" stroke="{GOLD}" stroke-width="7"/><circle cx="20" cy="32" r="12" fill="none" {S(2)}/>' \
+            f'<path d="M31,32 H56 M48,32 V42 M54,32 V40" stroke="{GOLD}" stroke-width="6" stroke-linecap="round"/>'
+    elif kind == "stub":
+        b = f'<path d="M10,18 H54 V46 H10 L14,40 L10,34 L14,28 L10,22 Z" fill="#e8505b" {S()}/><path d="M22,26 H48 M22,34 H44" stroke="#fff4cf" stroke-width="3"/>'
+    elif kind == "reel":
+        b = f'<circle cx="32" cy="32" r="24" fill="#3b3443" {S()}/>' + "".join(
+            f'<circle cx="{32 + 12 * math.cos(math.radians(a)):.1f}" cy="{32 + 12 * math.sin(math.radians(a)):.1f}" r="6" fill="#d9d4e0"/>' for a in range(0, 360, 72)) \
+            + '<circle cx="32" cy="32" r="4" fill="#d9d4e0"/>'
+    elif kind == "glasses3d":
+        b = f'<rect x="6" y="22" width="52" height="22" rx="4" fill="#fff8ee" {S()}/><rect x="11" y="26" width="18" height="14" rx="3" fill="#e8505b"/>' \
+            '<rect x="35" y="26" width="18" height="14" rx="3" fill="#7fb0d8"/>'
+    else:   # autograph
+        b = f'<rect x="8" y="10" width="48" height="44" rx="4" fill="#fff8ee" {S()}/>' \
+            f'<path d="M32,16 L35,25 L44,25 L37,30 L40,39 L32,34 L24,39 L27,30 L20,25 L29,25 Z" fill="{GOLD}" stroke="#4f3d33" stroke-width="2"/>' \
+            '<path d="M14,46 q6,-8 10,0 t10,0 t10,-2 t6,2" fill="none" stroke="#3b3443" stroke-width="2.5"/>'
+    return svg(64, 64, b)
+
+
+for _k in ("acorn", "feather", "conker", "clover", "poppy", "wheat", "pebble", "horseshoe", "shell", "starfish", "seaglass",
+           "pearl", "postcard", "ticket", "badge", "key", "stub", "reel", "glasses3d", "autograph"):
+    save(f"icon_souv_{_k}.svg", souvenir(_k))
+
 # app icon: Bubák's face on a warm circle
 icon = (f'<circle cx="128" cy="128" r="120" fill="#f7e6d0" {stroke(8)}/>'
         f'<g transform="translate(122,170) scale(1.3)">{head(0, 0, 0, -8, "open", seed=11)}</g>')
 save("icon.svg", svg(256, 256, icon))
 print("art written to", os.path.abspath(OUT))
+
+
+# ---- the late game: merch products, the league cup ------------------------------------
+save("icon_merch_stickers.svg", svg(64, 64,
+    f'<rect x="8" y="8" width="48" height="48" rx="6" fill="#fff8ee" {stroke(3.5)}/>'
+    f'<circle cx="23" cy="23" r="9" fill="#e98fae" {stroke(2.5)}/><circle cx="42" cy="24" r="8" fill="#f3c94f" {stroke(2.5)}/>'
+    f'<path d="M14,48 L22,36 L30,48 Z" fill="#7fcfb8" {stroke(2.5)}/><circle cx="43" cy="43" r="8" fill="#a7c0e8" {stroke(2.5)}/>'))
+save("icon_merch_mug.svg", svg(64, 64,
+    f'<path d="M44,24 Q58,24 56,36 Q54,46 42,44" fill="none" {stroke(5)}/>'
+    f'<path d="M10,14 H46 V50 Q46,58 38,58 H18 Q10,58 10,50 Z" fill="#fff8ee" {stroke(4)}/>'
+    '<path d="M28,40 C21,34 21,27 25,26 C27,25.5 28,27 28,28 C28,27 29,25.5 31,26 C35,27 35,34 28,40 Z" fill="#e98fae"/>'))
+save("icon_merch_calendar.svg", svg(64, 64,
+    f'<rect x="8" y="12" width="48" height="46" rx="6" fill="#fff8ee" {stroke(4)}/>'
+    f'<rect x="8" y="12" width="48" height="12" rx="6" fill="#e8505b" {stroke(4)}/>'
+    '<path d="M20,6 V16 M44,6 V16" stroke="#4f3d33" stroke-width="4" stroke-linecap="round"/>'
+    + "".join(f'<rect x="{14 + (i % 4) * 10}" y="{30 + (i // 4) * 9}" width="6" height="5" rx="1" fill="#c9b8a6"/>' for i in range(12))))
+save("icon_merch_plush.svg", svg(64, 64,
+    f'<ellipse cx="22" cy="16" rx="6" ry="13" fill="#b7a6c9" {stroke(3)}/><ellipse cx="40" cy="16" rx="6" ry="13" fill="#b7a6c9" {stroke(3)}/>'
+    f'<ellipse cx="32" cy="44" rx="20" ry="16" fill="#b7a6c9" {stroke(3.5)}/><circle cx="32" cy="32" r="14" fill="#b7a6c9" {stroke(3.5)}/>'
+    '<circle cx="27" cy="31" r="2.2" fill="#4f3d33"/><circle cx="37" cy="31" r="2.2" fill="#4f3d33"/>'
+    '<circle cx="32" cy="36" r="2" fill="#e98fae"/><path d="M26,52 h12" stroke="#f3c94f" stroke-width="4" stroke-linecap="round"/>'))
+save("icon_merch_hoodie.svg", svg(64, 64,
+    f'<path d="M20,10 Q32,4 44,10 L58,22 L50,32 L46,28 V58 H18 V28 L14,32 L6,22 Z" fill="#7fa7d8" {stroke(3.5)}/>'
+    f'<path d="M24,10 Q32,22 40,10" fill="#6a92c4" {stroke(3)}/>'
+    '<path d="M32,46 C26,41 26,35 29,34 C31,33.5 32,35 32,36 C32,35 33,33.5 35,34 C38,35 38,41 32,46 Z" fill="#fff8ee"/>'))
+save("icon_league.svg", svg(64, 64,
+    f'<path d="M16,8 H48 V22 Q48,40 32,42 Q16,40 16,22 Z" fill="#f3c94f" {stroke(3.5)}/>'
+    f'<path d="M16,14 Q4,14 6,24 Q8,32 18,30 M48,14 Q60,14 58,24 Q56,32 46,30" fill="none" {stroke(3.5)}/>'
+    f'<rect x="28" y="42" width="8" height="8" fill="#e8b93a" {stroke(3)}/><rect x="18" y="50" width="28" height="8" rx="3" fill="#a9825a" {stroke(3)}/>'
+    '<path d="M27,20 l5,-6 5,6 -5,6 z" fill="#fff4cf"/>'))
+save("icon_foster.svg", svg(64, 64,
+    f'<path d="M8,30 L32,10 L56,30 V56 H8 Z" fill="#f6dccd" {stroke(4)}/>'
+    '<path d="M32,48 C22,40 22,30 27,29 C30,28.5 32,31 32,32 C32,31 34,28.5 37,29 C42,30 42,40 32,48 Z" fill="#e98fae"/>'))
+save("icon_agility.svg", svg(64, 64,
+    '<path d="M8,56 H56" stroke="#8fb466" stroke-width="5" stroke-linecap="round"/>'
+    f'<rect x="30" y="36" width="5" height="20" fill="#8a6247" {stroke(2)}/><rect x="52" y="36" width="5" height="20" fill="#8a6247" {stroke(2)}/>'
+    f'<rect x="27" y="36" width="33" height="6" rx="2" fill="#e8505b" {stroke(2)}/>'
+    '<path d="M36,36 h6 M48,36 h6" stroke="#ffffff" stroke-width="4"/>'
+    '<path d="M6,44 Q22,6 46,18" fill="none" stroke="#c9b8a6" stroke-width="3" stroke-dasharray="4 4" stroke-linecap="round"/>'
+    f'<ellipse cx="36" cy="18" rx="11" ry="8" fill="#b7a6c9" {stroke(3)}/>'
+    f'<ellipse cx="45" cy="9" rx="3.5" ry="8" fill="#b7a6c9" transform="rotate(35 45 9)" {stroke(2.5)}/>'
+    '<circle cx="44" cy="17" r="1.8" fill="#4f3d33"/>'))
+
+
+# ---- coming back for more: seasons, the dig box, the garden, personality -------------------
+GOLD2 = "#f3c94f"
+# seasonal finds, drawn like the other accessories
+save("wear_blossom.svg", svg(36, 36,
+    "".join(f'<ellipse cx="{18 + 8 * math.cos(math.radians(a)):.1f}" cy="{18 + 8 * math.sin(math.radians(a)):.1f}" rx="7" ry="6" '
+            f'fill="#f6c1d0" {stroke(2)}/>' for a in range(-90, 270, 72))
+    + f'<circle cx="18" cy="18" r="4.5" fill="#e98fae" {stroke(2)}/>'
+    + "".join(f'<circle cx="{18 + 3 * math.cos(math.radians(a)):.1f}" cy="{18 + 3 * math.sin(math.radians(a)):.1f}" r="1.2" fill="{GOLD2}"/>'
+              for a in range(0, 360, 72))))
+save("wear_straw_hat.svg", svg(96, 50,
+    f'<ellipse cx="48" cy="38" rx="45" ry="10" fill="#ead08a" {stroke(3.5)}/>'
+    f'<path d="M24,38 Q24,8 48,8 Q72,8 72,38 Z" fill="#ead08a" {stroke(3.5)}/>'
+    '<path d="M25,30 Q48,36 71,30 L71,36 Q48,42 25,36 Z" fill="#e8505b"/>'
+    + "".join(f'<path d="M{30 + i * 9},14 L{28 + i * 9},30" stroke="#d2b46a" stroke-width="2"/>' for i in range(5))))
+save("wear_scarf.svg", svg(76, 52,
+    f'<path d="M4,10 Q38,26 72,10 L72,24 Q38,40 4,24 Z" fill="#e8505b" {stroke(3)}/>'
+    + "".join(f'<path d="M{12 + i * 14},{14 + (3 if i in (1, 2, 3) else 0)} L{12 + i * 14},{28 + (3 if i in (1, 2, 3) else 0)}" stroke="#f6e9d6" stroke-width="5"/>'
+              for i in range(5))
+    + f'<path d="M50,26 L58,50 L68,46 L62,24 Z" fill="#e8505b" {stroke(3)}/>'
+    '<path d="M57,46 v5 M61,45 v5 M65,44 v5" stroke="#4f3d33" stroke-width="2"/>'))
+save("wear_snowflake.svg", svg(36, 36,
+    "".join(f'<path d="M18,18 L{18 + 15 * math.cos(math.radians(a)):.1f},{18 + 15 * math.sin(math.radians(a)):.1f}" stroke="#7fb0d8" stroke-width="4" stroke-linecap="round"/>'
+            f'<path d="M{18 + 9 * math.cos(math.radians(a)) + 4 * math.cos(math.radians(a + 60)):.1f},{18 + 9 * math.sin(math.radians(a)) + 4 * math.sin(math.radians(a + 60)):.1f} '
+            f'L{18 + 9 * math.cos(math.radians(a)):.1f},{18 + 9 * math.sin(math.radians(a)):.1f} '
+            f'L{18 + 9 * math.cos(math.radians(a)) + 4 * math.cos(math.radians(a - 60)):.1f},{18 + 9 * math.sin(math.radians(a)) + 4 * math.sin(math.radians(a - 60)):.1f}" '
+            'fill="none" stroke="#7fb0d8" stroke-width="2.5" stroke-linecap="round"/>' for a in range(0, 360, 60))
+    + '<circle cx="18" cy="18" r="3.5" fill="#ffffff" stroke="#7fb0d8" stroke-width="2"/>'))
+# the golden carrot, its seed, the bigger patch, parsley
+GC = (f'<path d="M24,30 Q40,22 56,30 L48,66 Q40,72 32,66 Z" fill="{GOLD2}" {stroke(3)}/>'
+      '<path d="M32,38 h8 M36,48 h8 M34,58 h6" stroke="#d99a2a" stroke-width="3" stroke-linecap="round"/>'
+      '<path d="M30,36 L33,32" stroke="#fff4cf" stroke-width="3" stroke-linecap="round"/>')
+GC_LEAVES = "".join(f'<path d="M40,30 Q{40 + dx},{14} {40 + dx * 1.3},2" fill="none" stroke="#4f9a6a" stroke-width="5" stroke-linecap="round"/>'
+                    for dx in (-12, 0, 12))
+save("icon_golden_carrot.svg", svg(80, 76, GC_LEAVES + GC
+    + "".join(f'<path d="M{x},{y} l2,-5 2,5 5,2 -5,2 -2,5 -2,-5 -5,-2z" fill="#fff4cf" stroke="#d99a2a" stroke-width="1"/>' for x, y in ((14, 40), (64, 52), (62, 22)))))
+save("crop_golden_carrot.svg", svg(80, 76, GC_LEAVES.replace("2\" fill", "2\" fill") + GC))
+save("icon_golden_seed.svg", svg(64, 64,
+    f'<path d="M32,8 Q50,26 44,46 Q38,58 32,58 Q26,58 20,46 Q14,26 32,8 Z" fill="{GOLD2}" {stroke(3.5)}/>'
+    '<path d="M32,16 Q38,30 34,48" fill="none" stroke="#d99a2a" stroke-width="3"/>'
+    '<path d="M24,26 L27,22" stroke="#fff4cf" stroke-width="3" stroke-linecap="round"/>'))
+save("icon_garden_beds.svg", svg(64, 64,
+    f'<rect x="4" y="30" width="56" height="26" rx="5" fill="#b07d52" {stroke(3.5)}/>'
+    '<path d="M4,43 H60" stroke="#8f6240" stroke-width="2.5"/>'
+    + "".join(f'<path d="M{x},30 L{x},16 M{x},22 L{x - 6},14 M{x},22 L{x + 6},14" stroke="#4f9a6a" stroke-width="3.5" stroke-linecap="round"/>' for x in (14, 32, 50))
+    + f'<circle cx="52" cy="10" r="8" fill="#9cc5a1" {stroke(2.5)}/><path d="M52,6 v8 M48,10 h8" stroke="#4f3d33" stroke-width="2.5"/>'))
+save("crop_parsley.svg", svg(80, 76,
+    "".join(f'<path d="M40,72 Q{40 + dx * 0.5},{50} {40 + dx},{28 + abs(dx) * 0.4}" fill="none" stroke="#4f8a52" stroke-width="4" stroke-linecap="round"/>'
+            f'<circle cx="{40 + dx}" cy="{24 + abs(dx) * 0.4}" r="9" fill="#5fa85f" {stroke(2.5)}/>'
+            f'<circle cx="{40 + dx - 6}" cy="{30 + abs(dx) * 0.4}" r="6" fill="#6fb86a" {stroke(2)}/>' for dx in (-20, 0, 20))))
+# the treasure chest (a decor reward) and the things he digs up
+save("treasure_chest.svg", svg(150, 120,
+    f'<rect x="10" y="50" width="130" height="64" rx="8" fill="#a8693c" {stroke(4)}/>'
+    f'<path d="M10,52 Q10,14 75,14 Q140,14 140,52 Z" fill="#c0804a" {stroke(4)}/>'
+    f'<path d="M30,18 V112 M120,18 V112" stroke="{GOLD2}" stroke-width="9"/><path d="M30,18 V112 M120,18 V112" stroke="#4f3d33" stroke-width="2" stroke-dasharray="1 0"/>'
+    f'<rect x="64" y="44" width="22" height="26" rx="4" fill="{GOLD2}" {stroke(3)}/><circle cx="75" cy="55" r="4" fill="#4f3d33"/>'
+    + "".join(f'<circle cx="{x}" cy="{y}" r="7" fill="{GOLD2}" {stroke(2)}/>' for x, y in ((48, 12), (62, 8), (90, 9), (104, 13), (76, 4)))))
+FIND_ART = {
+    "button": f'<circle cx="32" cy="32" r="22" fill="#e98fae" {stroke(3.5)}/><circle cx="32" cy="32" r="15" fill="none" stroke="#c9668a" stroke-width="2.5"/>'
+              + "".join(f'<circle cx="{x}" cy="{y}" r="3.2" fill="#4f3d33"/>' for x, y in ((27, 27), (37, 27), (27, 37), (37, 37))),
+    "marble": f'<circle cx="32" cy="34" r="20" fill="#a7d8e8" opacity="0.9" {stroke(3.5)}/>'
+              '<path d="M18,36 Q30,22 46,30 Q34,40 18,36 Z" fill="#e8505b" opacity="0.85"/><circle cx="25" cy="26" r="5" fill="#fff" opacity="0.8"/>',
+    "cap": f'<circle cx="32" cy="34" r="20" fill="#7fb0d8" {stroke(3.5)}/>'
+           + "".join(f'<path d="M{32 + 20 * math.cos(math.radians(a)):.1f},{34 + 20 * math.sin(math.radians(a)):.1f} '
+                     f'L{32 + 24 * math.cos(math.radians(a + 10)):.1f},{34 + 24 * math.sin(math.radians(a + 10)):.1f}" stroke="#4f3d33" stroke-width="3"/>' for a in range(0, 360, 30))
+           + '<circle cx="32" cy="34" r="10" fill="#fff8ee"/>',
+    "coin": f'<circle cx="32" cy="32" r="22" fill="#c9a35a" {stroke(3.5)}/><circle cx="32" cy="32" r="15" fill="none" stroke="#a8823e" stroke-width="3"/>'
+            '<path d="M26,26 Q32,20 38,26 Q38,32 32,34 Q26,36 26,42 Q32,48 38,42" fill="none" stroke="#7a5a2a" stroke-width="3"/>',
+    "ring": f'<circle cx="32" cy="38" r="15" fill="none" stroke="{GOLD2}" stroke-width="7"/><circle cx="32" cy="38" r="15" fill="none" {stroke(2)}/>'
+            f'<path d="M24,16 L32,6 L40,16 L32,26 Z" fill="#a7e0f0" {stroke(2.5)}/>',
+    "map": f'<path d="M8,12 L36,8 L40,22 L56,26 L52,56 L12,52 Z" fill="#f1dfb4" {stroke(3.5)}/>'
+           '<path d="M16,40 Q24,30 30,36 T44,30" fill="none" stroke="#c0804a" stroke-width="2.5" stroke-dasharray="4 3"/>',
+}
+for _k, _b in FIND_ART.items():
+    save(f"icon_find_{_k}.svg", svg(64, 64, _b))
+save("icon_treasure_map.svg", svg(64, 64,
+    f'<path d="M6,10 L22,6 L42,12 L58,6 L58,54 L42,58 L22,52 L6,58 Z" fill="#f1dfb4" {stroke(3.5)}/>'
+    '<path d="M22,6 V52 M42,12 V58" stroke="#d9c08a" stroke-width="2.5"/>'
+    '<path d="M12,46 Q22,30 30,38 T44,24" fill="none" stroke="#c0804a" stroke-width="3" stroke-dasharray="4 3"/>'
+    '<path d="M42,18 l8,8 M50,18 l-8,8" stroke="#e8505b" stroke-width="4" stroke-linecap="round"/>'))
+# Bubák's ears sticking out from behind the furniture (hide and seek)
+save("peek_ears.svg", svg(80, 90,
+    f'<ellipse cx="26" cy="46" rx="12" ry="36" transform="rotate(-12 26 46)" fill="{FUR}" {stroke(4)}/>'
+    '<ellipse cx="27" cy="50" rx="6" ry="26" transform="rotate(-12 27 50)" fill="#f2b3bd"/>'
+    f'<path d="M50,84 Q48,36 62,20 Q74,10 76,28 Q72,48 64,84 Z" fill="{FUR}" {stroke(4)}/>'
+    '<path d="M56,80 Q56,44 64,30 Q70,26 70,36 Q66,52 62,80 Z" fill="#f2b3bd"/>'))
+# the autumn leaf pile on the balcony
+save("leaf_pile.svg", svg(200, 80,
+    f'<path d="M8,74 Q20,30 60,24 Q100,6 140,22 Q186,30 194,74 Z" fill="#c8562e" {stroke(4)}/>'
+    + "".join(f'<ellipse cx="{x}" cy="{y}" rx="13" ry="7" transform="rotate({r} {x} {y})" fill="{c}" {stroke(2)}/>'
+              for x, y, r, c in ((40, 50, 20, "#e8b04a"), (70, 34, -30, "#d9822b"), (104, 24, 10, "#e8b04a"), (138, 34, 40, "#9a5b2e"),
+                                 (162, 54, -20, "#d9822b"), (90, 56, 60, "#9a5b2e"), (124, 58, -10, "#e8b04a"), (58, 64, 0, "#d9822b")))))
+# personality, stickers, the album, a storm
+save("icon_trait_athlete.svg", svg(64, 64,
+    f'<path d="M8,48 Q8,36 20,36 L36,34 Q44,22 52,26 L58,40 Q58,50 48,50 L14,52 Q8,52 8,48 Z" fill="#7fb0d8" {stroke(3.5)}/>'
+    '<path d="M8,50 H58" stroke="#fff8ee" stroke-width="4"/><path d="M30,36 l4,6 M36,34 l4,6" stroke="#4f3d33" stroke-width="2.5"/>'
+    '<path d="M4,24 h12 M2,32 h10 M6,16 h10" stroke="#c9b8a6" stroke-width="3" stroke-linecap="round"/>'))
+save("icon_trait_cuddler.svg", svg(64, 64,
+    f'<path d="M6,58 V40 Q6,34 12,34 H40 Q46,34 46,40 V44 Q46,48 40,48 H28 V58 Z" fill="#f7cdb0" {stroke(3.5)}/>'
+    '<path d="M38,30 C24,20 26,8 34,8 C38,8 40,12 40,14 C40,12 42,8 46,8 C54,8 56,20 42,30 Z" fill="#e98fae" stroke="#4f3d33" stroke-width="3"/>'))
+save("icon_trait_showoff.svg", svg(64, 64,
+    f'<path d="M32,6 l7,16 l17,2 l-13,11 l4,17 l-15,-9 l-15,9 l4,-17 l-13,-11 l17,-2z" fill="{GOLD2}" {stroke(3)}/>'
+    '<path d="M54,6 l2,5 5,2 -5,2 -2,5 -2,-5 -5,-2 5,-2z M10,48 l2,5 5,2 -5,2 -2,5 -2,-5 -5,-2 5,-2z" fill="#e98fae"/>'))
+save("icon_trait_explorer.svg", svg(64, 64,
+    f'<circle cx="32" cy="32" r="24" fill="#fff8ee" {stroke(3.5)}/><circle cx="32" cy="32" r="18" fill="none" stroke="#c9b8a6" stroke-width="2"/>'
+    '<path d="M32,12 L38,32 L32,52 L26,32 Z" fill="#e8505b" stroke="#4f3d33" stroke-width="2.5"/><path d="M32,32 L38,32 L32,52 L26,32 Z" fill="#a7c0e8"/>'
+    '<circle cx="32" cy="32" r="3" fill="#4f3d33"/>'))
+save("icon_sticker.svg", svg(64, 64,
+    f'<circle cx="32" cy="32" r="26" fill="#9cd3c8" {stroke(3.5)}/>'
+    f'<path d="M32,12 l5.5,12.5 l13.5,1.5 l-10,9 l3,13.5 l-12,-7 l-12,7 l3,-13.5 l-10,-9 l13.5,-1.5z" fill="{GOLD2}" {stroke(2.5)}/>'
+    '<path d="M50,50 Q46,40 56,40" fill="#fff" stroke="#4f3d33" stroke-width="2"/>'))
+save("icon_album.svg", svg(64, 64,
+    f'<rect x="8" y="8" width="48" height="50" rx="5" fill="#d8a7d0" {stroke(4)}/>'
+    f'<rect x="16" y="16" width="32" height="24" rx="2" fill="#fff8ee" {stroke(2.5)}/>'
+    '<path d="M18,38 L28,28 L34,34 L38,30 L46,38 Z" fill="#9cc5a1"/><circle cx="40" cy="22" r="3" fill="#f3cf7a"/>'
+    '<path d="M18,48 H46" stroke="#fff8ee" stroke-width="3"/>'))
+save("icon_storm.svg", svg(64, 64,
+    f'<path d="M14,40 C4,40 4,24 16,24 C18,12 36,10 40,20 C52,16 60,30 52,40 Z" fill="#9aa3b5" {stroke(3.5)}/>'
+    f'<path d="M34,36 L26,50 L34,50 L28,62 L42,46 L34,46 L40,36 Z" fill="{GOLD2}" stroke="#4f3d33" stroke-width="2.5" stroke-linejoin="round"/>'))
+save("icon_kid.svg", svg(64, 64,
+    f'<circle cx="32" cy="24" r="14" fill="#f7cdb0" {stroke(3.5)}/>'
+    f'<path d="M18,20 Q20,6 32,8 Q44,6 46,20 Q40,14 32,16 Q24,14 18,20 Z" fill="#8a5a36" {stroke(2.5)}/>'
+    '<circle cx="27" cy="25" r="2" fill="#4f3d33"/><circle cx="37" cy="25" r="2" fill="#4f3d33"/><path d="M28,31 q4,3 8,0" fill="none" stroke="#4f3d33" stroke-width="2"/>'
+    f'<path d="M14,60 Q14,40 32,40 Q50,40 50,60 Z" fill="#f3c94f" {stroke(3.5)}/>'))
+
+
+# ---- the top of the game: advanced tricks, the Games, the advent calendar, ladders, the book ----
+G3 = "#f3c94f"
+save("icon_trick_bow.svg", svg(64, 64,
+    f'<path d="M8,52 H58" stroke="#c9b8a6" stroke-width="4" stroke-linecap="round"/>'
+    f'<ellipse cx="38" cy="38" rx="17" ry="12" fill="{FUR}" {stroke(3)}/><circle cx="20" cy="44" r="10" fill="{FUR}" {stroke(3)}/>'
+    f'<ellipse cx="14" cy="30" rx="4" ry="11" transform="rotate(-30 14 30)" fill="{FUR}" {stroke(2.5)}/>'
+    '<circle cx="17" cy="44" r="1.8" fill="#4f3d33"/><path d="M40,10 l2,5 5,2 -5,2 -2,5 -2,-5 -5,-2 5,-2z" fill="#e98fae"/>'))
+save("icon_trick_high_five.svg", svg(64, 64,
+    f'<path d="M44,8 v18 q0,8 8,8 h4 v-22 q0,-6 -6,-6 z" fill="#f7cdb0" {stroke(3)}/>'
+    f'<ellipse cx="22" cy="44" rx="13" ry="15" fill="{FUR}" {stroke(3)}/><path d="M30,36 L42,24" stroke="{FUR}" stroke-width="7" stroke-linecap="round"/>'
+    '<path d="M30,36 L42,24" fill="none" stroke="#4f3d33" stroke-width="2" stroke-linecap="round" stroke-dasharray="0"/>'
+    '<path d="M36,14 l3,-6 M30,18 l-3,-5 M42,30 l6,1" stroke="#e0901c" stroke-width="3" stroke-linecap="round"/>'))
+save("icon_trick_fetch.svg", svg(64, 64,
+    '<path d="M6,54 H58" stroke="#c9b8a6" stroke-width="4" stroke-linecap="round"/>'
+    f'<ellipse cx="22" cy="40" rx="15" ry="11" fill="{FUR}" {stroke(3)}/>'
+    f'<circle cx="46" cy="44" r="10" fill="#f6dc6e" {stroke(3)}/><path d="M38,40 q8,-6 16,2" fill="none" stroke="#e8505b" stroke-width="3"/>'
+    '<path d="M14,22 q14,-14 30,6" fill="none" stroke="#4f3d33" stroke-width="2.5" stroke-dasharray="4 3"/>'))
+save("icon_trick_slalom.svg", svg(64, 64,
+    f'<rect x="18" y="6" width="9" height="50" rx="4" fill="#5b78a8" {stroke(2.5)}/><rect x="38" y="6" width="9" height="50" rx="4" fill="#5b78a8" {stroke(2.5)}/>'
+    '<path d="M4,46 Q18,30 32,46 T60,46" fill="none" stroke="#e98fae" stroke-width="4" stroke-dasharray="5 4" stroke-linecap="round"/>'))
+save("icon_ladder.svg", svg(64, 64,
+    f'<path d="M18,60 L26,4 M46,60 L38,4" stroke="#a8693c" stroke-width="6" stroke-linecap="round"/>'
+    + "".join(f'<path d="M{19 + i * 1.2},{50 - i * 11} H{45 - i * 1.2}" stroke="#c0804a" stroke-width="5" stroke-linecap="round"/>' for i in range(4))
+    + f'<path d="M32,2 l3,6 7,1 -5,5 1,7 -6,-3 -6,3 1,-7 -5,-5 7,-1z" fill="{G3}" {stroke(2)}/>'))
+CUP = (f'<path d="M30,10 H90 V40 Q90,78 60,82 Q30,78 30,40 Z" fill="{G3}" {stroke(4)}/>'
+       f'<path d="M30,20 Q8,20 10,40 Q12,56 32,54 M90,20 Q112,20 110,40 Q108,56 88,54" fill="none" {stroke(4)}/>'
+       f'<rect x="52" y="82" width="16" height="16" fill="#e8b93a" {stroke(3)}/><rect x="34" y="98" width="52" height="16" rx="4" fill="#a9825a" {stroke(3)}/>'
+       '<path d="M60,26 l6,12 13,1 -10,9 3,13 -12,-7 -12,7 3,-13 -10,-9 13,-1z" fill="#fff4cf"/>'
+       '<ellipse cx="22" cy="12" rx="5" ry="12" transform="rotate(-20 22 12)" fill="#e98fae" stroke="#4f3d33" stroke-width="2.5"/>'
+       '<ellipse cx="98" cy="12" rx="5" ry="12" transform="rotate(20 98 12)" fill="#e98fae" stroke="#4f3d33" stroke-width="2.5"/>')
+save("games_cup.svg", svg(120, 118, CUP))
+save("wear_santa_hat.svg", svg(64, 66,
+    f'<path d="M12,48 Q18,14 44,8 Q56,6 58,26 Q50,18 44,22 Q36,30 50,48 Z" fill="#e8505b" {stroke(3.5)}/>'
+    f'<rect x="6" y="42" width="50" height="12" rx="6" fill="#fdfbf6" {stroke(3)}/>'
+    f'<circle cx="57" cy="28" r="7" fill="#fdfbf6" {stroke(3)}/>'))
+save("snow_globe.svg", svg(110, 120,
+    f'<circle cx="55" cy="50" r="44" fill="#d9ecf7" fill-opacity="0.85" {stroke(4)}/>'
+    f'<ellipse cx="55" cy="78" rx="34" ry="9" fill="#ffffff"/>'
+    f'<ellipse cx="55" cy="66" rx="14" ry="11" fill="{FUR}" {stroke(2.5)}/><circle cx="62" cy="56" r="8" fill="{FUR}" {stroke(2.5)}/>'
+    f'<ellipse cx="64" cy="44" rx="3" ry="8" fill="{FUR}" {stroke(2)}/>'
+    + "".join(f'<circle cx="{x}" cy="{y}" r="2.5" fill="#ffffff"/>' for x, y in ((30, 30), (44, 22), (72, 26), (80, 44), (36, 50), (58, 34)))
+    + f'<path d="M22,88 H88 L96,112 H14 Z" fill="#a8693c" {stroke(4)}/><circle cx="40" cy="30" r="6" fill="#fff" opacity="0.6"/>'))
+save("tulip_bed.svg", svg(170, 110,
+    f'<path d="M6,104 Q6,74 85,72 Q164,74 164,104 Z" fill="#8a5a36" {stroke(4)}/>'
+    + "".join(f'<path d="M{x},86 V{48 + (i % 2) * 8}" stroke="#4f9a6a" stroke-width="4"/>'
+              f'<path d="M{x - 11},{44 + (i % 2) * 8} Q{x - 12},{24 + (i % 2) * 8} {x - 5},{30 + (i % 2) * 8} L{x},{22 + (i % 2) * 8} L{x + 5},{30 + (i % 2) * 8} Q{x + 12},{24 + (i % 2) * 8} {x + 11},{44 + (i % 2) * 8} Q{x},{56 + (i % 2) * 8} {x - 11},{44 + (i % 2) * 8} Z" '
+              f'fill="{c}" {stroke(2.5)}/>' for i, (x, c) in enumerate(((30, "#e8505b"), (58, "#f3c94f"), (86, "#e98fae"), (114, "#d8a7d0"), (140, "#e8505b"))))))
+save("paddling_pool.svg", svg(220, 90,
+    f'<ellipse cx="110" cy="52" rx="104" ry="34" fill="#7fb0d8" {stroke(4)}/>'
+    f'<ellipse cx="110" cy="48" rx="86" ry="24" fill="#a7e0f0"/>'
+    '<path d="M60,46 q10,-6 20,0 M120,40 q10,-6 20,0 M90,56 q10,-6 20,0" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>'
+    f'<circle cx="160" cy="44" r="10" fill="{G3}" {stroke(2.5)}/><path d="M154,44 h12" stroke="#e8505b" stroke-width="3"/>'))
+save("hay_bale.svg", svg(150, 110,
+    f'<rect x="8" y="22" width="134" height="80" rx="12" fill="#e2bd78" {stroke(4)}/>'
+    + "".join(f'<path d="M{20 + i * 14},{30 + (i % 3) * 3} L{24 + i * 14},{94 - (i % 2) * 4}" stroke="#c99a4b" stroke-width="3"/>' for i in range(9))
+    + '<path d="M44,22 V102 M106,22 V102" stroke="#a8693c" stroke-width="6"/>'
+    + "".join(f'<path d="M{x},22 l{d},-12" stroke="#d9b060" stroke-width="3" stroke-linecap="round"/>' for x, d in ((30, -4), (70, 2), (120, 5)))))
+save("snowman.svg", svg(110, 150,
+    f'<circle cx="55" cy="112" r="34" fill="#fdfbf6" {stroke(4)}/><circle cx="55" cy="58" r="25" fill="#fdfbf6" {stroke(4)}/>'
+    '<circle cx="46" cy="52" r="3" fill="#4f3d33"/><circle cx="64" cy="52" r="3" fill="#4f3d33"/>'
+    f'<path d="M55,60 L78,66 L55,66 Z" fill="#f08a3c" stroke="#4f3d33" stroke-width="2"/>'
+    f'<rect x="32" y="76" width="46" height="10" rx="5" fill="#e8505b" {stroke(2.5)}/><path d="M68,82 L74,104" stroke="#e8505b" stroke-width="8" stroke-linecap="round"/>'
+    f'<rect x="38" y="20" width="34" height="14" rx="3" fill="#3b3443" {stroke(3)}/><rect x="30" y="32" width="50" height="6" rx="3" fill="#3b3443" {stroke(2.5)}/>'
+    + "".join(f'<circle cx="55" cy="{y}" r="3" fill="#4f3d33"/>' for y in (100, 114, 128))))
+BOOKART = (f'<path d="M10,14 H90 Q96,14 96,20 V100 Q96,106 90,106 H10 Z" fill="#7fa7d8" {stroke(4)}/>'
+           f'<rect x="10" y="14" width="12" height="92" fill="#5b82b8" {stroke(3)}/>'
+           f'<circle cx="58" cy="52" r="20" fill="#fdfbf6" {stroke(3)}/>'
+           f'<ellipse cx="54" cy="56" rx="9" ry="7" fill="{FUR}" {stroke(2)}/><ellipse cx="58" cy="44" rx="3" ry="8" fill="{FUR}" {stroke(2)}/>'
+           f'<path d="M34,84 H84 M40,92 H78" stroke="{G3}" stroke-width="4" stroke-linecap="round"/>')
+save("bubak_book.svg", svg(106, 120, BOOKART))
+save("icon_merch_book.svg", svg(106, 120, BOOKART))
+# the advent calendar: a board with 24 little doors
+door_cols = ["#e8505b", "#7fcfb8", "#f3c94f", "#7fa7d8", "#e98fae", "#9cc5a1"]
+doors = "".join(f'<rect x="{14 + (i % 6) * 30}" y="{40 + (i // 6) * 30}" width="24" height="24" rx="4" fill="{door_cols[(i * 5) % 6]}" {stroke(2)}/>'
+                f'<text x="{26 + (i % 6) * 30}" y="{57 + (i // 6) * 30}" font-family="sans-serif" font-weight="bold" font-size="11" text-anchor="middle" fill="#4f3d33">{i + 1}</text>'
+                for i in range(24))
+save("advent_calendar.svg", svg(200, 170,
+    f'<rect x="4" y="10" width="192" height="156" rx="10" fill="#fdf3e0" {stroke(4)}/>'
+    f'<path d="M4,34 H196" stroke="#e8505b" stroke-width="16"/><path d="M100,0 V18" stroke="#4f3d33" stroke-width="3"/>'
+    f'<circle cx="100" cy="4" r="4" fill="{G3}" {stroke(2)}/>' + doors))

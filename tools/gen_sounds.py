@@ -276,8 +276,32 @@ def music():
     os.unlink(tmp)
 
 
+def holiday():
+    """Special days (after the music, so the earlier sounds keep their random draws)."""
+    # paper tearing: a few scratchy, rising rips
+    rips = [(i * 0.13 + rng.uniform(0, 0.03), band(noise(0.11), 1800 + 300 * i, 7000) * env(0.11, 0.004, 0.05)
+             * np.linspace(0.6, 1.0, int(SR * 0.11))) for i in range(4)]
+    save("rip", mix(0.7, *rips), 0.5)
+    # sleigh bells: a shimmer of little high bells
+    bells = [(i * 0.045 + rng.uniform(0, 0.015), bell(hz(rng.choice(["E7", "G7", "B6", "D7"])), 0.25, 0.07, 0.4) * rng.uniform(0.5, 1.0))
+             for i in range(14)]
+    save("jingle", mix(1.0, *bells), 0.4)
+
+
 if __name__ == "__main__":
     os.makedirs(OUT, exist_ok=True)
     sfx()
     music()
+    holiday()
     print("sounds:", len([f for f in os.listdir(OUT) if f.endswith(".ogg")]))
+
+
+def weather():
+    """Thunder for the storms (after the others, so their random draws stay the same)."""
+    rumble = low(noise(3.2), 160, 4) * env(3.2, 0.05, 0.9)
+    crack = band(noise(0.5), 300, 2400) * env(0.5, 0.004, 0.12)
+    save("thunder", mix(3.2, (0.0, crack * 0.7), (0.05, rumble * 3.0)), 0.7)
+
+
+if __name__ == "__main__":
+    weather()

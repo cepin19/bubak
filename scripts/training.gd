@@ -62,9 +62,15 @@ func _ready() -> void:
 	var right := UI.vbox(8)
 	right.size_flags_horizontal = SIZE_EXPAND_FILL
 	add_child(right)
-	right.add_child(UI.wrap_label(tr("Pick a trick. When Bubák pulls it off, a star pops up: tap Reward before the bar runs out! Don't reward him if he gets distracted."), 17, 340))
+	right.add_child(UI.wrap_label(tr("Pick a trick. When %s pulls it off, a star pops up: tap Reward before the bar runs out! No reward for getting distracted.") % Game.performer.display_name(), 17, 340))
+	var scroll := ScrollContainer.new()   # eight tricks: the advanced ones below the basics
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.custom_minimum_size = Vector2(0, 330)
+	scroll.size_flags_vertical = SIZE_EXPAND_FILL
+	right.add_child(scroll)
 	_rows = UI.vbox(8)
-	right.add_child(_rows)
+	_rows.size_flags_horizontal = SIZE_EXPAND_FILL
+	scroll.add_child(_rows)
 	_fill()
 	_update_focus()
 
@@ -81,7 +87,12 @@ func _fill() -> void:
 		var v := UI.vbox(2)
 		v.size_flags_horizontal = SIZE_EXPAND_FILL
 		h.add_child(v)
-		v.add_child(UI.label(Catalog.trick_name(id), 20))
+		var nh := UI.hbox(6)
+		nh.add_child(UI.label(Catalog.trick_name(id), 20))
+		if Catalog.TRICKS[id].get("advanced", false):
+			nh.add_child(UI.label(tr("master's certificate") if id in Game.certificates else tr("advanced"), 13,
+				Color("#3f8f5a") if id in Game.certificates else Color("#a0619c")))
+		v.add_child(nh)
 		var lock := Game.trick_lock(id)
 		if lock != "":
 			v.add_child(UI.label(lock, 15, Color("#c0504d")))
@@ -117,12 +128,13 @@ func cue(id: String) -> void:
 	if _stage.attempting() or Game.trick_lock(id) != "":
 		return
 	if Game.focus < 1.0:
-		_say.text = tr("Bubák has had enough training for now. Let him rest a bit.")
+		_say.text = tr("%s has had enough training for now. Time for a rest.") % Game.performer.display_name()
 		return
 	Game.focus -= 1.0
 	_update_focus()
 	_trick = id
-	_say.text = tr("\"Bubák... %s!\"") % Catalog.trick_name(id).to_lower()
+	_say.text = tr("\"%s... %s!\"") % [Game.performer.display_name(), Catalog.trick_name(id).to_lower()] \
+		+ ("\n" + tr("Two moments to reward this time!") if Catalog.TRICKS[id].get("advanced", false) else "")
 	_reward.disabled = false
 	_stage.attempt(id, Game.trick_chance(id))
 
@@ -136,16 +148,16 @@ func _on_done(result: String) -> void:
 	_reward.modulate = Color.WHITE
 	var gained := Game.train(_trick, {"good": "good", "late": "late", "wrong": "wrong"}.get(result, "none"))
 	_say.text = {
-		"good": tr("Perfect timing! He's getting it."),
-		"late": tr("A bit off. He's not sure what the treat was for."),
-		"missed": tr("He did it, but you missed the moment to reward him."),
-		"wrong": tr("Oops! That rewarded him for getting distracted."),
+		"good": tr("Perfect timing! %s is getting it.") % Game.performer.display_name(),
+		"late": tr("A bit off. %s isn't sure what the treat was for.") % Game.performer.display_name(),
+		"missed": tr("The trick worked, but you missed the moment for the reward."),
+		"wrong": tr("Oops! That rewarded getting distracted."),
 		"ignored": tr("Right call: no treat for getting distracted."),
 	}[result]
 	if gained > 0:
 		var stars := Game.trick_stars(_trick)
 		hud.toast(tr("%s: %d of 3 stars!") % [Catalog.trick_name(_trick), stars] if stars < 3
-			else tr("Bubák has mastered %s!") % Catalog.trick_name(_trick), "star", true)
+			else tr("%s has mastered %s!") % [Game.performer.display_name(), Catalog.trick_name(_trick)], "star", true)
 		_stage.happy()
 	_fill()
 

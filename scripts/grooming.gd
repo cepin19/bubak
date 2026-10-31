@@ -45,12 +45,12 @@ func _ready() -> void:
 	_nail_button.pressed.connect(_trim)
 	right.add_child(_nail_button)
 	if Game.molting():
-		right.add_child(UI.wrap_label(tr("He's molting! Loose fur everywhere: brush him often for a few days."), 16, 330))
+		right.add_child(UI.wrap_label(tr("Molting season! Loose fur everywhere: brush often for a few days."), 16, 330))
 	_brush_icon = UI.icon_rect("comb" if "comb" in Game.gear else "brush", 64)
 	_brush_icon.visible = false
 	_brush_icon.z_index = 1
 	_stage.add_child(_brush_icon)
-	_limit = 10.0 + 4.0 * Game.trust_level()
+	_limit = 10.0 + 4.0 * Game.performer.trust_level()
 	_setup.call_deferred()
 
 
@@ -77,10 +77,10 @@ func _setup() -> void:
 		_say.text = tr("You'll need a Soft brush first. It's in the Shop, on the Club tab.")
 		_done = true
 	elif Game.coat >= 92 and not Game.molting():
-		_say.text = tr("His coat is already gleaming. Come back in a while.")
+		_say.text = tr("%s's coat is already gleaming. Come back in a while.") % Game.performer.display_name()
 		_done = true
 	else:
-		_say.text = tr("Swipe over the loose fur to brush it out, before he runs out of patience.")
+		_say.text = tr("Swipe over the loose fur to brush it out, before %s runs out of patience.") % Game.performer.display_name()
 		var n := clampi(int(round((100.0 - Game.coat) / 7.0)), 3, 12) + (4 if Game.molting() else 0)
 		# spots on his back and sides in the loaf pose (sprite coordinates)
 		for i in n:
@@ -127,7 +127,7 @@ func _brush_at(p: Vector2) -> void:
 				_stage.pop_icon("heart")
 	_refresh()
 	if _tufts.is_empty():
-		_finish(tr("All brushed! His coat is soft and glossy."))
+		_finish(tr("All brushed! The coat is soft and glossy."))
 
 
 func _finish(text: String) -> void:
@@ -168,7 +168,7 @@ func _process(delta: float) -> void:
 		if _time > _limit * 0.75 and fmod(_time, 0.6) < delta:
 			_stage.wriggle()
 		if _time >= _limit:
-			_finish(tr("Bubák has had enough and hops off. Good job anyway!"))
+			_finish(tr("%s has had enough and hops off. Good job anyway!") % Game.performer.display_name())
 
 
 func _exit_tree() -> void:

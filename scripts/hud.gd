@@ -7,6 +7,7 @@ const WorkGame := preload("res://scripts/work_game.gd")
 const Training := preload("res://scripts/training.gd")
 const Grooming := preload("res://scripts/grooming.gd")
 const ShowRing := preload("res://scripts/show_ring.gd")
+const AgilityRun := preload("res://scripts/agility.gd")
 
 
 class Viewfinder extends Control:
@@ -45,6 +46,9 @@ class HoleDim extends Control:
 
 var main: Node
 var _coins: Label
+var _later: Array = []         # toasts waiting for the open window to close (see toast_when_free)
+var _wish_label: Label         # today's wish, under the coins
+var _wish_icon: TextureRect
 var _followers: Label
 var _trust_name: Label
 var _trust_bar: ProgressBar
@@ -55,7 +59,11 @@ var _mate_name: Label
 var _mate_hearts: Array = []
 var _mate_trust: ProgressBar
 var _bond_bar: ProgressBar
+var _foster_bar: ProgressBar
 var _buttons: HBoxContainer
+var _eye: Button              # hides / shows the controls so the floor under them can be reached
+var _hideable: Array[Control] = []   # the status cards that the eye button hides
+var ui_hidden := false
 var _toasts: VBoxContainer
 var _banner: PanelContainer
 var _banner_label: Label
@@ -92,6 +100,9 @@ var _walk_button: Button
 var _wardrobe_stage: StageBunny
 var _wardrobe_side: VBoxContainer
 var _wardrobe_info: Label
+var _wardrobe_pet: Pet = null   # who's being dressed: Bubák (null) or his friend
+var _club_pet: Pet = null       # who the club and the walks are with: Bubák (null) or his friend
+var _walking := false           # a walk cutscene is playing (its rabbit stays the performer)
 var _club_tab := "Training"
 var club_panel: Control      # the open Training / Grooming / show ring panel
 var saves_scroll: ScrollContainer   # for the playtest
@@ -117,14 +128,58 @@ func _ready() -> void:
 	Game.toast.connect(toast)
 	Game.discovered.connect(_on_discovered)
 	Game.trust_level_up.connect(_on_level_up)
+	Game.trust_day_full.connect(func(): toast_when_free(
+		tr("Bubák's trust can't grow any more today. More tomorrow!"), "heart"))
 	Game.goal_completed.connect(_on_goal_completed)
 	Game.sponsor_paid.connect(_on_sponsor)
 	Game.club_unlocked.connect(_on_club_unlocked)
 	Game.mate_unlocked.connect(_on_mate_unlocked)
+	Game.wish_new.connect(func(t): toast_when_free(t, "wish", true))
+	Game.milestone.connect(func(m): _queue(_milestone_popup.bind(m)))
+	Game.fame_up.connect(func(l): _queue(_fame_popup.bind(l)))
+	Game.wish_granted.connect(func(c, streak, bonus):
+		Sfx.play("streak")
+		toast(tr("Wish granted! +%d coins. Bubák is delighted.") % c + ("\n" + tr("%d days in a row! A bonus and some rose petals.") % streak
+			if bonus else ("  " + tr("Streak: %d") % streak if streak >= 2 else "")), "heart", true))
 	Game.mate_trust_up.connect(func(l): toast(tr("%s trusts you more: %s") % [Game.mate.display_name(), Catalog.level_name(l)], "heart", true))
+	Game.foster_offer.connect(func(id): _queue(_foster_offer_popup.bind(id)))
+	Game.foster_home_found.connect(func(): _queue(_foster_home_popup))
+	Game.foster_trust_up.connect(func(l):
+		if Game.foster:
+			toast(tr("%s trusts you more: %s") % [Game.foster.display_name(), Catalog.level_name(l)], "heart", true))
+	Game.bond_missed.connect(func(loss, days): toast_when_free(tr_n("Bubák missed you yesterday. Trust -%.1f: a close bond needs a visit every day.",
+		"Bubák missed you for %d days. Trust -%.1f: a close bond needs a visit every day.", days) % ([loss] if days == 1 else [days, loss]), "heart"))
+	Game.league_ended.connect(func(r): _queue(_league_popup.bind(r)))
+	Game.merch_opened.connect(func(): _queue(_merch_popup))
+	Game.daily_task_done.connect(func(id, c): toast(tr("Today's task done: %s. +%d coins") % [Game.daily_text(id), c], "sticker", true))
+	Game.sticker_got.connect(func(n, page):
+		Sfx.play("streak")
+		toast(tr("All of today's tasks done! A sticker for the calendar, +%d coins.") % Catalog.DAILY_ALL
+			+ ("\n" + tr("A whole page of %d stickers: +%d coins and two hay cookies!") % [Catalog.STICKER_PAGE, Catalog.STICKER_PAGE_COINS] if page else ""),
+			"sticker", true))
+	Game.season_found.connect(func(id, season): _queue(_season_popup.bind(id, season)))
+	Game.dug_up.connect(_on_dug_up)
+	Game.postcard_arrived.connect(func(card): _queue(_postcard_popup.bind(card)))
+	Game.trait_up.connect(func(id, lvl, who): toast_when_free(tr("%s's personality is growing: %s, level %d!") % [who, Catalog.trait_name(id), lvl]
+		+ ("\n" + tr("Watch out for something new from %s now.") % who if lvl == 3 else ""), Catalog.TRAITS[id].icon, true))
+	Game.duel_offered.connect(func(r): toast_when_free(tr("%s demands a rematch! A one-on-one duel: Club > Shows, within %d days.") % [
+		Catalog.rival_name(r), Catalog.DUEL_DAYS], "rival_" + r, true))
+	Game.rival_arrived.connect(func(r): _queue(_newcomer_popup.bind(r)))
+	Game.games_ended.connect(func(res): _queue(_games_popup.bind(res)))
+	Game.challenge_ended.connect(func(id, ok):
+		Sfx.play("fanfare" if ok else "bad")
+		toast_when_free(tr("Challenge done: %s! +%d coins") % [tr(Catalog.CHALLENGES[id].name), Catalog.CHALLENGES[id].reward] if ok
+			else tr("Challenge over: %s didn't work out this time.") % tr(Catalog.CHALLENGES[id].name), Catalog.CHALLENGES[id].icon, ok))
+	Game.ladder_step_done.connect(func(step, done): toast_when_free(tr("The %s ladder: all the way to the top! A present: %s.") % [
+		Catalog.season_name(Game.season()).to_lower(), Catalog.item_name(Catalog.LADDERS[Game.season()].gift).to_lower()] if done
+		else tr("The %s ladder: step %d of %d done!") % [Catalog.season_name(Game.season()).to_lower(), step, Catalog.LADDERS[Game.season()].steps.size()],
+		"ladder", true))
+	Game.certificate.connect(func(id): _queue(_certificate_popup.bind(id)))
+	Game.album_page_done.connect(func(i): toast_when_free(tr("A full page in the photo album: %s! +%d coins") % [
+		tr(Catalog.ALBUM_PAGES[i].name), Catalog.ALBUM_PAGE_COINS], "album", true))
 	_refresh()
 	if Game.molting():
-		toast.call_deferred(tr("Bubák is molting! Brush him often and pick up the fur he leaves around."), "brush")
+		toast_when_free.call_deferred(tr("Bubák is molting! Brush him often and pick up the fur he leaves around."), "brush")
 
 
 ## Pins a control to a screen edge/corner (ax, ay in 0, 0.5, 1). Edge-pinned controls are
@@ -207,6 +262,7 @@ func _build_top() -> void:
 	var card := PanelContainer.new()
 	_anchor(card, 0, 0, Vector2(14, 12))
 	add_child(card)
+	_hideable.append(card)
 	var v := UI.vbox(2)
 	card.add_child(v)
 	var h := UI.hbox(10)
@@ -257,11 +313,14 @@ func _build_top() -> void:
 					if Game.clutter_penalty() > 0 else "")))
 	if Game.mate:
 		_build_mate_card(v)
+	if Game.foster:
+		_build_foster_card(v)
 
 	# one row of need bars per rabbit; with two, each row starts with a little portrait
 	var needs := PanelContainer.new()
 	_anchor(needs, 0.5, 0, Vector2(0, 12))
 	add_child(needs)
+	_hideable.append(needs)
 	var rows := UI.vbox(2)
 	needs.add_child(rows)
 	for pet in Game.pets:
@@ -291,12 +350,51 @@ func _build_top() -> void:
 	var right := UI.hbox(8)
 	_anchor(right, 1, 0, Vector2(-14, 12))
 	add_child(right)
+	_hideable.append(right)
 	_coins = _pill(right, "coin")
 	_followers = _pill(right, "follower")
 	var gear := _icon_button("settings", 50)
 	gear.size_flags_vertical = SIZE_SHRINK_CENTER
 	gear.pressed.connect(open_settings)
 	right.add_child(gear)
+	# today's wish: a little thought bubble under the counters
+	var wp := PanelContainer.new()
+	var ws := UI.box(Color("#fff3c9"), 24, 3, false)
+	ws.content_margin_left = 10
+	ws.content_margin_right = 14
+	ws.content_margin_top = 4
+	ws.content_margin_bottom = 4
+	wp.add_theme_stylebox_override("panel", ws)
+	var wh := UI.hbox(6)
+	wp.add_child(wh)
+	_wish_icon = UI.icon_rect("wish", 28)
+	wh.add_child(_wish_icon)
+	_wish_label = UI.label("", 17)
+	wh.add_child(_wish_label)
+	wp.gui_input.connect(func(e):
+		if e is InputEventMouseButton and e.pressed and not Game.wish.is_empty():
+			toast(Game.wish_text() + "\n" + (tr("Granted! See you tomorrow for the next one.") if Game.wish.get("done", false)
+				else tr("Grant it for coins. Every day in a row brings more.")) + "  " + tr("Streak: %d") % Game.wish_streak, "wish"))
+	_anchor(wp, 1, 0, Vector2(-14, 76))
+	add_child(wp)
+	_hideable.append(wp)
+
+
+## A foster bunny's name and how close they are to being ready for a new home.
+func _build_foster_card(v: VBoxContainer) -> void:
+	v.add_child(HSeparator.new())
+	var h := UI.hbox(8)
+	v.add_child(h)
+	h.add_child(UI.icon_rect("mate_" + Game.foster.id, 30))
+	h.add_child(UI.label(Game.foster.display_name(), 19))
+	h.add_child(UI.label(tr("foster bunny"), 15, Color(UI.INK, 0.65)))
+	_foster_bar = ProgressBar.new()
+	_foster_bar.custom_minimum_size = Vector2(236, 8)
+	_foster_bar.show_percentage = false
+	_foster_bar.max_value = 1.0
+	_foster_bar.step = 0.001
+	_foster_bar.add_theme_stylebox_override("fill", UI.bar_fill(Color("#e98fae")))
+	v.add_child(_foster_bar)
 
 
 ## Under Bubák's card: his friend's name, trust and how close the two are.
@@ -395,6 +493,20 @@ func _build_buttons() -> void:
 			_journal_badge.position = Vector2(64, -8)
 			_journal_badge.mouse_filter = MOUSE_FILTER_IGNORE
 			b.add_child(_journal_badge)
+	_eye = UI.big_button("eye_off", tr("Hide"), 72)
+	_eye.pressed.connect(func(): set_ui_hidden(not ui_hidden))
+	_anchor(_eye, 0, 1, Vector2(14, -14))
+	add_child(_eye)
+
+
+## Hides every control except the eye button, so poop and things behind them can be tapped or dragged.
+func set_ui_hidden(on: bool) -> void:
+	ui_hidden = on
+	_eye.icon = Catalog.icon("eye" if on else "eye_off")
+	_eye.text = tr("Show") if on else tr("Hide")
+	for c in _hideable:
+		c.visible = not on
+	on_mode_changed(main.mode)
 
 
 func _build_tray() -> void:
@@ -565,7 +677,7 @@ func _build_selfie_ui() -> void:
 func _start_selfie() -> void:
 	var who: Node2D = main.held
 	# mirrored: in the selfie he faces left
-	StageBunny.compose(_selfie_bunny, "loaf", who.pet.skin(), Game.wearing if who.pet.is_bubak() else {}, true)
+	StageBunny.compose(_selfie_bunny, "loaf", who.pet.skin(), Game.wearing_of(who.pet), true)
 	_selfie_t = 0.0
 	_selfie_hearts_t = 0.0
 	if _bob:
@@ -614,7 +726,7 @@ func _snap_selfie() -> void:
 	var r := _selfie_frame.get_global_rect()
 	var sub := img.get_region(Rect2i(Vector2i(r.position * k), Vector2i(r.size * k)))
 	sub.resize(480, 360, Image.INTERPOLATE_LANCZOS)
-	var file := Game.PHOTO_DIR + "p_%d.png" % int(Time.get_unix_time_from_system() * 1000)
+	var file := Game.photo_dir + "p_%d.png" % int(Time.get_unix_time_from_system() * 1000)
 	sub.save_png(file)
 	Game.discover("selfie")
 	_flash()
@@ -634,14 +746,22 @@ func _process(delta: float) -> void:
 	if _refresh_t <= 0:
 		_refresh_t = 0.2
 		_refresh()
+		if not _later.is_empty() and _modal == null and _pending.is_empty():
+			var t: Array = _later.pop_front()
+			toast(t[0], t[1], t[2])
 
 
 func _refresh() -> void:
+	if _modal == null and not _walking and Game.performer != Game.bubak:
+		Game.set_performer(Game.bubak)
 	_coins.text = str(Game.coins)
 	if _last_coins >= 0 and Game.coins != _last_coins:
 		Sfx.play("coin" if Game.coins > _last_coins else "buy")
 	_last_coins = Game.coins
 	_followers.text = str(Game.followers)
+	_wish_label.get_parent().get_parent().visible = not Game.wish.is_empty() and not ui_hidden
+	_wish_label.text = (tr("Wish: %s") % Game.wish_short()) + ("  x%d" % Game.wish_streak if Game.wish_streak >= 2 else "")
+	_wish_icon.texture = Catalog.icon("heart" if Game.wish.get("done", false) else "wish")
 	if _camera_ui.visible:
 		var a := Game.feed_attention()
 		_feed_bar.value = a
@@ -675,6 +795,8 @@ func _refresh() -> void:
 				_need_icons[i][need].modulate = Color(1.15, 1.1, 0.75) if p.asleep else Color.WHITE
 			else:
 				_need_icons[i][need].modulate = Color(1, pulse, pulse) if v < 25 else Color.WHITE
+	if Game.foster and _foster_bar:
+		_foster_bar.value = Game.foster.trust / Catalog.level_at(Catalog.FOSTER_GOAL)
 	if Game.mate and _mate_trust:
 		var ml: int = Game.mate.trust_level()
 		_mate_trust.value = Game.mate.trust_progress()
@@ -685,12 +807,16 @@ func _refresh() -> void:
 
 func on_mode_changed(m: String) -> void:
 	_tray.hide()
-	_buttons.visible = m == ""
+	if ui_hidden and m not in ["", "move"]:
+		set_ui_hidden(false)   # photo, treat and selfie need their controls
+		return
+	_buttons.visible = m == "" and not ui_hidden
+	_eye.visible = m in ["", "move"]
 	_camera_ui.visible = m == "photo"
 	if m == "selfie" and not _selfie_ui.visible:
 		_start_selfie()
 	_selfie_ui.visible = m == "selfie"
-	_banner.visible = m in ["move", "treat"]
+	_banner.visible = m in ["move", "treat"] and not ui_hidden
 	match m:
 		"move":
 			_banner_label.text = tr("Drag furniture and toys to rearrange the room.")
@@ -701,6 +827,14 @@ func on_mode_changed(m: String) -> void:
 
 
 # ---- toasts ------------------------------------------------------------------
+
+## A toast that waits until no window is open, so it isn't missed behind one.
+func toast_when_free(text: String, icon := "", gold := false) -> void:
+	if _modal == null and _pending.is_empty():
+		toast(text, icon, gold)
+	else:
+		_later.append([text, icon, gold])
+
 
 func toast(text: String, icon := "", gold := false) -> void:
 	Sfx.play("notify")
@@ -816,6 +950,8 @@ func _level_up_popup(lvl: int) -> void:
 	var msg := tr("He now feels %s with you.") % Catalog.level_name(lvl).to_upper()
 	if count > 0:
 		msg += "\n" + tr_n("%d new behaviour to discover. Keep watching!", "%d new behaviours to discover. Keep watching!", count) % count
+	if lvl == Catalog.TRUST_LEVELS.size() - 1:
+		msg += "\n\n" + tr("The deepest bond a bunny can give. Weeks and weeks of care made this happen. He'll never forget it.")
 	if lvl == Catalog.SELFIE_TRUST:
 		msg += "\n\n" + tr("He'll let you pick him up now! Drag him upwards (or tap Selfie in Photo mode) and snap a selfie together.")
 	var l := UI.wrap_label(msg, 22, 480)
@@ -870,16 +1006,27 @@ func close_top() -> bool:
 	if _modal:
 		_modal.queue_free()
 		_modal = null
+		if not _walking:
+			Game.set_performer(Game.bubak)   # the club or walk screen is gone: back to Bubák
 		if not _pending.is_empty():
-			_pending.pop_front().call_deferred()
+			_show_pending.call_deferred()
 		return true
 	if _tray.visible:
 		_tray.hide()
+		return true
+	if ui_hidden:
+		set_ui_hidden(false)
 		return true
 	if main.mode != "":
 		main.set_mode("")
 		return true
 	return false
+
+
+## The next queued pop-up, unless another window was opened in the meantime (it then waits for that one).
+func _show_pending() -> void:
+	if _modal == null and not _pending.is_empty():
+		_pending.pop_front().call()
 
 
 func show_welcome(text: String) -> void:
@@ -969,6 +1116,9 @@ func _fill_shop(grid: GridContainer) -> void:
 			"gear":
 				done = id in Game.gear
 				owned = tr("Owned") if done else ""
+			"style":
+				var sid: String = id.trim_prefix("style_")
+				owned = tr("In use") if Game.room_style == sid else (tr("Owned") if sid in Game.styles else "")
 			"upgrade":
 				if id == "balcony_net":
 					owned = {"locked": tr("Locked: needs %s trust + %d followers") % [
@@ -989,6 +1139,15 @@ func _fill_shop(grid: GridContainer) -> void:
 		var desc := UI.wrap_label(tr(item.desc), 16, 230)
 		desc.size_flags_vertical = SIZE_EXPAND_FILL
 		v.add_child(desc)
+		if item.kind == "style" and id.trim_prefix("style_") in Game.styles:
+			var ub := UI.text_button(tr("In use") if Game.room_style == id.trim_prefix("style_") else tr("Use"), "", 20)
+			ub.disabled = Game.room_style == id.trim_prefix("style_")
+			ub.pressed.connect(func():
+				Game.set_style(id.trim_prefix("style_"))
+				_fill_shop(grid))
+			v.add_child(ub)
+			grid.add_child(card)
+			continue
 		if item.kind == "wear" and done:
 			var wb := UI.text_button(tr("Wardrobe"), "wardrobe", 20)
 			wb.pressed.connect(open_wardrobe)
@@ -1007,7 +1166,9 @@ func _fill_shop(grid: GridContainer) -> void:
 					close_top()
 					toast(tr("The balcony door is open! Bubák will pop out when he feels like it.\nTap the door to go out yourself."))
 					return
-				if item.kind in ["toy", "decor"]:
+				if item.kind == "style":
+					toast(tr("A whole new look: %s!") % tr(item.name), "star", true)
+				elif item.kind in ["toy", "decor"]:
 					toast(tr("%s is in the room now. Use Move to arrange it.") % tr(item.name))
 				elif qty > 1:
 					toast(tr("Bought %s (x%d)!") % [tr(item.name), qty])
@@ -1033,12 +1194,17 @@ func open_journal() -> void:
 	holder.size_flags_horizontal = SIZE_EXPAND_FILL
 	scroll.add_child(holder)
 	var group := ButtonGroup.new()
-	for tab in ["Goals", "Behaviours", "Photos", "Bubák"]:
-		var b := UI.text_button(tr(tab))
+	var tab_names := ["Goals", "Behaviours", "Album", "Photos", "Memories", "Bubák"]
+	if Game.mate:
+		tab_names.append("Friend")
+	elif _journal_tab == "Friend":
+		_journal_tab = "Bubák"
+	for tab in tab_names:
+		var b := UI.text_button(Game.mate.display_name() if tab == "Friend" else tr(tab), "", 19)
 		b.toggle_mode = true
 		b.button_group = group
 		b.button_pressed = tab == _journal_tab
-		b.custom_minimum_size.x = 140
+		b.custom_minimum_size.x = 96
 		b.pressed.connect(func():
 			_journal_tab = tab
 			_fill_journal(holder))
@@ -1052,7 +1218,15 @@ func _fill_journal(holder: VBoxContainer) -> void:
 		c.queue_free()
 	match _journal_tab:
 		"Goals":
+			holder.add_child(_daily_box())
+			var cl := UI.hbox(10)
+			holder.add_child(cl)
+			cl.add_child(_challenge_box())
+			cl.add_child(_ladder_box())
 			var goals: Array = Catalog.GOALS.filter(func(x): return Game.goal_visible(x))
+			var nm := Game.next_milestone()
+			holder.add_child(UI.label(tr("Days together: %d") % Game.days_played + ("   " + tr("Next surprise at %d days") % nm.days
+				if not nm.is_empty() else ""), 20))
 			holder.add_child(UI.label(tr("Goals completed: %d of %d") % [Game.goals_claimed.size(), goals.size()], 20))
 			var shown := 0
 			var ordered: Array = goals.filter(func(x): return Game.goal_done(x)) \
@@ -1120,7 +1294,14 @@ func _fill_journal(holder: VBoxContainer) -> void:
 				tv.add_child(UI.label(tr(b.name) if seen else "???", 20))
 				var desc: String = tr(b.desc)
 				if not seen:
-					if b.get("needs", "") == "tricks":
+					if b.has("season"):
+						desc = tr("Needs: %s, out on the balcony") % Catalog.season_name(b.season).to_lower() if b.season != "summer" \
+							else tr("Needs: a summer heatwave")
+					elif b.has("trait"):
+						desc = tr("Needs: %s at level 3 (Journal > Bubák)") % Catalog.trait_name(b.trait)
+					elif b.get("needs", "") == "foster":
+						desc = tr("Needs: a foster bunny, and Bubák at %s") % Catalog.level_name(Catalog.MENTOR_LEVEL)
+					elif b.get("needs", "") == "tricks":
 						desc = tr("Needs: a trick with 2 stars")
 					elif b.get("needs", "") == "mate":
 						desc = tr("Needs: a friend for Bubák")
@@ -1132,7 +1313,37 @@ func _fill_journal(holder: VBoxContainer) -> void:
 						desc = tr("Keep watching...")
 				tv.add_child(UI.wrap_label(desc, 15, 310))
 				grid.add_child(card)
+		"Album":
+			_fill_album(holder)
 		"Photos":
+			holder.add_child(UI.label(tr("Photo challenges: %d of %d") % [Game.photo_challenges.size(), Catalog.PHOTO_CHALLENGES.size()], 20))
+			var cgrid := GridContainer.new()
+			cgrid.columns = 4
+			holder.add_child(cgrid)
+			for c in Catalog.PHOTO_CHALLENGES:
+				var done: bool = Game.photo_challenges.has(c.id)
+				var cv := UI.vbox(2)
+				var cp := PanelContainer.new()
+				var cs := UI.box(Color.WHITE if done else Color("#f1e8dc"), 6, 2, false)
+				cs.set_content_margin_all(6)
+				cp.add_theme_stylebox_override("panel", cs)
+				var ctex: Texture2D = _photo_texture(Game.photo_challenges[c.id]) if done else null
+				if ctex:
+					var cr := TextureRect.new()
+					cr.texture = ctex
+					cr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+					cr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+					cr.custom_minimum_size = Vector2(180, 100)
+					cp.add_child(cr)
+				else:
+					var q := UI.icon_rect("camera", 48)
+					q.custom_minimum_size = Vector2(180, 100)
+					q.modulate = Color(1, 1, 1, 0.35)
+					cp.add_child(q)
+				cv.add_child(cp)
+				cv.add_child(UI.wrap_label(tr(c.text) + ("" if done else "  (+%d)" % c.reward), 15, 180))
+				cgrid.add_child(cv)
+			holder.add_child(HSeparator.new())
 			if Game.photos.is_empty():
 				holder.add_child(UI.wrap_label(tr("No photos yet. Tap Photo and catch Bubák doing something cute!"), 20, 700))
 				return
@@ -1160,22 +1371,55 @@ func _fill_journal(holder: VBoxContainer) -> void:
 				var cap: String = Catalog.behaviour_name(p.behaviour)
 				pv.add_child(UI.label("%s  -  %s" % [cap, tr_n("%d like", "%d likes", p.likes) % p.likes], 15))
 				grid.add_child(pv)
+		"Memories":
+			holder.add_child(_book_card())
+			if Game.memories.is_empty():
+				holder.add_child(UI.wrap_label(tr("No memories yet. Firsts go here: the first binky, the first walk, presents..."), 20, 700))
+				return
+			var mlist: Array = Game.memories.duplicate()
+			mlist.reverse()
+			for m in mlist:
+				var row := PanelContainer.new()
+				row.add_theme_stylebox_override("panel", UI.box(Color("#fffdf8"), 16, 2, false))
+				var rh := UI.hbox(14)
+				row.add_child(rh)
+				var mtex: Texture2D = _photo_texture(m.file) if str(m.get("file", "")) != "" else null
+				if mtex:
+					var mr := TextureRect.new()
+					mr.texture = mtex
+					mr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+					mr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+					mr.custom_minimum_size = Vector2(150, 112)
+					rh.add_child(mr)
+				else:
+					var mi := UI.icon_rect("heart", 60)
+					mi.custom_minimum_size = Vector2(150, 112)
+					rh.add_child(mi)
+				var mv := UI.vbox(4)
+				mv.size_flags_vertical = SIZE_SHRINK_CENTER
+				rh.add_child(mv)
+				mv.add_child(UI.label(date_text(float(m.time)), 15, Color(UI.INK, 0.6)))
+				mv.add_child(UI.wrap_label(Game.memory_text(m), 20, 560))
+				holder.add_child(row)
 		"Bubák":
 			var h := UI.hbox(24)
 			holder.add_child(h)
-			h.add_child(UI.icon_rect("icon", 180))
+			var portrait := UI.icon_rect("icon", 180)
+			portrait.size_flags_vertical = SIZE_SHRINK_BEGIN
+			h.add_child(portrait)
 			var days := int((Time.get_unix_time_from_system() - Game.created_at) / 86400.0) + 1
 			var lines := [
 				tr("Bubák, a lilac-grey bunny with one perky ear and one floppy one."),
 				tr("Personality: cheeky, curious, very food-motivated."),
 				"",
-				tr("Day %d together") % days,
+				tr("Day %d together") % days + "  " + tr("(played on %d days)") % Game.days_played,
+				tr("Birthday: %s") % birthday_text(Game.birthday),
 				tr("Trust: %s (%d%%)") % [Catalog.level_name(Game.trust_level()), int(Game.trust)],
 				tr("Weight: %s kg, %s (healthy: %s to %s kg)") % [kilos(Game.bubak.weight),
 					Catalog.weight_name(Game.bubak.weight_band()).to_lower(),
 					kilos(Game.bubak.ideal_weight() * (1.0 + Catalog.WEIGHT_BANDS[1])),
 					kilos(Game.bubak.ideal_weight() * (1.0 + Catalog.WEIGHT_BANDS[2]))],
-				tr("Followers: %d") % Game.followers,
+				tr("Followers: %d") % Game.followers + ("  (%s)" % Game.fame_name() if Game.fame >= 0 else ""),
 				tr("Photos taken: %d") % Game.stats.photos,
 				tr("Treats given: %d") % Game.stats.treats,
 				tr("Cuddle sessions: %d") % Game.stats.pets,
@@ -1188,10 +1432,308 @@ func _fill_journal(holder: VBoxContainer) -> void:
 			if Game.club_stage >= 2:
 				lines.append(tr("Coat: %d%%") % int(Game.coat))
 			if Game.club_stage >= 3:
-				lines.append(tr("Ribbons: %d") % Game.trophies.size())
+				lines.append(tr("Ribbons: %d") % Game.trophies.filter(func(t): return t.get("pet", "bubak") == "bubak").size())
+			if not Game.certificates.is_empty():
+				lines.append(tr("Master's certificates: %s") % ", ".join(PackedStringArray(Game.certificates.map(func(t): return Catalog.trick_name(t)))))
+			if Game.stats.get("duels", 0) > 0:
+				lines.append(tr("Duels won: %d of %d") % [Game.stats.get("duels_won", 0), Game.stats.duels])
+			if not Game.souvenirs.is_empty():
+				lines.append(tr("Souvenirs found: %d of %d") % [Game.souvenirs.size(), Catalog.SOUVENIR_NAMES.size()])
+			if Game.favourites.has("toy"):
+				lines.append(tr("Favourite toy: %s") % Catalog.item_name(Game.favourites.toy))
+			if Game.favourites.has("nap"):
+				lines.append(tr("Favourite napping spot: %s") % Catalog.item_name(Game.favourites.nap))
+			if Game.favourites.has("walk"):
+				lines.append(tr("Favourite walk: %s") % Catalog.walk_name(Game.favourites.walk))
+			lines.append(tr("Wishes granted: %d (streak: %d)") % [Game.stats.get("wishes", 0), Game.wish_streak])
+			lines.append(tr("Season: %s") % Catalog.season_name(Game.season()) + ("  " + tr("(heatwave!)") if Game.heatwave() else ""))
+			if Game.vaccine_overdue():
+				lines.append(tr("Vaccination: overdue! No shows, walks or playdates until he's had it."))
+			elif Game.vaccine_due():
+				lines.append(tr("Vaccination: due now, at the vet."))
+			else:
+				lines.append(tr("Vaccination: next one in %d days") % ceili((Game.vaccine_due_at() - Time.get_unix_time_from_system()) / 86400.0))
+			if Game.nails_long():
+				lines.append(tr("His nails are very long: he skids on the floor and does fewer binkies. Time for the clippers!"))
+			if Game.coat_matted():
+				lines.append(tr("His coat is scruffy and matted: photos get fewer likes. A good brushing will fix it."))
 			lines.append("")
 			lines.append(tr("Keep his weight just right: playtime, exercise toys and walks burn it off, and only lots of extra treats pile it on."))
+			var tv := UI.vbox(10)
+			h.add_child(tv)
+			tv.add_child(UI.wrap_label("\n".join(PackedStringArray(lines)), 20, 520))
+			var vet := UI.text_button(tr("Check-up at the vet") if Game.can_see_vet() else tr("Next check-up in %d days") % ceili(
+				((Game.vet_last if Game.vet_last > 0 else Game.created_at) + Catalog.VET_DAYS * 86400.0 - Time.get_unix_time_from_system()) / 86400.0), "vet", 18)
+			vet.disabled = not Game.can_see_vet()
+			vet.size_flags_horizontal = SIZE_SHRINK_BEGIN
+			vet.pressed.connect(open_vet)
+			tv.add_child(vet)
+			holder.add_child(HSeparator.new())
+			holder.add_child(_personality_box(Game.bubak))
+			holder.add_child(HSeparator.new())
+			holder.add_child(_finds_box())
+		"Friend":
+			var f: Pet = Game.mate
+			var m: Dictionary = Catalog.MATES[f.id]
+			var h := UI.hbox(24)
+			holder.add_child(h)
+			h.add_child(UI.icon_rect("mate_" + f.id, 180))
+			var lines := [tr(m.desc), tr("Personality: %s") % tr(m.personality), ""]
+			if f.adopted_at > 0:
+				var days := int((Time.get_unix_time_from_system() - f.adopted_at) / 86400.0) + 1
+				lines.append(tr("Day %d at home with Bubák") % days)
+			lines.append(tr("Trust: %s (%d%%)") % [Catalog.level_name(f.trust_level()), int(f.trust)])
+			lines.append(tr("Friendship with Bubák: %d%%") % int(Game.bond))
+			lines.append(tr("Weight: %s kg, %s (healthy: %s to %s kg)") % [kilos(f.weight),
+				Catalog.weight_name(f.weight_band()).to_lower(),
+				kilos(f.ideal_weight() * (1.0 + Catalog.WEIGHT_BANDS[1])),
+				kilos(f.ideal_weight() * (1.0 + Catalog.WEIGHT_BANDS[2]))])
+			lines.append(tr("Warms up to people quickly.") if m.trust_rate > 1.0 else (tr("Takes a while to trust people.") if m.trust_rate < 1.0 else tr("Gets used to people at an easy pace.")))
+			if Game.club_stage >= 1:
+				lines.append(tr("Trick stars: %d of %d") % [Game.for_pet(f, Game.trick_stars_total), Catalog.TRICKS.size() * 3])
+			if Game.club_stage >= 2:
+				lines.append(tr("Coat: %d%%") % int(Game.skill(f, "coat")))
+			if Game.club_stage >= 3:
+				lines.append(tr("Ribbons: %d") % Game.trophies.filter(func(t): return t.get("pet", "bubak") == f.id).size())
+			var fcerts: Array = Game.skill(f, "certificates")
+			if not fcerts.is_empty():
+				lines.append(tr("Master's certificates: %s") % ", ".join(PackedStringArray(fcerts.map(func(t): return Catalog.trick_name(t)))))
+			if Game.nails_long(f):
+				lines.append(tr("%s's nails are very long: fewer binkies, and skidding on the floor. Time for the clippers!") % f.display_name())
+			if Game.coat_matted(f):
+				lines.append(tr("%s's coat is scruffy and matted. A good brushing will fix it.") % f.display_name())
+			lines.append("")
+			lines.append(tr("Pet and play with %s too to build trust. The two bunnies grow closer just by living happily together.") % f.display_name())
+			if Game.club_stage >= 1:
+				lines.append(tr("In the Club and on walks, the buttons at the top switch between Bubák and %s.") % f.display_name())
 			h.add_child(UI.wrap_label("\n".join(PackedStringArray(lines)), 20, 520))
+			holder.add_child(HSeparator.new())
+			holder.add_child(_personality_box(f))
+			if Game.foster_open():
+				holder.add_child(HSeparator.new())
+				holder.add_child(_foster_panel())
+				if not Game.fosters_done.is_empty():
+					holder.add_child(HSeparator.new())
+					holder.add_child(_hall_box())
+				if not Game.postcards.is_empty():
+					holder.add_child(HSeparator.new())
+					holder.add_child(_postcards_box())
+
+
+## Journal > Goals: today's three tasks and this month's sticker calendar.
+func _daily_box() -> Control:
+	var card := PanelContainer.new()
+	card.add_theme_stylebox_override("panel", UI.box(Color("#eef7f1"), 18, 2, false))
+	var h := UI.hbox(18)
+	card.add_child(h)
+	var v := UI.vbox(6)
+	v.size_flags_horizontal = SIZE_EXPAND_FILL
+	h.add_child(v)
+	v.add_child(UI.label(tr("Today's tasks"), 22))
+	for task in Game.daily_tasks():
+		var p := Game.daily_progress(task)
+		var done: bool = task.id in Game.daily.get("done", [])
+		var row := UI.hbox(8)
+		row.add_child(UI.icon_rect("sticker" if done else "goal", 26))
+		var tl := UI.label(Game.daily_text(task.id), 18, Color(UI.INK, 0.55) if done else UI.INK)
+		tl.size_flags_horizontal = SIZE_EXPAND_FILL
+		row.add_child(tl)
+		row.add_child(UI.label("%d/%d" % [p.x, p.y], 16, Color(UI.INK, 0.7)))
+		v.add_child(row)
+	v.add_child(UI.wrap_label(tr("+%d coins each. All three: a sticker and +%d. Every %d stickers fill a page: +%d.") % [
+		Catalog.DAILY_COINS, Catalog.DAILY_ALL, Catalog.STICKER_PAGE, Catalog.STICKER_PAGE_COINS], 15, 430))
+	# the calendar
+	var cv := UI.vbox(4)
+	h.add_child(cv)
+	var now := Time.get_date_dict_from_system()
+	cv.add_child(UI.label(tr("Stickers: %d") % Game.stickers.size(), 17))
+	var grid := GridContainer.new()
+	grid.columns = 7
+	grid.add_theme_constant_override("h_separation", 3)
+	grid.add_theme_constant_override("v_separation", 3)
+	cv.add_child(grid)
+	var first := Time.get_unix_time_from_datetime_dict({"year": now.year, "month": now.month, "day": 1, "hour": 12})
+	var lead: int = (Time.get_date_dict_from_unix_time(first).weekday + 6) % 7   # Monday first
+	for i in lead:
+		grid.add_child(Control.new())
+	var days := Game._days_in_month("%04d-%02d" % [now.year, now.month])
+	for d in range(1, days + 1):
+		var key := "%04d-%02d-%02d" % [now.year, now.month, d]
+		var cell := PanelContainer.new()
+		cell.custom_minimum_size = Vector2(34, 30)
+		cell.add_theme_stylebox_override("panel", UI.box(Color("#fff3c9") if d == now.day else Color("#fffdf8"), 6, 1 if d != now.day else 2, false))
+		if key in Game.stickers:
+			var st := UI.icon_rect("sticker", 26)
+			st.size_flags_horizontal = SIZE_SHRINK_CENTER
+			cell.add_child(st)
+		else:
+			var dl := UI.label(str(d), 13, Color(UI.INK, 0.45))
+			dl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			cell.add_child(dl)
+		grid.add_child(cell)
+	return card
+
+
+## Journal > Album: a page per kind of moment, a slot for each, filled by your best photo of it.
+func _fill_album(holder: VBoxContainer) -> void:
+	holder.add_child(UI.label(tr("Photo album: %d of %d moments") % [Game.album_count(), Game.album_size()], 20))
+	holder.add_child(UI.wrap_label(tr("Your best photo of each moment goes in its slot. A full page: +%d coins. The whole album: +%d.") % [
+		Catalog.ALBUM_PAGE_COINS, Catalog.ALBUM_ALL_COINS], 16, 780))
+	for i in Catalog.ALBUM_PAGES.size():
+		var page: Dictionary = Catalog.ALBUM_PAGES[i]
+		var have: int = page.slots.filter(func(sl): return Game.album.has(sl)).size()
+		var head := UI.hbox(8)
+		head.add_child(UI.label(tr(page.name), 22))
+		head.add_child(UI.label("%d/%d" % [have, page.slots.size()], 17, Color(UI.INK, 0.6)))
+		if i in Game.album_pages:
+			head.add_child(UI.icon_rect("star", 26))
+		holder.add_child(head)
+		var grid := GridContainer.new()
+		grid.columns = 5
+		holder.add_child(grid)
+		for slot in page.slots:
+			var cv := UI.vbox(2)
+			var cp := PanelContainer.new()
+			var cs := UI.box(Color.WHITE if Game.album.has(slot) else Color("#f1e8dc"), 6, 2, false)
+			cs.set_content_margin_all(4)
+			cp.add_theme_stylebox_override("panel", cs)
+			var file := Game.album_photo(slot)
+			var tex: Texture2D = _photo_texture(file) if file != "" else null
+			if tex:
+				var r := TextureRect.new()
+				r.texture = tex
+				r.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+				r.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+				r.custom_minimum_size = Vector2(140, 96)
+				cp.add_child(r)
+			else:
+				var q := UI.icon_rect("mate_" + slot if Catalog.FOSTERS.has(slot) else "camera", 44)
+				q.custom_minimum_size = Vector2(140, 96)
+				q.modulate = Color(0.3, 0.25, 0.25, 0.3)
+				cp.add_child(q)
+			cv.add_child(cp)
+			var known: bool = Game.seen.has(slot) or Game.album.has(slot) or (Catalog.FOSTERS.has(slot) and Game.fosters_done.any(func(f): return f.id == slot)) \
+				or (Game.foster != null and Game.foster.id == slot)
+			var cap: String = (Catalog.mate_name(slot) if Catalog.FOSTERS.has(slot) else Catalog.behaviour_name(slot)) if known else "???"
+			cv.add_child(UI.wrap_label(cap, 14, 140))
+			grid.add_child(cv)
+
+
+## Journal > Bubák (or the friend's page): who they're becoming.
+func _personality_box(p: Pet) -> Control:
+	var v := UI.vbox(6)
+	v.add_child(UI.label(tr("Personality"), 22))
+	v.add_child(UI.wrap_label(tr("A bunny becomes what you do together. Only the two strongest traits can grow all the way."), 16, 780))
+	var raw: Dictionary = Game.skill(p, "traits")
+	for id in Catalog.TRAIT_ORDER:
+		var info: Dictionary = Catalog.TRAITS[id]
+		var lvl := Game.trait_level(id, p)
+		var row := UI.hbox(10)
+		row.add_child(UI.icon_rect(info.icon, 40))
+		var tv := UI.vbox(2)
+		tv.size_flags_horizontal = SIZE_EXPAND_FILL
+		row.add_child(tv)
+		var top := UI.hbox(8)
+		top.add_child(UI.label(tr(info.name), 19))
+		for i in 3:
+			var st := UI.icon_rect("star", 20)
+			if i >= lvl:
+				st.modulate = Color(0.3, 0.25, 0.25, 0.25)
+			top.add_child(st)
+		var bar := ProgressBar.new()
+		bar.custom_minimum_size = Vector2(180, 10)
+		bar.size_flags_vertical = SIZE_SHRINK_CENTER
+		bar.show_percentage = false
+		var pts := Game.trait_points(id, p)
+		var nxt: float = Catalog.TRAIT_AT[mini(lvl, 2)]
+		bar.max_value = nxt
+		bar.value = minf(pts, nxt)
+		top.add_child(bar)
+		if lvl == 1 and Game._trait_raw(id, raw) > 1:
+			top.add_child(UI.label(tr("(held back by stronger traits)"), 14, Color(UI.INK, 0.6)))
+		tv.add_child(top)
+		tv.add_child(UI.wrap_label(tr(info.desc), 15, 700))
+		v.add_child(row)
+	return v
+
+
+## Journal > Bubák: what he's dug up, and the treasure map.
+func _finds_box() -> Control:
+	var v := UI.vbox(6)
+	v.add_child(UI.label(tr("Dug up in the dig box"), 22))
+	if Game.finds.is_empty() and Game.map_pieces == 0:
+		v.add_child(UI.wrap_label(tr("Nothing yet. Bubák digs in the dig box (Shop > Toys), and sometimes he turns something up..."), 16, 780))
+		return v
+	var h := UI.hbox(14)
+	v.add_child(h)
+	for id in Catalog.FINDS:
+		var cv := UI.vbox(2)
+		var ic := UI.icon_rect("find_" + id, 44)
+		if not Game.finds.has(id):
+			ic.modulate = Color(0.3, 0.25, 0.25, 0.25)
+		cv.add_child(ic)
+		cv.add_child(UI.label(("x%d" % Game.finds[id]) if Game.finds.has(id) else "?", 14))
+		h.add_child(cv)
+	if not Game.treasure.is_empty():
+		var b := UI.text_button(tr("Look at the treasure map"), "treasure_map", 18)
+		b.size_flags_horizontal = SIZE_SHRINK_BEGIN
+		b.pressed.connect(func():
+			close_top()
+			treasure_map_popup())
+		v.add_child(b)
+	else:
+		v.add_child(UI.label(tr("Treasure map: %d of %d pieces") % [Game.map_pieces, Catalog.MAP_PIECES], 17))
+	return v
+
+
+## Journal > friend: the fosters who went home, with a gold or silver frame for the ones who stayed till they trusted you deeply.
+func _hall_box() -> Control:
+	var v := UI.vbox(6)
+	v.add_child(UI.label(tr("Hall of Fame"), 22))
+	v.add_child(UI.wrap_label(tr("Let a foster bunny stay longer before they go home: at %s they get a silver frame, at %s a gold one, and the rescue thanks you more.") % [
+		Catalog.level_name(Catalog.HALL_SILVER), Catalog.level_name(Catalog.HALL_GOLD)], 16, 780))
+	var grid := GridContainer.new()
+	grid.columns = 6
+	v.add_child(grid)
+	for f in Game.hall_of_fame():
+		var cv := UI.vbox(2)
+		var frame := PanelContainer.new()
+		var col := Color("#f3c94f") if f.level >= Catalog.HALL_GOLD else (Color("#c9ced8") if f.level >= Catalog.HALL_SILVER else Color("#e6d6c2"))
+		var fs := UI.box(Color("#fffdf8"), 10, 6 if f.level >= Catalog.HALL_SILVER else 2, false)
+		fs.border_color = col
+		frame.add_theme_stylebox_override("panel", fs)
+		frame.add_child(UI.icon_rect("mate_" + f.id, 84))
+		cv.add_child(frame)
+		cv.add_child(UI.label(Catalog.mate_name(f.id), 16))
+		cv.add_child(UI.label(Catalog.level_name(f.level), 13, Color(UI.INK, 0.65)))
+		grid.add_child(cv)
+	return v
+
+
+## Journal > friend: postcards from the adoptive families, pinned to the fridge.
+func _postcards_box() -> Control:
+	var v := UI.vbox(6)
+	v.add_child(UI.label(tr("On the fridge"), 22))
+	var grid := GridContainer.new()
+	grid.columns = 3
+	grid.add_theme_constant_override("h_separation", 12)
+	grid.add_theme_constant_override("v_separation", 12)
+	v.add_child(grid)
+	var list: Array = Game.postcards.duplicate()
+	list.reverse()
+	for c in list:
+		var cv := UI.vbox(2)
+		var b := Button.new()
+		b.flat = true
+		b.custom_minimum_size = Vector2(200, 130)
+		var pc := _postcard_pic(c, Vector2(200, 130))
+		pc.mouse_filter = MOUSE_FILTER_IGNORE
+		b.add_child(pc)
+		b.pressed.connect(func(): _postcard_popup(c))
+		cv.add_child(b)
+		cv.add_child(UI.label(Catalog.mate_name(c.id), 15))
+		grid.add_child(cv)
+	return v
 
 
 func _photo_texture(file: String) -> Texture2D:
@@ -1273,6 +1815,9 @@ func show_photo_result(img: Image, res: Dictionary) -> void:
 		notes.append(tr("You've posted a lot lately, so fewer people saw this one."))
 	if res.stale:
 		notes.append(tr("Your followers have seen this one a lot lately."))
+	for id in res.get("challenges", []):
+		var c: Dictionary = Game._challenge(id)
+		notes.append(tr("Photo challenge done: %s! +%d coins") % [tr(c.text), c.reward])
 	for n in notes:
 		var nl := UI.wrap_label(n, 17, 480)
 		nl.add_theme_color_override("font_color", Color(UI.INK, 0.7))
@@ -1286,19 +1831,222 @@ func show_photo_result(img: Image, res: Dictionary) -> void:
 
 
 ## Grams as kilos with two decimals, with a decimal comma in Czech.
+## "03-14" -> "14 March" (Czech: "14. března").
+static func birthday_text(md: String) -> String:
+	var months := ["January", "February", "March", "April", "May", "June", "July", "August", "September",
+		"October", "November", "December"]
+	var m := clampi(int(md.get_slice("-", 0)), 1, 12)
+	return TranslationServer.translate("%d %s") % [int(md.get_slice("-", 1)), TranslationServer.translate(months[m - 1])]
+
+
+## Days together: a milestone reached.
+func _milestone_popup(m: Dictionary) -> void:
+	Sfx.play("fanfare")
+	var v := UI.vbox(12)
+	v.alignment = BoxContainer.ALIGNMENT_CENTER
+	v.add_child(UI.icon_rect(Catalog.ITEMS[m.gift].icon if m.has("gift") else "heart", 110))
+	var title := UI.label(tr("%d days together!") % m.days, 34)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(title)
+	var lines := [tr("Thank you for looking after Bubák all this time."), tr("+%d coins") % m.coins]
+	if m.has("gift"):
+		lines.append(tr("A present you can't buy anywhere: %s!") % tr(Catalog.ITEMS[m.gift].name))
+	if m.has("unlocks"):
+		lines.append(tr("New in the shop (Makeover): %s") % tr(Catalog.ITEMS[m.unlocks].name))
+	var nm := Game.next_milestone()
+	if not nm.is_empty():
+		lines.append(tr("Next surprise at %d days.") % nm.days)
+	var l := UI.wrap_label("\n".join(PackedStringArray(lines)), 20, 560)
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(l)
+	var ok := UI.text_button(tr("Aww!"))
+	ok.size_flags_horizontal = SIZE_SHRINK_CENTER
+	ok.pressed.connect(close_top)
+	v.add_child(ok)
+	_open_modal("", v, Vector2(640, 0))
+
+
+## Followers made Bubák more famous; at Bunnyfluencer, a magazine cover.
+func _fame_popup(level: int) -> void:
+	Sfx.play("fanfare")
+	var v := UI.vbox(12)
+	v.alignment = BoxContainer.ALIGNMENT_CENTER
+	var title := UI.label(tr("Bubák is a %s!") % Game.fame_name(level), 32)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(title)
+	var tex: Texture2D = _photo_texture(Game.cover) if level == Catalog.COVER_FAME and Game.cover != "" else null
+	if tex:   # the magazine cover
+		var mag := PanelContainer.new()
+		var ms := UI.box(Color("#e8505b"), 6, 3, true)
+		ms.set_content_margin_all(10)
+		mag.add_theme_stylebox_override("panel", ms)
+		mag.size_flags_horizontal = SIZE_SHRINK_CENTER
+		var mv := UI.vbox(4)
+		mag.add_child(mv)
+		var head := UI.label("BUNNY WEEKLY", 30, Color.WHITE)
+		head.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		mv.add_child(head)
+		var r := TextureRect.new()
+		r.texture = tex
+		r.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		r.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		r.custom_minimum_size = Vector2(300, 225)
+		mv.add_child(r)
+		var cap := UI.wrap_label(tr("Bubák: the bunny everyone's talking about"), 17, 300)
+		cap.add_theme_color_override("font_color", Color.WHITE)
+		cap.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		mv.add_child(cap)
+		v.add_child(mag)
+	var l := UI.wrap_label(tr("%d followers! Sponsors pay more now (+%d%%).") % [Catalog.FAME[level].at, 15 * (level + 1)]
+		+ ("\n" + tr("Your best photo made the cover of a magazine!") if tex else ""), 20, 560)
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(l)
+	var ok := UI.text_button(tr("Wow!"))
+	ok.size_flags_horizontal = SIZE_SHRINK_CENTER
+	ok.pressed.connect(close_top)
+	v.add_child(ok)
+	_open_modal("", v, Vector2(640, 0))
+
+
+## A moment as "14 March 2027" (Czech: "14. března 2027").
+static func date_text(unix: float) -> String:
+	var d := Time.get_date_dict_from_unix_time(int(unix) + Time.get_time_zone_from_system().bias * 60)
+	return birthday_text("%02d-%02d" % [d.month, d.day]) + " %d" % d.year
+
+
+# ---- the veggie patch -------------------------------------------------------------
+
+func open_garden() -> void:
+	var v := UI.vbox(12)
+	_fill_garden(v)
+	_open_modal(tr("Veggie patch"), v, Vector2(860, 0))
+
+
+func _fill_garden(v: VBoxContainer) -> void:
+	for c in v.get_children():
+		c.queue_free()
+	var watered := Game.is_watered("garden")
+	var top := UI.hbox(12)
+	v.add_child(top)
+	var info := UI.wrap_label(tr("Watered: growing three times faster.") if watered
+		else tr("Plant something, water it, and pick it when it's ripe."), 18, 520)
+	info.size_flags_horizontal = SIZE_EXPAND_FILL
+	top.add_child(info)
+	var wb := UI.text_button(tr("Water"), "water", 18)
+	wb.disabled = watered
+	wb.pressed.connect(func():
+		Game.water_plant("garden")
+		Sfx.play("water")
+		_fill_garden(v))
+	top.add_child(wb)
+	var seeds: int = Game.inventory.get("golden_seed", 0)
+	if seeds > 0:
+		v.add_child(UI.label(tr("Golden seeds: %d. Plant one and wait a whole day for a golden carrot!") % seeds, 17))
+	var beds := Game.garden_beds()
+	var wide := beds.size() <= 3   # the bigger patch: five narrower beds in a row
+	var row := GridContainer.new()
+	row.columns = beds.size()
+	row.add_theme_constant_override("h_separation", 12 if wide else 8)
+	v.add_child(row)
+	for i in beds.size():
+		var b: Dictionary = beds[i]
+		var card := PanelContainer.new()
+		card.add_theme_stylebox_override("panel", UI.box(Color("#f3e3cc"), 16, 2, false))
+		card.custom_minimum_size = Vector2(250, 230) if wide else Vector2(154, 300)
+		row.add_child(card)
+		var cv := UI.vbox(8)
+		cv.alignment = BoxContainer.ALIGNMENT_CENTER
+		card.add_child(cv)
+		if b.crop == "":
+			cv.add_child(UI.label(tr("Empty bed"), 18))
+			for crop in Catalog.CROPS:
+				if Catalog.CROPS[crop].get("seed", false) and seeds <= 0:
+					continue
+				var pb := UI.text_button(tr(Catalog.CROPS[crop].name), crop, 15 if wide else 13)
+				pb.pressed.connect(func():
+					Game.plant(i, crop)
+					Sfx.play("dig")
+					_fill_garden(v))
+				cv.add_child(pb)
+			continue
+		cv.add_child(UI.icon_rect(b.crop, 64))
+		cv.add_child(UI.label(tr(Catalog.CROPS[b.crop].name), 18))
+		if b.grow >= 1.0:
+			var hb := UI.text_button(tr("Pick"), "", 18)
+			hb.pressed.connect(func():
+				var crop: String = b.crop
+				var n := Game.harvest(i)
+				Sfx.play("pluck")
+				toast(tr("Picked: %d x %s. Into the treat bag!") % [n, Catalog.item_name(crop)], crop)
+				if Game.seed_found:
+					toast(tr("Something glints in the soil: a golden seed!"), "golden_seed", true)
+				_fill_garden(v))
+			cv.add_child(hb)
+		else:
+			var bar := ProgressBar.new()
+			bar.custom_minimum_size = Vector2(200 if wide else 130, 12)
+			bar.show_percentage = false
+			bar.value = b.grow * 100.0
+			bar.add_theme_stylebox_override("fill", UI.bar_fill(UI.GREEN))
+			cv.add_child(bar)
+			var mins := ceili((1.0 - b.grow) * Catalog.CROPS[b.crop].hours * 60.0 / (3.0 if watered else 1.0))
+			cv.add_child(UI.wrap_label(tr("Ripe in about %d min") % mins if mins < 90 else tr("Ripe in about %d h") % ceili(mins / 60.0), 15, 220 if wide else 130))
+
+
+# ---- the vet --------------------------------------------------------------------------
+
+func open_vet() -> void:
+	close_top()
+	var res := Game.vet_checkup()
+	var v := UI.vbox(10)
+	var h := UI.hbox(16)
+	v.add_child(h)
+	h.add_child(UI.icon_rect("vet", 96))
+	h.add_child(UI.wrap_label(tr("The vet listens, looks and gently weighs everyone.") + "\n" + (tr("All healthy! Here's a sticker and %d coins.") % res.coins
+		if res.all_ok else tr("Mostly fine. A few tips, and %d coins for coming in.") % res.coins), 20, 560))
+	for r in res.report:
+		v.add_child(UI.label(r.pet, 22))
+		for c in r.checks:
+			var ch := UI.hbox(8)
+			if c[0]:
+				ch.add_child(UI.icon_rect("heart", 22))
+			else:
+				ch.add_child(UI.label("!", 20, UI.RED))
+			ch.add_child(UI.wrap_label(c[1], 17, 640))
+			v.add_child(ch)
+	if res.vaccine:
+		var vh := UI.hbox(8)
+		vh.add_child(UI.icon_rect("vet", 22))
+		vh.add_child(UI.wrap_label(tr("And the yearly vaccination: a tiny pinch, a big treat. (-%d coins) See you next year!") % Catalog.VACCINE_COST, 17, 640))
+		v.add_child(vh)
+	var ok := UI.text_button(tr("Thank you, doctor!"))
+	ok.size_flags_horizontal = SIZE_SHRINK_CENTER
+	ok.pressed.connect(close_top)
+	v.add_child(ok)
+	Sfx.play("chime")
+	_open_modal(tr("Check-up at the vet"), v, Vector2(800, 0))
+
+
 static func kilos(grams: float) -> String:
-	var s := "%.2f" % (grams / 1000.0)
-	return s.replace(".", ",") if TranslationServer.get_locale().begins_with("cs") else s
+	return Catalog.kilos(grams)
 
 
 # ---- walks -------------------------------------------------------------------------
 
 ## Where to go with Bubák today: the places open one by one as you go on more walks.
 func open_walks() -> void:
+	close_top()
+	_use_club_pet()
 	var v := UI.vbox(10)
 	var walks: int = Game.stats.get("walks", 0)
-	v.add_child(UI.wrap_label(tr("You've been out today already. Bubák is still dreaming about it. Next walk tomorrow!")
-		if Game.walked_today() else tr("Where shall we go today? A walk makes Bubák happy and brings you closer."), 19, 760))
+	var who := Game.performer.display_name()
+	if Game.mate:
+		var top := UI.hbox(8)
+		top.add_child(UI.label(tr("Who's going?"), 19))
+		top.add_child(_pet_picker(open_walks))
+		v.add_child(top)
+	v.add_child(UI.wrap_label(tr("%s has been out today already and is still dreaming about it. Next walk tomorrow!") % who
+		if Game.walked_today() else tr("Where shall we go today? A walk makes %s happy and brings you closer.") % who, 19, 760))
 	var grid := GridContainer.new()
 	grid.columns = 2
 	grid.add_theme_constant_override("h_separation", 12)
@@ -1323,32 +2071,58 @@ func open_walks() -> void:
 			var left: int = Catalog.WALKS[id].after - walks
 			note = tr_n("Opens after %d more walk", "Opens after %d more walks", left) % left
 		tv.add_child(UI.label(note, 15, Color(UI.INK, 0.7)))
+		var sr := UI.hbox(4)
+		for sid in Catalog.SOUVENIRS[id]:
+			var si := UI.icon_rect("souv_" + sid, 30)
+			if not Game.souvenirs.has(sid):
+				si.modulate = Color(0.2, 0.15, 0.15, 0.25)   # still to find
+			si.tooltip_text = Game.souvenir_name(sid) if Game.souvenirs.has(sid) else "?"
+			si.mouse_filter = Control.MOUSE_FILTER_PASS
+			sr.add_child(si)
+		tv.add_child(sr)
 		var go := UI.text_button(tr("Go!"), "", 20)
 		go.disabled = Game.walk_problem(id) != ""
 		go.size_flags_vertical = SIZE_SHRINK_CENTER
 		go.pressed.connect(func():
+			var walker := Game.performer
 			close_top()
-			play_walk(id))
+			play_walk(id, true, 1.0, walker))
 		h.add_child(go)
 		grid.add_child(card)
-	_open_modal(tr("Walk with Bubák"), v, Vector2(820, 0))
+	v.add_child(UI.label(tr("Souvenirs found: %d of %d") % [Game.souvenirs.size(), Catalog.SOUVENIR_NAMES.size()], 17, Color(UI.INK, 0.7)))
+	_open_modal(tr("Walk with %s") % who, v, Vector2(820, 0))
 
 
-## Off we go: the walk counts straight away, then the cutscene plays.
-func play_walk(id: String, count := true, speed := 1.0) -> void:
+## Off we go: the walk counts straight away, then the cutscene plays. who: Bubák (null) or his friend.
+func play_walk(id: String, count := true, speed := 1.0, who: Pet = null) -> void:
 	main.set_mode("")
+	_walking = true
+	Game.set_performer(who)
+	var walker := Game.performer.display_name()
 	var res := Game.go_walk(id) if count else {}
 	var w := WalkScene.new()
 	w.place = id
 	w.speed = speed
 	add_child(w)
 	await w.finished
+	_walking = false
+	Game.set_performer(Game.bubak)
 	if res.is_empty():
 		return
-	var msg := tr("%s: back home again. Bubák is beaming!") % Catalog.walk_name(id)
+	var msg := tr("%s: back home again. %s is beaming!") % [Catalog.walk_name(id), walker]
 	if res.followers > 0:
 		msg += " " + tr_n("+%d follower", "+%d followers", res.followers) % res.followers
 	toast(msg, "heart", true)
+	if res.has("souvenir"):
+		var sname := Game.souvenir_name(res.souvenir)
+		if res.dupe:
+			toast(tr("%s brought back another %s. Swapped for 10 coins.") % [walker, sname.to_lower()], "souv_" + res.souvenir)
+		else:
+			toast(tr("A souvenir from the walk: %s! (Walk > souvenirs)") % sname, "souv_" + res.souvenir, true)
+		if res.set_done:
+			toast(tr("A whole set from the %s! +%d coins") % [Catalog.walk_name(id), Catalog.SET_REWARD], "star", true)
+		if res.all_done:
+			toast(tr("Every souvenir found! A souvenir cabinet for the flat."), "curio", true)
 
 
 # ---- settings ------------------------------------------------------------------
@@ -1567,7 +2341,7 @@ func open_saves() -> void:
 
 ## The tabs grow as the club opens up: training, then grooming, then shows.
 func _club_tabs() -> Array:
-	return ["Training", "Grooming", "Shows", "Trophies"].slice(0, [0, 1, 2, 4][Game.club_stage])
+	return ["Training", "Grooming", "Shows", "Agility", "League", "Trophies"].slice(0, [0, 1, 2, 6][Game.club_stage])
 
 
 func open_club(tab := "") -> void:
@@ -1578,6 +2352,8 @@ func open_club(tab := "") -> void:
 		return
 	if not _club_tab in tabs_list:
 		_club_tab = tabs_list[0]
+	close_top()
+	_use_club_pet()
 	var v := UI.vbox(10)
 	var tabs := UI.hbox(8)
 	v.add_child(tabs)
@@ -1595,8 +2371,37 @@ func open_club(tab := "") -> void:
 			_club_tab = t
 			_fill_club(holder))
 		tabs.add_child(b)
+	if Game.mate:
+		var gap := Control.new()
+		gap.size_flags_horizontal = SIZE_EXPAND_FILL
+		tabs.add_child(gap)
+		tabs.add_child(_pet_picker(func(): _fill_club(holder)))
 	_fill_club(holder)
 	_open_modal(tr("Show club"), v, Vector2(900, 600))
+
+
+## Bubák or his friend, whichever was picked last time (the friend may have left).
+func _use_club_pet() -> void:
+	if _club_pet != null and _club_pet != Game.mate:
+		_club_pet = null
+	Game.set_performer(_club_pet)
+
+
+## Two portrait buttons to pick who trains, grooms, shows or walks; then calls refill.
+func _pet_picker(refill: Callable) -> Control:
+	var pick := UI.hbox(6)
+	for p in [Game.bubak, Game.mate]:
+		var pb := UI.text_button(p.display_name(), "icon" if p.is_bubak() else "mate_" + p.id, 17)
+		pb.toggle_mode = true
+		pb.button_pressed = p == Game.performer
+		pb.pressed.connect(func():
+			_club_pet = null if p.is_bubak() else p
+			Game.set_performer(p)
+			for o in pick.get_children():
+				o.button_pressed = o == pb
+			refill.call())
+		pick.add_child(pb)
+	return pick
 
 
 func _fill_club(holder: VBoxContainer) -> void:
@@ -1621,8 +2426,23 @@ func _fill_club(holder: VBoxContainer) -> void:
 			var list := UI.vbox(10)
 			list.size_flags_horizontal = SIZE_EXPAND_FILL
 			scroll.add_child(list)
+			list.add_child(_judge_banner())
+			if not Game.duel.is_empty():
+				list.add_child(_duel_card())
 			for tier in Catalog.SHOW_TIERS.size():
 				list.add_child(_show_card(tier))
+		"Agility":
+			holder.add_child(_agility_panel())
+		"League":
+			var scroll := ScrollContainer.new()
+			scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+			scroll.custom_minimum_size = Vector2(0, 450)
+			holder.add_child(scroll)
+			var lp := _league_panel()
+			lp.size_flags_horizontal = SIZE_EXPAND_FILL
+			lp.add_child(HSeparator.new())
+			lp.add_child(_games_panel())
+			scroll.add_child(lp)
 		"Trophies":
 			if Game.trophies.is_empty():
 				holder.add_child(UI.wrap_label(tr("No ribbons yet. Enter a show and bring one home!"), 20, 700))
@@ -1642,7 +2462,11 @@ func _fill_club(holder: VBoxContainer) -> void:
 				var r := UI.icon_rect(Catalog.trophy_tex(t), 84)
 				r.size_flags_horizontal = SIZE_SHRINK_CENTER
 				cv.add_child(r)
-				for line in [Catalog.tier_name(t.tier), "%s, %s" % [tr(ShowRing.PLACES[t.place - 1]), Catalog.cat_name(t.cat)]]:
+				var winner: String = t.get("pet", "bubak")
+				var lines: Array = [Catalog.tier_name(t.tier), "%s, %s" % [tr(ShowRing.PLACES[t.place - 1]), Catalog.cat_name(t.cat)]]
+				if Game.mate or winner != "bubak":
+					lines.append("Bubák" if winner == "bubak" else Catalog.mate_name(winner))
+				for line in lines:
 					var l := UI.wrap_label(line, 14, 150)
 					l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 					cv.add_child(l)
@@ -1672,7 +2496,10 @@ func _show_card(tier: int) -> Control:
 	tv.add_child(UI.label(note, 16, Color(UI.INK, 0.75)))
 	if not open:
 		return card
-	var cats := UI.hbox(10)
+	var cats := GridContainer.new()
+	cats.columns = 2
+	cats.add_theme_constant_override("h_separation", 10)
+	cats.add_theme_constant_override("v_separation", 8)
 	v.add_child(cats)
 	for cat in Catalog.SHOW_CATS:
 		var cv := UI.vbox(2)
@@ -1683,9 +2510,27 @@ func _show_card(tier: int) -> Control:
 		b.pressed.connect(_enter_show.bind(tier, cat))
 		cv.add_child(b)
 		var hint := problem if problem != "" and Game.show_wait(tier) <= 0 and Game.coins >= info.fee else tr(Catalog.SHOW_CATS[cat].desc)
-		cv.add_child(UI.wrap_label(hint, 14, 250))
+		cv.add_child(UI.wrap_label(hint, 14, 380))
 		cats.add_child(cv)
 	return card
+
+
+## A duel or a round of the Bunny Games: no entry fee, no waiting.
+func _enter_special(mode: String, tier: int, cat: String) -> void:
+	var ring := ShowRing.new()
+	ring.hud = self
+	ring.mode = mode
+	ring.tier = tier
+	ring.cat = cat
+	ring.base_score = Game.show_score(cat)
+	ring.photo = Game.best_photo()
+	if cat == "photo" and not ring.photo.is_empty():
+		ring.photo.judged = true   # each photo goes in front of the judges once
+	ring.finished.connect(func():
+		close_top()
+		main.update_trophies())
+	_open_modal("", ring, Vector2(900, 0))
+	club_panel = ring
 
 
 func _enter_show(tier: int, cat: String) -> void:
@@ -1736,6 +2581,913 @@ func _on_club_unlocked(stage: int) -> void:
 		h.add_child(go)
 		v.add_child(h)
 		_open_modal("", v, Vector2(600, 0)))
+
+
+## The head judge's wish this week, and the routine Bubák performs in Tricks shows.
+func _judge_banner() -> Control:
+	var card := PanelContainer.new()
+	card.add_theme_stylebox_override("panel", UI.box(Color("#fff3c9"), 16, 2, false))
+	var v := UI.vbox(6)
+	card.add_child(v)
+	var like: Dictionary = Catalog.JUDGE_LIKES[Game.judge_like()]
+	var jh := UI.hbox(8)
+	v.add_child(jh)
+	jh.add_child(UI.icon_rect("rosette_1", 34))
+	jh.add_child(UI.wrap_label(tr("This week the head judge loves %s (%s, +%d points).") % [
+		tr(like.text), Catalog.cat_name(like.cat), int(Catalog.JUDGE_BONUS)], 17, 760))
+	var rh := UI.hbox(8)
+	v.add_child(rh)
+	rh.add_child(UI.label(tr("Tricks routine:"), 17))
+	var known: Array = Catalog.TRICK_ORDER.filter(func(id): return Game.trick_stars(id) > 0)
+	while Game.routine.size() < Catalog.ROUTINE_MAX:
+		Game.routine.append("")
+	for i in Catalog.ROUTINE_MAX:
+		var b := UI.text_button(Catalog.trick_name(Game.routine[i]) if Game.routine[i] in known else "—", "", 16)
+		b.custom_minimum_size.x = 120
+		b.pressed.connect(func():
+			var opts: Array = [""] + known
+			Game.routine[i] = opts[(opts.find(Game.routine[i]) + 1) % opts.size()]
+			b.text = Catalog.trick_name(Game.routine[i]) if Game.routine[i] != "" else "—"
+			Game.save_game())
+		rh.add_child(b)
+	v.add_child(UI.wrap_label(tr("Tap a slot to pick a trick. Longer routines and perfect tricks in a row score more. Leave it empty and he picks three himself."), 14, 780))
+	return card
+
+
+## Club > Agility: practise the jumping course.
+func _agility_panel() -> Control:
+	var v := UI.vbox(10)
+	var top := UI.hbox(10)
+	v.add_child(top)
+	var skill := UI.label("", 20)
+	top.add_child(skill)
+	var bar := ProgressBar.new()
+	bar.custom_minimum_size = Vector2(240, 14)
+	bar.size_flags_vertical = SIZE_SHRINK_CENTER
+	bar.show_percentage = false
+	bar.add_theme_stylebox_override("fill", UI.bar_fill(Color("#7fcfb8")))
+	top.add_child(bar)
+	var show_skill := func():
+		skill.text = tr("Agility: %d/100") % int(Game.agility)
+		bar.value = Game.agility
+	show_skill.call()
+	var track := PanelContainer.new()
+	track.add_theme_stylebox_override("panel", UI.box(Color("#e4efd6"), 22, 3, false))
+	track.custom_minimum_size = Vector2(840, 290)
+	track.clip_contents = true
+	v.add_child(track)
+	var run := AgilityRun.new()
+	run.bars = Catalog.AGILITY_PRACTICE_BARS
+	run.kinds = ["bar", "bar", "oxer", "tunnel", "weave"]
+	track.add_child(run)
+	club_panel = run
+	var say := UI.wrap_label(tr("Bars: jump in the gold zone. Double bars: the zone is shorter. Tunnels: don't jump, he runs through. Weave poles: tap as each pole reaches him. Each run uses a try of focus."), 17, 820)
+	v.add_child(say)
+	var bh := UI.hbox(14)
+	bh.alignment = BoxContainer.ALIGNMENT_CENTER
+	v.add_child(bh)
+	var go := UI.text_button(tr("Start a run"), "agility", 20)
+	bh.add_child(go)
+	var daily := UI.text_button(tr("Daily course"), "sticker", 20)
+	bh.add_child(daily)
+	var jump := UI.text_button(tr("Jump!"), "", 24)
+	jump.custom_minimum_size = Vector2(200, 60)
+	jump.disabled = true
+	jump.pressed.connect(run.jump)
+	bh.add_child(jump)
+	var begin := func(timed: bool):
+		if run.running():
+			return
+		if Game.count_item("hurdles") == 0:
+			say.text = tr("He needs Hop hurdles to practise on: they're in the Shop.")
+			return
+		if Game.focus < 1.0:
+			say.text = tr("Bubák has had enough training for now. Let him rest a bit.")
+			return
+		Game.focus -= 1.0
+		go.disabled = true
+		daily.disabled = true
+		jump.disabled = false
+		run.timed = timed
+		run.course = Game.daily_course() if timed else []
+		run.ghost = Game.daily_ghost() if timed else []
+		say.text = tr("Today's course! Beat your best time: faults add %d seconds each.") % int(Catalog.AGILITY_FAULT_TIME) \
+			if timed else tr("Go, go, go!")
+		run.start()
+	go.pressed.connect(begin.bind(false))
+	daily.pressed.connect(begin.bind(true))
+	run.finished.connect(func(clears: int, faults: int):
+		var gain := Game.practice_agility(clears)
+		go.disabled = false
+		daily.disabled = false
+		jump.disabled = true
+		show_skill.call()
+		var text := tr("%d of %d cleared.") % [clears, clears + faults] + "  " + tr("Agility +%.1f") % gain
+		if run.timed:
+			var res := Game.finish_daily_course(run.score_time(), run.record)
+			text = tr("Time: %.1f s") % run.score_time() + "  " + (tr("A new best for today!") if res.best else tr("Best today: %.1f s") % Game.daily_best()) \
+				+ ("  +%d" % res.coins if res.coins > 0 else "") + "\n" + text
+		say.text = text)
+	return v
+
+
+## Club > League: this month's standings.
+func _league_panel() -> Control:
+	Game._check_league()
+	var v := UI.vbox(8)
+	var season: String = Game.league_season
+	var days_left: int = Game._days_in_month(season) - int(Time.get_date_string_from_system().right(2))
+	v.add_child(UI.label(tr("Show league, season %s") % (season.right(2) + "/" + season.left(4)), 24))
+	v.add_child(UI.wrap_label(tr("Shows earn league points: %d / %d / %d / %d for 1st to 4th, twice that at the Regional show and four times at the National championship. The season ends with the month (%d days left).") % (
+		Catalog.LEAGUE_POINTS + [days_left]), 16, 840))
+	var nem := Game.nemesis()
+	var table := Game.league_table()
+	for i in table.size():
+		var r: Dictionary = table[i]
+		var row := PanelContainer.new()
+		row.add_theme_stylebox_override("panel", UI.box(Color("#fff3c9") if r.id == "bubak" else Color("#fffdf8"), 12, 2, false))
+		var h := UI.hbox(10)
+		row.add_child(h)
+		h.add_child(UI.label("%d." % (i + 1), 20))
+		h.add_child(UI.icon_rect("icon" if r.id == "bubak" else "rival_" + r.id, 36))
+		var nl := UI.label("Bubák" if r.id == "bubak" else Catalog.rival_name(r.id), 19)
+		nl.size_flags_horizontal = SIZE_EXPAND_FILL
+		h.add_child(nl)
+		if r.id == nem:
+			h.add_child(UI.label(tr("nemesis"), 15, Color("#c0504d")))
+		var pl := UI.label(tr("%d points") % r.points, 18)
+		pl.custom_minimum_size.x = 110
+		h.add_child(pl)
+		v.add_child(row)
+	var prize: Dictionary = Catalog.LEAGUE_PRIZES[0]
+	v.add_child(UI.wrap_label(tr("This month's nemesis is %s: finish above them for +%d coins. The winner gets %d coins and %d followers.") % [
+		Catalog.rival_name(nem), Catalog.NEMESIS_BONUS, prize.coins, prize.fans], 16, 840))
+	if not Game.league_history.is_empty():
+		var past := []
+		for hst in Game.league_history.slice(-4):
+			past.append("%s: %s (%d)" % [str(hst.season).right(2) + "/" + str(hst.season).left(4), tr(ShowRing.PLACES[mini(int(hst.place), 4) - 1]) if int(hst.place) <= 4 else "%d." % int(hst.place), int(hst.points)])
+		v.add_child(UI.label(tr("Past seasons: %s") % ", ".join(PackedStringArray(past)), 15, Color(UI.INK, 0.7)))
+	return v
+
+
+func _league_popup(r: Dictionary) -> void:
+	Sfx.play("fanfare")
+	var v := UI.vbox(12)
+	v.add_child(UI.icon_rect("league", 110))
+	var title := UI.label(tr("The league season is over!"), 32)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(title)
+	var msg := tr("Bubák finished in place %d of 6 with %d points.") % [r.place, r.points]
+	if r.place == 1:
+		msg = tr("Bubák WON the league with %d points! Champion of the month!") % r.points
+	msg += "\n" + tr("+%d coins, +%d followers") % [r.coins, r.fans]
+	msg += "\n" + (tr("And he beat his nemesis, %s! (bonus included)") % Catalog.rival_name(r.nemesis) if r.beat
+		else tr("His nemesis, %s, finished ahead. Next month!") % Catalog.rival_name(r.nemesis))
+	msg += "\n\n" + tr("A new season starts now.")
+	var l := UI.wrap_label(msg, 21, 520)
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(l)
+	var ok := UI.text_button(tr("Hooray!"))
+	ok.size_flags_horizontal = SIZE_SHRINK_CENTER
+	ok.pressed.connect(close_top)
+	v.add_child(ok)
+	_open_modal("", v, Vector2(600, 0))
+
+
+# ---- foster bunnies ----------------------------------------------------------------------
+
+## Journal > Friend: the bunny you're fostering, or the next one, and the ones who found homes.
+func _foster_panel() -> Control:
+	var h := UI.hbox(16)
+	h.add_child(UI.icon_rect("foster", 72))
+	var v := UI.vbox(6)
+	v.size_flags_horizontal = SIZE_EXPAND_FILL
+	h.add_child(v)
+	v.add_child(UI.label(tr("Foster bunnies"), 22))
+	if Game.foster:
+		var f: Pet = Game.foster
+		var q: String = f.quirk()
+		v.add_child(UI.wrap_label(tr("%s is staying with you. %s: %s") % [f.display_name(), Catalog.quirk_name(q), tr(Catalog.QUIRKS[q].desc)], 17, 640))
+		v.add_child(UI.label(tr("Trust: %s. A family can adopt them at %s.") % [Catalog.level_name(f.trust_level()), Catalog.level_name(Catalog.FOSTER_GOAL)], 17))
+		if Game.mentor_active():
+			v.add_child(UI.wrap_label(tr("Bubák is helping: %s settles in faster with him around.") % f.display_name(), 16, 640))
+		if Game.foster_ready():
+			var rb := UI.text_button(tr("Let the family adopt %s now") % f.display_name(), "heart", 18)
+			rb.size_flags_horizontal = SIZE_SHRINK_BEGIN
+			rb.pressed.connect(_rehome_now)
+			v.add_child(rb)
+	elif Game.foster_available():
+		var id := Game.next_foster()
+		var b := UI.text_button(tr("Take in %s") % Catalog.mate_name(id), "heart", 18)
+		b.size_flags_horizontal = SIZE_SHRINK_BEGIN
+		b.pressed.connect(func(): _take_foster())
+		v.add_child(b)
+	else:
+		v.add_child(UI.label(tr("The rescue will have another bunny for you tomorrow."), 17))
+	if not Game.fosters_done.is_empty():
+		var names := Game.fosters_done.map(func(x): return Catalog.mate_name(x.id))
+		v.add_child(UI.wrap_label(tr("Found loving homes: %s") % ", ".join(PackedStringArray(names)), 16, 640))
+	return h
+
+
+func _take_foster() -> void:
+	var err := Game.take_foster()
+	if err != "":
+		toast(err)
+		return
+	var f: Pet = Game.foster
+	Game.welcome_text = tr("%s is here! Go slowly: %s") % [f.display_name(), tr(Catalog.QUIRKS[f.quirk()].desc)] \
+		+ "\n\n" + tr("Pet them gently and offer treats. At %s, the rescue will find them a forever family.") % Catalog.level_name(Catalog.FOSTER_GOAL)
+	close_top()
+	main.reload()
+
+
+func _foster_offer_popup(id: String) -> void:
+	if not Game.foster_available():
+		return
+	var info: Dictionary = Catalog.FOSTERS[id]
+	var v := UI.vbox(12)
+	v.add_child(UI.icon_rect("mate_" + id, 110))
+	var title := UI.label(tr("The rescue needs a foster home"), 32)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(title)
+	var l := UI.wrap_label(tr("%s needs somewhere calm to learn that people are kind. %s") % [Catalog.mate_name(id), tr(info.desc)]
+		+ "\n" + "%s: %s" % [Catalog.quirk_name(info.quirk), tr(Catalog.QUIRKS[info.quirk].desc)]
+		+ "\n\n" + tr("Win their trust up to %s and the rescue will find them a forever family.") % Catalog.level_name(Catalog.FOSTER_GOAL), 20, 540)
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(l)
+	var h := UI.hbox(12)
+	h.alignment = BoxContainer.ALIGNMENT_CENTER
+	var later := UI.text_button(tr("Not now"))
+	later.pressed.connect(close_top)
+	h.add_child(later)
+	var go := UI.text_button(tr("Take them in"), "heart")
+	go.pressed.connect(_take_foster)
+	h.add_child(go)
+	v.add_child(h)
+	_open_modal("", v, Vector2(620, 0))
+
+
+func _foster_home_popup() -> void:
+	if not Game.foster_ready():
+		return
+	Sfx.play("fanfare")
+	var f: Pet = Game.foster
+	var v := UI.vbox(12)
+	v.add_child(UI.icon_rect("mate_" + f.id, 110))
+	var title := UI.label(tr("A family wants to adopt %s!") % f.display_name(), 30)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(title)
+	var l := UI.wrap_label(tr("Thanks to you, %s isn't scared of people any more. A lovely family has come to take them home.") % f.display_name()
+		+ "\n\n" + tr("The rescue sends their thanks: +%d coins, +%d followers.") % [Catalog.FOSTER_REWARD, Catalog.FOSTER_FANS]
+		+ "\n" + tr("Or let them stay a while longer: the more they trust you when they go, the bigger the thanks, and at %s they join the Hall of Fame.") % Catalog.level_name(Catalog.HALL_SILVER), 20, 540)
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(l)
+	var h := UI.hbox(12)
+	h.alignment = BoxContainer.ALIGNMENT_CENTER
+	var later := UI.text_button(tr("A little longer"))
+	later.pressed.connect(func():
+		close_top()
+		toast(tr("%s stays a bit longer. When you're ready: Journal > %s.") % [f.display_name(), Game.mate.display_name() if Game.mate else ""]))
+	h.add_child(later)
+	var ok := UI.text_button(tr("Say goodbye"), "heart")
+	ok.pressed.connect(_rehome_now)
+	h.add_child(ok)
+	v.add_child(h)
+	_open_modal("", v, Vector2(620, 0))
+
+
+func _rehome_now() -> void:
+	var res := Game.rehome_foster()
+	if not res.is_empty():
+		Game.welcome_text = tr("%s went home with their new family. Bubák watched from the window.") % Catalog.mate_name(res.id) \
+			+ "\n\n" + tr("The rescue sends their thanks: +%d coins, +%d followers.") % [res.coins, res.fans] \
+			+ ("\n" + tr("They trusted you so much that they're in the Hall of Fame now!") if res.level >= Catalog.HALL_SILVER else "") \
+			+ "\n\n" + tr("The rescue will have another bunny who needs you tomorrow.")
+	close_top()
+	main.reload()
+
+
+# ---- the top of the game: duels, the Bunny Games, challenges, ladders, the book --------------
+
+func _newcomer_popup(id: String) -> void:
+	Sfx.play("surprise")
+	_note_popup("rival_" + id, tr("A new rival: %s!") % Catalog.rival_name(id), tr(Catalog.RIVALS[id].desc) + "\n\n"
+		+ tr("Now that Bubák is a national champion, the best bunnies in the world want to beat him. And the old rivals are training harder too."),
+		tr("Bring it on!"))
+
+
+func _certificate_popup(id: String) -> void:
+	Sfx.play("fanfare")
+	var v := _note_popup(Catalog.TRICKS[id].icon, tr("Master's certificate!"), tr("Bubák has mastered %s, one of the hardest tricks there is. +%d coins") % [
+		Catalog.trick_name(id), Catalog.CERTIFICATE_COINS], tr("Hooray!"))
+	v.get_child(0).custom_minimum_size = Vector2(110, 110)
+
+
+func _duel_card() -> Control:
+	var d: Dictionary = Game.duel
+	var card := PanelContainer.new()
+	card.add_theme_stylebox_override("panel", UI.box(Color("#fde2e2"), 16, 2, false))
+	var h := UI.hbox(12)
+	card.add_child(h)
+	h.add_child(UI.icon_rect("rival_" + d.rival, 60))
+	var v := UI.vbox(2)
+	v.size_flags_horizontal = SIZE_EXPAND_FILL
+	h.add_child(v)
+	v.add_child(UI.label(tr("Duel: %s wants a rematch") % Catalog.rival_name(d.rival), 20))
+	v.add_child(UI.wrap_label(tr("One on one, %s. Win: +%d coins, +%d followers. Ends in %s.") % [Catalog.cat_name(d.cat),
+		Catalog.DUEL_COINS[int(d.tier)], Catalog.DUEL_FANS[int(d.tier)], Game.duration_text(float(d.until) - Time.get_unix_time_from_system())], 15, 560))
+	var problem := Game.cat_problem(d.cat)
+	var b := UI.text_button(tr("Accept"), Catalog.SHOW_CATS[d.cat].icon, 19)
+	b.size_flags_vertical = SIZE_SHRINK_CENTER
+	b.disabled = problem != ""
+	b.pressed.connect(_enter_special.bind("duel", int(d.tier), d.cat))
+	h.add_child(b)
+	if problem != "":
+		v.add_child(UI.label(problem, 14, Color("#c0504d")))
+	return card
+
+
+## Club > League: the Bunny Games, once a year.
+func _games_panel() -> Control:
+	var v := UI.vbox(8)
+	var h := UI.hbox(10)
+	v.add_child(h)
+	h.add_child(UI.icon_rect("games_cup", 56))
+	var tv := UI.vbox(2)
+	h.add_child(tv)
+	tv.add_child(UI.label(tr("The Bunny Games"), 24))
+	tv.add_child(UI.wrap_label(tr("Every month, in its last %d days: four rounds (Best in Show, Tricks, Agility, Photogenic), one a day, against every rival at their very best. To qualify, earn %d league points at shows that month.") % [
+		Catalog.GAMES_DAYS, Catalog.GAMES_QUALIFY], 15, 760))
+	var bar := ProgressBar.new()
+	bar.custom_minimum_size = Vector2(300, 12)
+	bar.show_percentage = false
+	bar.max_value = Catalog.GAMES_QUALIFY
+	bar.value = mini(Game.league_points, Catalog.GAMES_QUALIFY)
+	var qh := UI.hbox(8)
+	qh.add_child(UI.label(tr("Qualifying:"), 16))
+	qh.add_child(bar)
+	qh.add_child(UI.label("%d/%d" % [mini(Game.league_points, Catalog.GAMES_QUALIFY), Catalog.GAMES_QUALIFY], 16))
+	if Game.games_qualified():
+		qh.add_child(UI.label(tr("qualified!"), 16, Color("#3f8f5a")))
+	v.add_child(qh)
+	if not Game.games_on():
+		v.add_child(UI.label(tr("This month's Games start on the %d.") % Game.games_start_day(), 16))
+	else:
+		var rh := GridContainer.new()
+		rh.columns = 4
+		rh.add_theme_constant_override("h_separation", 8)
+		v.add_child(rh)
+		for cat in Catalog.GAMES_ROUNDS:
+			var cv := UI.vbox(2)
+			var b := UI.text_button(Catalog.cat_name(cat), Catalog.SHOW_CATS[cat].icon, 16)
+			var problem := Game.games_problem(cat)
+			if problem == "":
+				problem = Game.cat_problem(cat)
+			b.disabled = problem != ""
+			b.pressed.connect(_enter_special.bind("games", 2, cat))
+			cv.add_child(b)
+			cv.add_child(UI.wrap_label(problem, 13, 190))
+			rh.add_child(cv)
+		if not Game.games.get("rounds", {}).is_empty():
+			var table := Game.games_table()
+			var line := []
+			for i in table.size():
+				line.append("%d. %s %d" % [i + 1, "Bubák" if table[i].id == "bubak" else Catalog.rival_name(table[i].id), table[i].total])
+			v.add_child(UI.wrap_label(tr("Standings: %s") % ", ".join(PackedStringArray(line)), 15, 800))
+	if not Game.games_history.is_empty():
+		var past := Game.games_history.slice(-3).map(func(g): return "%s: %d." % [Game._month_label(str(g.get("month", ""))), int(g.place)])
+		v.add_child(UI.label(tr("Past Games: %s") % ", ".join(PackedStringArray(past)), 15, Color(UI.INK, 0.7)))
+	return v
+
+
+func _games_popup(res: Dictionary) -> void:
+	Sfx.play("fanfare" if res.place <= 3 else "chime")
+	var text := tr("Bubák finished %s overall with %d points.") % [tr(Game.place_name(res.place)), res.total]
+	if res.place <= Catalog.GAMES_PRIZES.size():
+		text += "\n" + tr("+%d coins, +%d followers") % [res.coins, res.fans]
+	if res.cup:
+		text += "\n\n" + tr("And the Bunny Games cup! It's in the flat now.")
+	if res.get("apples", 0) > 0:
+		text += "\n\n" + tr("The champion's prize: %d bags of special dried apples, made from the best apples in the world! Find them with the treats.") % res.apples
+	text += "\n\n" + tr("Next month's Games: qualify again with league points.")
+	_note_popup("games_cup", tr("Bunny Games champion!") if res.place == 1 else tr("The Bunny Games are over"), text, tr("Hooray!") if res.place <= 3 else "")
+
+
+## Journal > Goals: this week's challenge.
+func _challenge_box() -> Control:
+	var card := PanelContainer.new()
+	card.size_flags_horizontal = SIZE_EXPAND_FILL
+	card.add_theme_stylebox_override("panel", UI.box(Color("#f3ecfb"), 18, 2, false))
+	var v := UI.vbox(6)
+	card.add_child(v)
+	v.add_child(UI.label(tr("Challenge of the week"), 20))
+	if not Game.challenge.is_empty():
+		var info: Dictionary = Catalog.CHALLENGES[Game.challenge.id]
+		v.add_child(UI.label(tr(info.name), 18))
+		v.add_child(UI.wrap_label(tr(info.desc), 14, 380))
+		var line := tr("%d days left. Reward: %d coins.") % [Game.challenge_days_left(), info.reward]
+		if info.has("days"):
+			line += "  " + tr("Days done: %d of %d") % [Game.challenge.days.size(), info.days]
+		v.add_child(UI.label(line, 15, Color(UI.INK, 0.75)))
+		return card
+	var offers := Game.challenge_offers()
+	if offers.is_empty():
+		var last: Dictionary = Game.challenge_last
+		v.add_child(UI.wrap_label((tr("Done: %s. Well played!") % tr(Catalog.CHALLENGES[last.id].name) if last.get("ok", false)
+			else tr("This week's challenge is over.")) + " " + tr("New challenges next week."), 15, 380))
+		return card
+	v.add_child(UI.wrap_label(tr("Up for it? Pick one: it runs for 7 days."), 14, 380))
+	for id in offers:
+		var info: Dictionary = Catalog.CHALLENGES[id]
+		var row := UI.hbox(8)
+		row.add_child(UI.icon_rect(info.icon, 30))
+		var tv := UI.vbox(0)
+		tv.size_flags_horizontal = SIZE_EXPAND_FILL
+		tv.add_child(UI.label(tr(info.name) + "  (+%d)" % info.reward, 16))
+		tv.add_child(UI.wrap_label(tr(info.desc), 13, 270))
+		row.add_child(tv)
+		var b := UI.text_button(tr("Take it"), "", 15)
+		b.size_flags_vertical = SIZE_SHRINK_CENTER
+		b.pressed.connect(func():
+			Game.start_challenge(id)
+			toast(tr("Challenge accepted: %s. Good luck!") % tr(info.name), info.icon, true)
+			_fill_journal(card.get_parent().get_parent()))
+		row.add_child(b)
+		v.add_child(row)
+	return card
+
+
+## Journal > Goals: this season's ladder.
+func _ladder_box() -> Control:
+	var card := PanelContainer.new()
+	card.size_flags_horizontal = SIZE_EXPAND_FILL
+	card.add_theme_stylebox_override("panel", UI.box(Color("#fdf1dc"), 18, 2, false))
+	var v := UI.vbox(6)
+	card.add_child(v)
+	var l := Game.ladder_now()
+	var steps: Array = Catalog.LADDERS[Game.season()].steps
+	var gift: String = Catalog.LADDERS[Game.season()].gift
+	var head := UI.hbox(8)
+	head.add_child(UI.icon_rect("ladder", 30))
+	head.add_child(UI.label(tr("The %s ladder") % Catalog.season_name(Game.season()).to_lower(), 20))
+	v.add_child(head)
+	var dots := UI.hbox(4)
+	for i in steps.size():
+		var d := UI.icon_rect("star", 18)
+		if i >= int(l.step):
+			d.modulate = Color(0.3, 0.25, 0.25, 0.25)
+		dots.add_child(d)
+	dots.add_child(UI.icon_rect(Catalog.ITEMS[gift].icon, 30))
+	v.add_child(dots)
+	if Game.ladder_step().is_empty():
+		v.add_child(UI.wrap_label(tr("All the way to the top! A new ladder comes with the next season."), 15, 380))
+	else:
+		var p := Game.ladder_progress()
+		v.add_child(UI.wrap_label(tr("Step %d: %s") % [int(l.step) + 1, Game.ladder_text()] + "  (%d/%d)" % [p.x, p.y], 16, 380))
+		v.add_child(UI.wrap_label(tr("Ten steps a season, one after another. At the top: %s.") % Catalog.item_name(gift).to_lower(), 13, 380))
+	return card
+
+
+## Journal > Memories: Bubák's book.
+func _book_card() -> Control:
+	var card := PanelContainer.new()
+	card.add_theme_stylebox_override("panel", UI.box(Color("#eef3fb"), 18, 2, false))
+	var h := UI.hbox(14)
+	card.add_child(h)
+	h.add_child(UI.icon_rect("bubak_book", 64))
+	var v := UI.vbox(4)
+	v.size_flags_horizontal = SIZE_EXPAND_FILL
+	h.add_child(v)
+	var open_n := Catalog.BOOK.filter(Game.book_chapter_open).size()
+	v.add_child(UI.label(tr("Bubák's book"), 20))
+	v.add_child(UI.wrap_label(tr("Published! It's on sale with the merch.") if Game.book_published else
+		tr("Chapters written: %d of %d (%d ready to write). Big moments open new chapters.") % [Game.book_written.size(), Catalog.BOOK.size(), open_n - Game.book_written.size()], 15, 560))
+	var b := UI.text_button(tr("Open the book"), "", 17)
+	b.size_flags_vertical = SIZE_SHRINK_CENTER
+	b.pressed.connect(open_book.bind(0))
+	h.add_child(b)
+	return card
+
+
+## The photo for a chapter: from the album where there is one.
+const BOOK_PHOTOS := {"meet": "hop", "binky": "binky", "balcony": "balcony", "ribbon": "show_off", "friend": "snuggle",
+	"foster": "big_brother", "seasons": "leaf_pile", "self": "pose", "inseparable": "trust_nap"}
+const BOOK_ICONS := {"ribbon": "rosette_1", "fame": "follower", "champion": "trophy", "treasure": "treasure_chest", "games": "games_cup",
+	"seasons": "wear_scarf", "self": "trait_showoff", "friend": "heart", "foster": "foster"}
+
+
+## The book, a chapter at a time: write the ones that are open, and publish it once they all are.
+func open_book(i: int) -> void:
+	var ch: Dictionary = Catalog.BOOK[i]
+	var opened := Game.book_chapter_open(ch)
+	var written: bool = ch.id in Game.book_written
+	var v := UI.vbox(10)
+	var spread := UI.hbox(0)
+	v.add_child(spread)
+	var left := PanelContainer.new()
+	left.add_theme_stylebox_override("panel", UI.box(Color("#fffaf0"), 6, 3, false))
+	left.custom_minimum_size = Vector2(380, 330)
+	spread.add_child(left)
+	var file := Game.album_photo(BOOK_PHOTOS.get(ch.id, ""))
+	if ch.id == "fame" and FileAccess.file_exists(Game.cover):
+		file = Game.cover
+	var tex: Texture2D = _photo_texture(file) if file != "" and written else null
+	if tex:
+		var r := TextureRect.new()
+		r.texture = tex
+		r.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		r.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		left.add_child(r)
+	else:
+		var ic := UI.icon_rect(BOOK_ICONS.get(ch.id, "icon"), 160)
+		if not written:
+			ic.modulate = Color(0.3, 0.25, 0.25, 0.25)
+		left.add_child(ic)
+	var right := PanelContainer.new()
+	var rs := UI.box(Color("#fffdf6"), 6, 3, false)
+	rs.set_content_margin_all(22)
+	right.add_theme_stylebox_override("panel", rs)
+	right.custom_minimum_size = Vector2(380, 330)
+	spread.add_child(right)
+	var tv := UI.vbox(10)
+	right.add_child(tv)
+	tv.add_child(UI.label(tr("Chapter %d") % (i + 1), 15, Color(UI.INK, 0.6)))
+	tv.add_child(UI.wrap_label(tr(ch.title) if opened else "???", 24, 330))
+	if written:
+		tv.add_child(UI.wrap_label(tr(ch.text), 18, 330))
+	elif opened:
+		var w := UI.text_button(tr("Write this chapter"), "journal", 18)
+		w.pressed.connect(func():
+			Game.write_chapter(ch.id)
+			Sfx.play("chime")
+			open_book(i))
+		tv.add_child(w)
+		tv.add_child(UI.label(tr("+50 coins"), 14, Color(UI.INK, 0.6)))
+	else:
+		tv.add_child(UI.wrap_label(tr("This chapter hasn't happened yet."), 17, 330))
+	var nav := UI.hbox(12)
+	nav.alignment = BoxContainer.ALIGNMENT_CENTER
+	v.add_child(nav)
+	var prev := UI.text_button("<", "", 22)
+	prev.disabled = i == 0
+	prev.pressed.connect(open_book.bind(i - 1))
+	nav.add_child(prev)
+	nav.add_child(UI.label("%d / %d" % [i + 1, Catalog.BOOK.size()], 18))
+	var nxt := UI.text_button(">", "", 22)
+	nxt.disabled = i >= Catalog.BOOK.size() - 1
+	nxt.pressed.connect(open_book.bind(i + 1))
+	nav.add_child(nxt)
+	if Game.book_ready() and not Game.book_published:
+		var pub := UI.text_button(tr("Publish the book (%d coins)") % Catalog.BOOK_COST, "bubak_book", 18)
+		pub.pressed.connect(func():
+			var err := Game.publish_book()
+			if err != "":
+				toast(err)
+				return
+			Sfx.play("fanfare")
+			close_top()
+			_note_popup("bubak_book", tr("Bubák's book is out!"), tr("A book signing, a queue round the block, and +%d followers. It's on sale with the merch now, and a copy is in the flat.") % Catalog.BOOK_FANS, tr("Hooray!")))
+		nav.add_child(pub)
+	_open_modal(tr("Bubák's book"), v, Vector2(860, 0))
+
+
+## December: the advent calendar on the wall, a door a day.
+func open_advent() -> void:
+	var v := UI.vbox(10)
+	var opened := Game.advent_opened()
+	var today := int(Game.today().right(2))
+	v.add_child(UI.wrap_label(tr("A door a day until Christmas Eve. Behind the last one: something to wear. Open all 24 for an extra surprise."), 17, 780))
+	var grid := GridContainer.new()
+	grid.columns = 8
+	grid.add_theme_constant_override("h_separation", 8)
+	grid.add_theme_constant_override("v_separation", 8)
+	v.add_child(grid)
+	for d in range(1, 25):
+		var b := Button.new()
+		b.text = str(d)
+		b.custom_minimum_size = Vector2(88, 70)
+		b.add_theme_font_size_override("font_size", 24)
+		var done: bool = d in opened
+		b.disabled = done or d != today
+		if done:
+			b.icon = Catalog.icon("star")
+			b.expand_icon = true
+		b.pressed.connect(func():
+			var res := Game.open_advent()
+			if res.is_empty():
+				return
+			Sfx.play("jingle")
+			var what := tr("+%d coins") % res.coins if res.coins > 0 else ""
+			if res.item != "":
+				what = "%d x %s" % [res.n, Catalog.item_name(res.item)]
+			if res.gift != "":
+				what = Catalog.item_name(res.gift)
+			toast(tr("Door %d: %s!") % [res.day, what], "gift", true)
+			if res.all:
+				toast(tr("Every door opened! An extra present: %s.") % Catalog.item_name(Catalog.ADVENT_ALL).to_lower(), "gift", true)
+			open_advent())
+		grid.add_child(b)
+	_open_modal(tr("Advent calendar"), v, Vector2(860, 0))
+
+
+# ---- seasons, the dig box, visitors, postcards ---------------------------------------------
+
+## A one-button pop-up: an icon, a title and some text.
+func _note_popup(icon: String, title_text: String, text: String, button := "", icon_size := 110.0) -> VBoxContainer:
+	var v := UI.vbox(12)
+	v.add_child(UI.icon_rect(icon, icon_size))
+	var title := UI.label(title_text, 30)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(title)
+	var l := UI.wrap_label(text, 20, 540)
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(l)
+	var ok := UI.text_button(button if button != "" else tr("Lovely!"), "heart")
+	ok.size_flags_horizontal = SIZE_SHRINK_CENTER
+	ok.pressed.connect(close_top)
+	v.add_child(ok)
+	_open_modal("", v, Vector2(620, 0))
+	return v
+
+
+func _season_popup(id: String, season: String) -> void:
+	Sfx.play("fanfare")
+	if id == "":
+		_note_popup("gift", Catalog.season_name(season), tr("Bubák is enjoying the season again. He found another little something: +150 coins and some rose petals."))
+		return
+	_note_popup(Catalog.ITEMS[id].icon, tr("Found in %s!") % Catalog.season_name(season).to_lower(),
+		tr("Bubák found a %s. It's in his wardrobe now.") % Catalog.item_name(id).to_lower() + "\n\n"
+		+ tr("Each season brings its own find, once a year. Keep an eye on the balcony!"))
+
+
+func _on_dug_up(res: Dictionary) -> void:
+	var found := Catalog.find_name(res.id)
+	if res.id == "map":
+		if res.map_done:
+			_queue(treasure_map_popup)
+		else:
+			toast(tr("Bubák dug up a piece of a treasure map! (%d of %d)") % [res.pieces, Catalog.MAP_PIECES], "find_map", true)
+		return
+	toast(tr("Bubák dug something up: %s!") % found + (" +%d" % res.coins if res.coins > 0 else "") + ("  " + tr("(new for the collection)") if res.new else ""),
+		"find_" + res.id, res.new)
+
+
+## The whole map: where to dig in the living room.
+func treasure_map_popup() -> void:
+	if Game.treasure.is_empty():
+		return
+	Sfx.play("fanfare")
+	var v := UI.vbox(10)
+	var title := UI.label(tr("A treasure map!"), 30)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(title)
+	var map := Control.new()
+	map.custom_minimum_size = Vector2(560, 250)
+	map.draw.connect(func():   # a sepia sketch of the living room, furniture and all, with the X
+		var sz := map.size
+		var area := Rect2(0, 180, 1280, 540)   # the part of the room it shows (world)
+		var k := (sz - Vector2(20, 20)) / area.size
+		var to_map := func(w: Vector2) -> Vector2: return Vector2(10, 10) + (w - area.position) * k
+		map.draw_rect(Rect2(Vector2.ZERO, sz), Color("#f1dfb4"))
+		var ink := Color(0.55, 0.38, 0.22, 0.6)
+		map.draw_texture_rect_region(Catalog.tex(main._room_tex()), Rect2(Vector2(10, 10), sz - Vector2(20, 20)),
+			Rect2(area.position + Vector2(240, 160), area.size), Color(0.8, 0.62, 0.4, 0.45))
+		var things: Array = main.items.values() + main.fixed
+		things.sort_custom(func(a, b): return a.position.y < b.position.y)
+		for it in things:
+			if it.visible and it.sprite and it.sprite.texture and Game.room_at(it.position) == "living" and it.id != "cable":
+				var r: Rect2 = it.rect()
+				map.draw_texture_rect(it.sprite.texture, Rect2(to_map.call(r.position), r.size * k), false, ink)
+		var p: Vector2 = to_map.call(Game.treasure_spot())
+		map.draw_line(p + Vector2(-14, -14), p + Vector2(14, 14), Color("#e8505b"), 7.0)
+		map.draw_line(p + Vector2(14, -14), p + Vector2(-14, 14), Color("#e8505b"), 7.0)
+		var prev := Vector2(30, sz.y - 24)
+		for i in 6:   # a dotted trail to the X
+			map.draw_circle(prev.lerp(p, (i + 1) / 7.0) + Vector2(0, sin(i * 1.7) * 10.0), 4, Color("#a8693c"))
+		map.draw_rect(Rect2(Vector2.ZERO, sz), UI.INK, false, 4.0))
+	v.add_child(map)
+	var l := UI.wrap_label(tr("All the pieces fit together: it's the living room! Tap the spot marked X on the floor to dig up the treasure."), 19, 560)
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(l)
+	var ok := UI.text_button(tr("Let's dig!"), "find_map")
+	ok.size_flags_horizontal = SIZE_SHRINK_CENTER
+	ok.pressed.connect(func():
+		close_top()
+		main.go_to("living"))
+	v.add_child(ok)
+	_open_modal("", v, Vector2(640, 0))
+
+
+func treasure_popup(res: Dictionary) -> void:
+	_note_popup("treasure_chest", tr("Treasure!"), tr("Right where the X was: %d gold coins!") % res.coins + "\n\n"
+		+ (tr("And the chest itself: it's yours to keep, a treasure chest for the flat.") if res.chest
+		else tr("And at the bottom, wrapped in a cloth: a golden carrot.")) + "\n\n"
+		+ tr("Bubák is already digging for the next map."), tr("Hooray!"), 120)
+
+
+## The neighbours' child at the door. Gentle hello, or another day?
+func kid_popup(kid: String) -> void:
+	var v := UI.vbox(12)
+	v.add_child(UI.icon_rect("kid", 100))
+	var title := UI.label(tr("Ding dong!"), 30)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(title)
+	var l := UI.wrap_label(tr("%s from next door is at the door and would love to say hello to Bubák.") % kid + "\n"
+		+ tr("A friendly visit is lovely for a bunny who trusts people. A shy one might get scared."), 20, 540)
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(l)
+	var h := UI.hbox(12)
+	h.alignment = BoxContainer.ALIGNMENT_CENTER
+	var no := UI.text_button(tr("Not today"))
+	no.pressed.connect(close_top)
+	h.add_child(no)
+	var yes := UI.text_button(tr("Come in, gently!"), "heart")
+	yes.pressed.connect(func():
+		var res := Game.kid_visit(kid)
+		close_top()
+		main.kid_reaction(res)
+		toast(res.text, "heart" if res.happy else "kid", res.happy))
+	h.add_child(yes)
+	v.add_child(h)
+	_open_modal("", v, Vector2(620, 0))
+
+
+## A postcard: a child's drawing of the bunny in their new home, and a few lines.
+func _postcard_popup(card: Dictionary) -> void:
+	Sfx.play("chime")
+	var v := UI.vbox(12)
+	var title := UI.label(tr("A postcard from %s's family!") % Catalog.mate_name(card.id), 28)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(title)
+	v.add_child(_postcard(card, Vector2(600, 300)))
+	var ok := UI.text_button(tr("Pin it to the fridge"), "heart")
+	ok.size_flags_horizontal = SIZE_SHRINK_CENTER
+	ok.pressed.connect(close_top)
+	v.add_child(ok)
+	_open_modal("", v, Vector2(660, 0))
+
+
+func _postcard(card: Dictionary, size: Vector2) -> Control:
+	var h := HBoxContainer.new()
+	h.custom_minimum_size = size
+	h.add_theme_constant_override("separation", 0)
+	h.add_child(_postcard_pic(card, Vector2(size.x * 0.5, size.y)))
+	var back := PanelContainer.new()
+	var bs2 := UI.box(Color("#fffdf6"), 0, 3, false)
+	bs2.set_content_margin_all(16)
+	back.add_theme_stylebox_override("panel", bs2)
+	back.custom_minimum_size = Vector2(size.x * 0.5, size.y)
+	var bv := UI.vbox(8)
+	back.add_child(bv)
+	bv.add_child(UI.wrap_label(Game.postcard_text(card), 18, size.x * 0.5 - 36))
+	var sig := UI.label(tr("Love, %s and family") % Catalog.mate_name(card.id), 16, Color(UI.INK, 0.7))
+	sig.size_flags_vertical = SIZE_EXPAND_FILL
+	sig.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
+	bv.add_child(sig)
+	h.add_child(back)
+	return h
+
+
+## The front of a postcard: a child's crayon drawing of the bunny at their new home.
+func _postcard_pic(card: Dictionary, size: Vector2) -> Control:
+	var pic := Control.new()
+	pic.custom_minimum_size = size
+	var seed_n := hash(str(card.id) + str(card.n))
+	pic.draw.connect(func():   # a crayon drawing: sky, sun, a house, grass, and the bunny
+		var sz := pic.size
+		var rs := RandomNumberGenerator.new()
+		rs.seed = seed_n
+		pic.draw_rect(Rect2(Vector2.ZERO, sz), Color("#fffaf0"))
+		pic.draw_rect(Rect2(Vector2(8, 8), Vector2(sz.x - 16, sz.y * 0.62)), Color("#cfe6f5"))
+		pic.draw_circle(Vector2(sz.x * 0.82, sz.y * 0.16), sz.y * 0.08, Color("#f6d33c"))
+		for i in 8:
+			var a := i * TAU / 8.0
+			var c := Vector2(sz.x * 0.82, sz.y * 0.16)
+			pic.draw_line(c + Vector2(cos(a), sin(a)) * sz.y * 0.1, c + Vector2(cos(a), sin(a)) * sz.y * 0.14, Color("#f2b632"), 3.0)
+		var hx := sz.x * rs.randf_range(0.12, 0.2)
+		var hy := sz.y * 0.36
+		pic.draw_rect(Rect2(hx, hy, sz.x * 0.3, sz.y * 0.3), Color(["#e98fae", "#f3cf7a", "#9cc5a1", "#a7c0e8"][rs.randi() % 4]))
+		pic.draw_colored_polygon(PackedVector2Array([Vector2(hx - 8, hy), Vector2(hx + sz.x * 0.15, hy - sz.y * 0.16), Vector2(hx + sz.x * 0.3 + 8, hy)]), Color("#c8562e"))
+		pic.draw_rect(Rect2(hx + sz.x * 0.11, hy + sz.y * 0.14, sz.x * 0.08, sz.y * 0.16), Color("#8a5a36"))
+		pic.draw_rect(Rect2(Vector2(8, sz.y * 0.66), Vector2(sz.x - 16, sz.y * 0.34 - 8)), Color("#9cd07a"))
+		for i in 14:
+			var gx := 14.0 + i * (sz.x - 28) / 13.0
+			pic.draw_line(Vector2(gx, sz.y * 0.68), Vector2(gx + 4, sz.y * 0.62), Color("#5fa85f"), 3.0)
+		var bt: Texture2D = Catalog.tex("bunny_sit_" + str(card.id))
+		var bw := sz.x * 0.4
+		pic.draw_texture_rect(bt, Rect2(Vector2(sz.x * 0.5, sz.y * 0.94 - bw * 0.9), Vector2(bw, bw * 200.0 / 220.0)), false)
+		pic.draw_rect(Rect2(Vector2.ZERO, sz), UI.INK, false, 3.0))
+	return pic
+
+
+# ---- Bubák merch -------------------------------------------------------------------------
+
+func _merch_popup() -> void:
+	Sfx.play("fanfare")
+	var v := UI.vbox(12)
+	v.add_child(UI.icon_rect("merch_plush", 110))
+	var title := UI.label(tr("Fans want Bubák merch!"), 32)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(title)
+	var l := UI.wrap_label(tr("Bubák is famous enough for his own merch. Order stickers and mugs, put your best photo on them, and they sell by the hour, even while you're away.\n\nYou'll find it on the laptop."), 20, 540)
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(l)
+	var h := UI.hbox(12)
+	h.alignment = BoxContainer.ALIGNMENT_CENTER
+	var later := UI.text_button(tr("Later"))
+	later.pressed.connect(close_top)
+	h.add_child(later)
+	var go := UI.text_button(tr("Let's see!"), "merch_mug")
+	go.pressed.connect(func():
+		close_top()
+		open_merch.call_deferred())
+	h.add_child(go)
+	v.add_child(h)
+	_open_modal("", v, Vector2(600, 0))
+
+
+func open_merch() -> void:
+	var v := UI.vbox(10)
+	var top := UI.hbox(12)
+	v.add_child(top)
+	var waiting := int(Game.merch_pending)
+	var tl := UI.label(tr("Sales waiting: %d coins") % waiting, 22)
+	tl.size_flags_horizontal = SIZE_EXPAND_FILL
+	top.add_child(tl)
+	var collect := UI.text_button(tr("Collect"), "coin", 20)
+	collect.disabled = waiting <= 0
+	collect.pressed.connect(func():
+		var n := Game.collect_merch()
+		Sfx.play("coin")
+		toast(tr("+%d coins from merch sales!") % n, "coin", true)
+		open_merch.call_deferred())
+	top.add_child(collect)
+	v.add_child(UI.label(tr("Earned so far: %d coins. Designs go stale after a few weeks: refresh them with a new photo.") % Game.merch_earned, 15, Color(UI.INK, 0.7)))
+	var scroll := ScrollContainer.new()
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.custom_minimum_size = Vector2(0, 430)
+	v.add_child(scroll)
+	var list := UI.vbox(8)
+	list.size_flags_horizontal = SIZE_EXPAND_FILL
+	scroll.add_child(list)
+	for id in Catalog.MERCH_ORDER:
+		list.add_child(_merch_row(id))
+	_open_modal(tr("Bubák merch"), v, Vector2(900, 0))
+
+
+func _merch_row(id: String) -> Control:
+	var info: Dictionary = Catalog.MERCH[id]
+	var m := Game.merch_of(id)
+	var open := Game.merch_unlocked(id)
+	var row := PanelContainer.new()
+	row.add_theme_stylebox_override("panel", UI.box(Color("#fffdf8") if open else Color("#f1e8dc"), 14, 2, false))
+	var h := UI.hbox(12)
+	row.add_child(h)
+	h.add_child(UI.icon_rect("merch_" + id, 56))
+	var tv := UI.vbox(2)
+	tv.size_flags_horizontal = SIZE_EXPAND_FILL
+	h.add_child(tv)
+	tv.add_child(UI.label(Catalog.merch_name(id), 20))
+	if not open:
+		tv.add_child(UI.label(tr("Publish Bubák's book first (Journal > Memories).") if info.get("book", false)
+			else tr("Unlocks at fame: %s") % Game.fame_name(info.fame), 15, Color("#c0504d")))
+		return row
+	tv.add_child(UI.label(tr("Sells for %d coins  ·  a batch of %d costs %d") % [info.price, info.batch, info.cost], 15, Color(UI.INK, 0.75)))
+	var status := tr("Out of stock") if int(m.stock) <= 0 else tr("In stock: %d  ·  about %.1f sold a day") % [int(m.stock), Game.merch_rate(id) * 24.0]
+	if m.photo != "":
+		var fresh := Game.merch_freshness(id)
+		status += "  ·  " + (tr("fresh design") if fresh > 0.66 else (tr("design getting old") if fresh > 0.3 else tr("stale design: sells less")))
+	tv.add_child(UI.label(status + "  ·  " + tr("%d sold") % int(m.sold), 15))
+	if m.photo != "":
+		var pic := TextureRect.new()
+		pic.texture = _photo_texture(m.photo)
+		pic.custom_minimum_size = Vector2(84, 63)
+		pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		h.add_child(pic)
+	var bv := UI.vbox(4)
+	h.add_child(bv)
+	var order := UI.text_button(tr("Order %d (%d)") % [info.batch, info.cost], "coin", 16)
+	order.pressed.connect(func():
+		var err := Game.merch_order(id)
+		if err != "":
+			toast(err)
+			return
+		Sfx.play("buy")
+		open_merch.call_deferred())
+	bv.add_child(order)
+	if m.photo != "":
+		var design := UI.text_button(tr("New design"), "camera", 16)
+		design.pressed.connect(func():
+			var err := Game.merch_design(id)
+			if err != "":
+				toast(err)
+				return
+			toast(tr("New design: your latest best photo is on the %s now.") % Catalog.merch_name(id).to_lower(), "camera")
+			open_merch.call_deferred())
+		bv.add_child(design)
+	return row
 
 
 # ---- the rescue's hutch: adopt a friend for Bubák ----------------------------------
@@ -1874,20 +3626,40 @@ func open_work() -> void:
 	var wait := Game.work_ready_at - Time.get_unix_time_from_system()
 	if wait > 0:
 		toast(tr("Coffee break! Back to work in %d s. Go hang out with Bubák.") % int(ceil(wait)))
+		if Game.merch_open():
+			open_merch()   # the merch business doesn't take breaks
 		return
 	var w := WorkGame.new()
 	w.finished.connect(close_top)
+	w.merch_requested.connect(open_merch)
 	_open_modal(tr("Remote work"), w, Vector2(860, 0))
 
 
 # ---- wardrobe --------------------------------------------------------------------
 
-## Bubák up close in everything he has on; tap an accessory to put it on or take it off.
+## Bubák (or his friend) up close in everything he has on; tap an accessory to put it on or take it off.
 ## One thing per place (head, ears, eyes, neck); ones not owned yet can be bought right here.
 func open_wardrobe() -> void:
+	if _wardrobe_pet != null and _wardrobe_pet != Game.mate:
+		_wardrobe_pet = null
 	var h := UI.hbox(18)
 	var left := UI.vbox(8)
 	h.add_child(left)
+	if Game.mate:   # who to dress
+		var pick := UI.hbox(8)
+		pick.alignment = BoxContainer.ALIGNMENT_CENTER
+		left.add_child(pick)
+		for p in [Game.bubak, Game.mate]:
+			var pb := UI.text_button(p.display_name(), "icon" if p.is_bubak() else "mate_" + p.id, 18)
+			pb.toggle_mode = true
+			pb.button_pressed = (p == Game.mate) == (_wardrobe_pet != null)
+			pb.pressed.connect(func():
+				_wardrobe_pet = null if p.is_bubak() else p
+				for o in pick.get_children():
+					o.button_pressed = o == pb
+				_wardrobe_stage.who = _wardrobe_pet
+				_fill_wardrobe())
+			pick.add_child(pb)
 	var mirror := PanelContainer.new()
 	var ms := UI.box(Color("#f3e3ef"), 22, 3, false)
 	mirror.add_theme_stylebox_override("panel", ms)
@@ -1895,6 +3667,7 @@ func open_wardrobe() -> void:
 	left.add_child(mirror)
 	_wardrobe_stage = StageBunny.new()
 	_wardrobe_stage.k = 1.55
+	_wardrobe_stage.who = _wardrobe_pet
 	mirror.add_child(_wardrobe_stage)
 	var poses := UI.hbox(8)
 	poses.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -1915,13 +3688,13 @@ func open_wardrobe() -> void:
 func _fill_wardrobe() -> void:
 	for c in _wardrobe_side.get_children():
 		c.queue_free()
-	var style := int(Game.style_score())
+	var style := int(Game.style_score(_wardrobe_pet))
 	var head := UI.hbox(10)
 	_wardrobe_side.add_child(head)
 	var sl := UI.label(tr("Style: %d/100") % style, 20)
 	sl.size_flags_horizontal = SIZE_EXPAND_FILL
 	head.add_child(sl)
-	head.add_child(UI.label(tr("Photo likes +%d%%") % (10 * Game.wearing.size()), 17, Color(UI.INK, 0.7)))
+	head.add_child(UI.label(tr("Photo likes +%d%%") % (10 * Game.wearing_of(_wardrobe_pet).size()), 17, Color(UI.INK, 0.7)))
 	var bar := ProgressBar.new()
 	bar.custom_minimum_size = Vector2(0, 12)
 	bar.show_percentage = false
@@ -1930,13 +3703,19 @@ func _fill_wardrobe() -> void:
 	_wardrobe_side.add_child(bar)
 	for place in ["head", "ear", "eyes", "neck"]:
 		_wardrobe_side.add_child(UI.label(tr(Catalog.WEAR_PLACE_NAMES[place]), 18))
+		var scroll := ScrollContainer.new()   # gifts can make a row longer than the panel: it scrolls sideways
+		scroll.custom_minimum_size = Vector2(5 * 124 + 4 * 8, 90)
+		scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		_wardrobe_side.add_child(scroll)
 		var row := UI.hbox(8)
-		_wardrobe_side.add_child(row)
+		scroll.add_child(row)
 		row.add_child(_wear_tile("", place))
-		for id in Catalog.SHOP_TABS.Style:
+		var gifts: Array = Game.wardrobe.filter(func(w): return Catalog.ITEMS[w].get("gift", false))
+		for id in Catalog.SHOP_TABS.Style + gifts:
 			if Catalog.ITEMS[id].place == place:
 				row.add_child(_wear_tile(id, place))
-	_wardrobe_info = UI.wrap_label(tr("Tap something to put it on. He can wear one thing in each place."), 15, 540)
+	_wardrobe_info = UI.wrap_label(tr("Tap something to put it on. One thing in each place.")
+		+ ("\n" + tr("There's one of each, so it moves from one bunny to the other.") if Game.mate else ""), 15, 540)
 	_wardrobe_info.custom_minimum_size.y = 40
 	_wardrobe_side.add_child(_wardrobe_info)
 	_wardrobe_stage.dress()
@@ -1944,7 +3723,7 @@ func _fill_wardrobe() -> void:
 
 ## One accessory in the wardrobe ("" = nothing in that place).
 func _wear_tile(id: String, place: String) -> Button:
-	var worn: bool = Game.wearing.get(place, "") == id
+	var worn: bool = Game.wearing_of(_wardrobe_pet).get(place, "") == id
 	var owned := id == "" or id in Game.wardrobe
 	var b := Button.new()
 	b.custom_minimum_size = Vector2(124, 84)
@@ -1980,17 +3759,18 @@ func _wear_tile(id: String, place: String) -> Button:
 
 
 func _on_wear_tile(id: String, place: String) -> void:
+	var w := Game.wearing_of(_wardrobe_pet)
 	if id == "":
-		if Game.wearing.has(place):
-			Game.toggle_wear(Game.wearing[place])
+		if w.has(place):
+			Game.toggle_wear(w[place], _wardrobe_pet)
 		_fill_wardrobe()
 		return
 	var item: Dictionary = Catalog.ITEMS[id]
 	if id in Game.wardrobe:
-		Game.toggle_wear(id)
+		Game.toggle_wear(id, _wardrobe_pet)
 		_fill_wardrobe()
 		_wardrobe_info.text = "%s: %s" % [Catalog.item_name(id), tr(item.desc)]
-		if Game.wearing.get(place, "") == id:
+		if w.get(place, "") == id:
 			_wardrobe_stage.pop_icon("heart")
 		return
 	# not owned yet: the first tap tells you about it, the second buys it
@@ -2006,8 +3786,11 @@ func _on_wear_tile(id: String, place: String) -> void:
 	if err != "":
 		_wardrobe_info.text = err
 		return
+	if _wardrobe_pet:   # bought on Bubák: hand it over
+		Game.toggle_wear(id, _wardrobe_pet)
 	_fill_wardrobe()
-	_wardrobe_info.text = tr("New: %s! He's wearing it already.") % Catalog.item_name(id)
+	_wardrobe_info.text = tr("New: %s! %s has it on already.") % [Catalog.item_name(id),
+		(_wardrobe_pet if _wardrobe_pet else Game.bubak).display_name()]
 	_wardrobe_stage.happy()
 
 
@@ -2127,6 +3910,9 @@ func _chest_tile(e: Dictionary, tag: String, is_out: bool) -> Button:
 	var info := tr("Put away") if is_out else tr("Take out")
 	if tag != "":
 		info = "%s · %s" % [tag, info]
+	var worn := Game.wear_of(e)
+	if worn >= 0.3:
+		info = tr("worn %d%%") % int(worn * 100) + " · " + info
 	var sub := UI.label(info, 13, Color("#b07a2c"))
 	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(sub)

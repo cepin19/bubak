@@ -4,6 +4,7 @@ extends VBoxContainer
 ## hit() / miss() / penalty(); the controller owns time, streaks, pay, stars and XP.
 
 signal finished
+signal merch_requested   # the Bubák merch card was tapped
 
 const MULT_AT := [0, 5, 12, 20]   # streak needed for x1, x2, x3, x4
 const RUSH := 5.0                 # the last seconds of a shift count double
@@ -88,6 +89,36 @@ func _show_menu() -> void:
 	var pick := Game.boss_pick()
 	for id in Catalog.JOBS:
 		grid.add_child(_job_card(id, id == pick))
+	if Game.merch_open():
+		grid.add_child(_merch_card())
+
+
+## Not a job: Bubák's merch business, run from the laptop.
+func _merch_card() -> Button:
+	var b := Button.new()
+	b.custom_minimum_size = Vector2(390, 128)
+	b.focus_mode = Control.FOCUS_NONE
+	var gold := UI.box(Color("#fde9f0"), 22, 4)
+	gold.border_color = Color("#e98fae")
+	b.add_theme_stylebox_override("normal", gold)
+	var h := UI.hbox(12)
+	h.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	h.offset_left = 14
+	h.offset_right = -12
+	h.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	b.add_child(h)
+	var ic := UI.icon_rect("merch_plush", 62)
+	ic.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	h.add_child(ic)
+	var v := UI.vbox(2)
+	v.alignment = BoxContainer.ALIGNMENT_CENTER
+	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	h.add_child(v)
+	v.add_child(UI.label(tr("Bubák merch"), 22))
+	v.add_child(UI.wrap_label(tr("Stickers, mugs and more with your photos on them."), 14, 280))
+	v.add_child(UI.label(tr("Sales waiting: %d coins") % int(Game.merch_pending), 15, Color("#c0504d")))
+	b.pressed.connect(func(): merch_requested.emit())
+	return b
 
 
 func _job_card(id: String, picked: bool) -> Button:
@@ -131,6 +162,9 @@ func _job_card(id: String, picked: bool) -> Button:
 		v.add_child(UI.label(tr("Boss's pick today: double XP!"), 15, Color("#c0504d")))
 	elif unlocked and Game.job_best.has(id):
 		v.add_child(UI.label(tr("Best: %d points") % int(Game.job_best[id].score), 14, Color(UI.INK, 0.65)))
+	var repeat := Game.job_repeat_mult(id)
+	if unlocked and repeat < 1.0:
+		v.add_child(UI.label(tr("Done a lot lately: pay %d%%") % int(round(repeat * 100)), 14, Color("#c0504d")))
 	b.pressed.connect(_start.bind(id))
 	return b
 
@@ -310,8 +344,10 @@ func _end() -> void:
 	var stars := Game.job_stars(_job, _earned)
 	var picked := _job == Game.boss_pick()
 	var xp := _earned * (2 if picked else 1)
-	var pay := int(round(_earned * Game.work_pay_mult() * (1.0 + STAR_BONUS * stars)))
+	var repeat := Game.job_repeat_mult(_job)
+	var pay := int(round(_earned * Game.work_pay_mult() * (1.0 + STAR_BONUS * stars) * repeat))
 	var record := Game.record_shift(_job, _earned, stars)
+	Game.note_shift(_job)
 	Game.career_xp += xp
 	Game.add_coins(pay)
 	Game.stats.work += 1
@@ -349,6 +385,9 @@ func _end() -> void:
 	if stars > 0:
 		pay_line += "  " + tr("(+%d%% for stars)") % int(STAR_BONUS * stars * 100)
 	_white(v, pay_line, 22)
+	if repeat < 1.0:
+		_white(v, tr("Same job again: pay %d%%. A break or a different job fixes that.") % int(round(repeat * 100)),
+			16, Color("#ffd27a"))
 	_white(v, (tr("+%d XP (boss's pick: doubled!)") % xp) if picked else (tr("+%d XP") % xp), 18,
 		Color("#ffd27a") if picked else Color.WHITE)
 	if lvl > old_level:

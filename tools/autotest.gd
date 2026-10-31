@@ -1,4 +1,5 @@
 extends Node
+const HudScript := preload("res://scripts/hud.gd")
 ## Scripted playtest. Run:  godot --path . -- --autotest[=<screenshot dir>]
 ## Drives real input events through the game and checks the results.
 
@@ -28,7 +29,15 @@ func wait(s: float) -> void:
 func shot(name: String) -> void:
 	if shots == "":
 		return
-	await RenderingServer.frame_post_draw
+	# wait for a drawn frame, but don't hang the whole run if the display stops drawing
+	var drawn := [false]
+	RenderingServer.frame_post_draw.connect(func(): drawn[0] = true, CONNECT_ONE_SHOT)
+	var t0 := Time.get_ticks_msec()
+	while not drawn[0] and Time.get_ticks_msec() - t0 < 3000:
+		await get_tree().process_frame
+	if not drawn[0]:
+		print("  (no frame drawn for screenshot %s)" % name)
+		return
 	get_viewport().get_texture().get_image().save_png(shots.path_join(name + ".png"))
 
 
@@ -62,13 +71,62 @@ func close_popups() -> void:
 		await wait(0.05)
 
 
+## Keeps the run predictable: no random visitors or storms, and the seasons' finds already found
+## (their own checks undo this).
+func quiet() -> void:
+	main._visit_t = 1e9
+	var year: int = Time.get_date_dict_from_system().year
+	for y in [year - 1, year]:
+		for id in Catalog.SEASONS:
+			if not "%s-%d" % [id, y] in Game.season_finds:
+				Game.season_finds.append("%s-%d" % [id, y])
+
+
 ## Reloads the game scene (as loading a save does) without losing the test, which lives in it.
 func reload_scene() -> void:
 	reparent(get_tree().root)
 	main.reload()
 	await wait(0.6)
 	main = get_tree().current_scene
+	quiet()
 	await close_popups()
+
+
+## The playtest checks English texts; it switches language for itself only, never saving it.
+func _lang(code: String) -> void:
+	Game.language = code
+	TranslationServer.set_locale(code)
+	main.apply_language()
+
+
+## Presses a button that reloads the game scene, keeping the test (which lives in the scene) alive.
+func press_reload(btn: Button) -> void:
+	reparent(get_tree().root)
+	btn.pressed.emit()
+	await wait(0.6)
+	main = get_tree().current_scene
+	quiet()
+	await close_popups()
+
+
+## Plays an agility course by itself (the course's autopilot), with a screenshot as the first obstacle nears.
+func auto_jump(run: Node, snap := "", limit := 25.0) -> void:
+	var t := 0.0
+	run.autopilot = true
+	while run.running() and t < limit:
+		await get_tree().process_frame
+		t += get_process_delta_time()
+		if snap != "" and not run._bars.is_empty() and run._bars[0].x - run.bunny_x() <= run.zone().y - 6.0:
+			await shot(snap)
+			snap = ""
+	run.autopilot = false
+
+
+## Buttons in the open window with this text.
+func _buttons(text: String) -> Array:
+	if main.hud._modal == null:
+		return []
+	return main.hud._modal.find_children("*", "Button", true, false).filter(func(x): return x.text == text)
 
 
 func bunny_center() -> Vector2:
@@ -79,6 +137,8 @@ func _run() -> void:
 	var b = main.bunny
 	await wait(0.5)
 	main.hud.close_top()
+	_lang("en")
+	quiet()
 	print("AUTOTEST start")
 
 	# Care items respond to taps
@@ -96,6 +156,31 @@ func _run() -> void:
 	var n_drop: int = Game.droppings.size()
 	await tap(Vector2(560, 560))
 	check(Game.droppings.size() == n_drop - 1, "tapping a dropping removes it")
+	# a dropping under the control buttons: hide the controls, then it can be picked up
+	var under := Vector2.ZERO
+	var brect: Rect2 = main.hud._buttons.get_global_rect()
+	var fl: Rect2 = Game.floor_of(main.view)
+	for x in range(int(fl.end.x), int(fl.position.x), -10):
+		var p := Vector2(x, fl.end.y - 4)
+		if brect.has_point(to_screen(p)):
+			under = p
+			break
+	check(under != Vector2.ZERO, "some of the floor lies under the control buttons")
+	main.add_dropping(under)
+	n_drop = Game.droppings.size()
+	main.hud._eye.pressed.emit()
+	check(main.hud.ui_hidden and not main.hud._buttons.visible and main.hud._eye.visible, "the eye button hides the controls")
+	await tap(under)
+	check(Game.droppings.size() == n_drop - 1, "with the controls hidden, the dropping under them can be picked up")
+	main.set_mode("move")
+	check(not main.hud._banner.visible and main.hud._eye.visible, "Move mode keeps the controls hidden")
+	main.set_mode("")
+	main.hud._eye.pressed.emit()
+	check(not main.hud.ui_hidden and main.hud._buttons.visible, "the eye button shows the controls again")
+	main.hud.set_ui_hidden(true)
+	main.set_mode("photo")
+	check(not main.hud.ui_hidden, "photo mode brings the controls back")
+	main.set_mode("")
 
 	# The balcony door starts locked
 	await tap(main.door.position + Vector2(0, -120))
@@ -330,7 +415,8 @@ func _run() -> void:
 	main._feeder_t = 0.0
 	var fx_before: int = main.fx.get_child_count()
 	await wait(0.2)
-	check(Game.seeds < 100.0 and main.fx.get_child_count() > fx_before, "a bird comes to the feeder")
+	check(Game.seeds < 100.0 and main.fx.get_children().any(func(n): return n is Sprite2D and n.texture == Catalog.tex("bird")),
+		"a bird comes to the feeder (%d effects before)" % fx_before)
 	b.start("bird_friend", null, b.position)
 	await wait(1.9)
 	await shot("balcony_bird_friend")
@@ -369,6 +455,7 @@ func _run() -> void:
 	b.act_t = 30
 	await wait(0.1)
 	var pets: int = Game.stats.pets
+	Game.bubak.trust_today = 0.0   # earlier steps may have used up today's trust maximum
 	var trust_before: float = Game.trust
 	press(bunny_center(), true)
 	await wait(2.0)
@@ -378,6 +465,33 @@ func _run() -> void:
 	await wait(0.2)
 	check(Game.stats.pets == pets + 1, "petting session counted")
 	check(Game.trust > trust_before, "petting raised trust")
+	# within the hour, another petting session is just a cuddle: no trust (checked within one frame,
+	# since a good mood also builds trust slowly over time)
+	var real_trust: float = Game.trust
+	Game.bubak.trust = 65.0   # Cuddly: he never runs off when petted
+	b.start("idle", null, Vector2(640, 600))
+	b._pet_fatigue = 0.0
+	Game.bubak.trust_today = 0.0
+	var petted_again: bool = b.on_pet_start()
+	var trust_again: float = Game.trust
+	var fun_again: float = Game.needs.fun
+	b.on_pet_hold(1.0)
+	var trust_after: float = Game.trust
+	b.on_pet_end()
+	Game.bubak.pet_trust_at = 0.0
+	b.start("idle", null, Vector2(640, 600))
+	b._pet_fatigue = 0.0
+	var petted_fresh: bool = b.on_pet_start()
+	var trust_fresh: float = Game.trust
+	b.on_pet_hold(1.0)
+	var trust_fresh_after: float = Game.trust
+	b.on_pet_end()
+	check(petted_again and trust_after == trust_again and (Game.needs.fun > fun_again or fun_again >= 100.0)
+		and petted_fresh and trust_fresh_after > trust_fresh,
+		"petting builds trust once an hour; in between it's only a cuddle")
+	Game.bubak.trust = real_trust
+	Game.bubak.settle_level()
+	Game.bubak.pet_trust_at = 0.0
 
 	# Hand-feeding
 	b.start("idle", null, Vector2(400, 620))
@@ -424,6 +538,31 @@ func _run() -> void:
 	pet_b.trust_day = ""
 	pet_b.add_trust(1.0)
 	check(pet_b.trust - 80.0 < 0.5, "trust comes slower at high levels (+%.2f)" % (pet_b.trust - 80.0))
+	# a hard daily maximum at the top levels, walks and presents included
+	pet_b.trust = 80.0
+	pet_b.trust_day = ""
+	var full_days: Array = []
+	var on_full := func(): full_days.append(1)
+	pet_b.trust_day_full.connect(on_full)
+	for _i in 40:
+		pet_b.add_trust(5.0)
+	var capped_at: float = pet_b.trust
+	pet_b.add_trust(Catalog.WALK_TRUST, false)
+	pet_b.trust_day_full.disconnect(on_full)
+	check(is_equal_approx(capped_at - 80.0, Catalog.TRUST_DAY_MAX[5]) and pet_b.trust == capped_at and full_days.size() == 1,
+		"Bonded: at most +%.1f trust a day, walks included (+%.2f, %d notice)" % [Catalog.TRUST_DAY_MAX[5], capped_at - 80.0, full_days.size()])
+	pet_b.trust_day = ""
+	# the final level, Inseparable, needs many days at Best buds
+	pet_b.trust = 95.0
+	pet_b.trust_day = ""
+	for _i in 40:
+		pet_b.add_trust(5.0)
+	pet_b.add_trust(Catalog.WALK_TRUST, false)
+	var top_day: float = pet_b.trust - 95.0
+	pet_b.trust = 99.95
+	check(top_day <= Catalog.TRUST_DAY_MAX[6] + 0.001 and pet_b.trust_level() == Catalog.TRUST_LEVELS.size() - 1
+		and Catalog.level_name(7) == "Inseparable" and (Catalog.TRUST_LEVELS[7].at - Catalog.TRUST_LEVELS[6].at) / Catalog.TRUST_DAY_MAX[6] > 35,
+		"Inseparable: a top level that takes weeks at Best buds (+%.2f a day)" % top_day)
 	pet_b.trust_day = ""
 	var tt1: float = pet_b.treat_trust()
 	var tt2: float = pet_b.treat_trust()
@@ -700,6 +839,20 @@ func _run() -> void:
 		w._show_menu()
 	await shot("work_menu")
 	main.hud.close_top()
+	# the same job again and again pays less; time (or another job) fixes it
+	Game.job_tired.erase("inbox")
+	var fresh_cut := Game.job_repeat_mult("inbox")
+	Game.note_shift("inbox")
+	Game.note_shift("inbox")
+	var tired_cut := Game.job_repeat_mult("inbox")
+	for _i in 10:
+		Game.note_shift("inbox")
+	var floor_cut := Game.job_repeat_mult("inbox")
+	Game.job_tired.inbox.t -= Catalog.JOB_REST * 20
+	check(fresh_cut == 1.0 and is_equal_approx(tired_cut, 0.6) and is_equal_approx(floor_cut, Catalog.JOB_REPEAT_FLOOR)
+		and Game.job_repeat_mult("inbox") == 1.0 and Game.job_repeat_mult("bugs") < 1.0,
+		"repeating a job pays less (%.2f, %.2f, floor %.2f) and wears off" % [fresh_cut, tired_cut, floor_cut])
+	Game.job_tired.clear()
 
 	# Save / load round trip
 	Game.save_game()
@@ -708,9 +861,8 @@ func _run() -> void:
 	Game.load_game()
 	check(Game.coins == coins_saved, "save/load round trip")
 
-	# Czech translation, switched in Settings
-	Game.set_language("cs")
-	main.apply_language()
+	# Czech translation (switched without touching the player's settings file)
+	_lang("cs")
 	await wait(0.3)
 	check(tr("Shop") == "Obchod" and TranslationServer.get_locale().begins_with("cs"), "Czech translation loaded")
 	check(tr_n("%d like", "%d likes", 1) == "%d lajk" and tr_n("%d like", "%d likes", 3) == "%d lajky"
@@ -729,8 +881,7 @@ func _run() -> void:
 	await wait(0.4)
 	await shot("cs_settings")
 	main.hud.close_top()
-	Game.set_language("en")
-	main.apply_language()
+	_lang("en")
 	await wait(0.2)
 	check(tr("Shop") == "Shop", "switched back to English")
 
@@ -871,11 +1022,29 @@ func _run() -> void:
 	check(Game.show_unlocked(1) and main.shelf.visible and main.shelf.get_child_count() > 3, "wins open the Regional show, shelf filled")
 	await wait(0.2)
 	await shot("trophy_shelf")
+	await close_popups()   # the wins may have brought a fame title, whose pop-up would take the tap
 	await tap(main.shelf.position + Vector2(0, -10))
 	await wait(0.3)
 	check(hud._modal != null and hud._club_tab == "Trophies", "tapping the shelf opens the trophies")
 	await shot("club_trophies")
 	hud.close_top()
+	await wait(0.2)
+	# a queued pop-up waits while one window opens another, instead of replacing it
+	hud.open_shop()
+	var queued: Array = []
+	hud._queue(func(): queued.append(1); hud._open_modal("Queued", Label.new(), Vector2(300, 200)))
+	hud.open_wardrobe()
+	await wait(0.2)
+	var wardrobe_kept: bool = hud._modal != null and hud._wardrobe_stage != null and is_instance_valid(hud._wardrobe_stage) and queued.is_empty()
+	for _i in 5:   # other pop-ups (fame, milestones) may be waiting in front of it
+		hud.close_top()
+		await wait(0.2)
+		if not queued.is_empty():
+			break
+	check(wardrobe_kept and queued.size() == 1, "a waiting pop-up doesn't replace a window opened from another one")
+	while hud._modal != null:
+		hud.close_top()
+		await wait(0.2)
 
 	# Named saves
 	Game.coins = 1234
@@ -964,10 +1133,11 @@ func _run() -> void:
 	var keep_walk_trust: float = Game.trust
 	Game.trust = 50.0
 	check(Game.lock_reason("leash") != "", "the leash needs more trust")
-	Game.trust = 80.0
+	Game.trust = 62.0
 	Game.tricks.come = 450
-	Game.tricks.stand = 450
-	check(Game.lock_reason("leash") == "", "Bonded and trained: the leash is for sale")
+	Game.tricks.stand = 250
+	check(Game.lock_reason("leash") == "", "Cuddly and trained: the leash is for sale")
+	check(Catalog.ITEMS.leash.req_trust < Catalog.mate_trust(), "walks come well before a friend")
 	Game.coins += 2000
 	check(Game.buy("leash") == "" and "leash" in Game.gear, "buy the harness and leash")
 	await wait(0.3)
@@ -980,7 +1150,8 @@ func _run() -> void:
 	await shot("walks")
 	hud.close_top()
 	Game.bubak.trust_day = Time.get_date_string_from_system()
-	Game.bubak.trust_today = 100.0   # a lot of bonding already today
+	# a lot of bonding today, but still under the day's maximum: the walk isn't slowed down
+	Game.bubak.trust_today = 0.5 * Catalog.TRUST_DAY_MAX[Game.trust_level()]
 	Game.bubak.weight = Game.bubak.ideal_weight()
 	var t_walk: float = Game.trust
 	hud.play_walk("park", true, 6.0)
@@ -992,7 +1163,7 @@ func _run() -> void:
 			break
 		await wait(0.1)
 	check(hud.find_children("*", "WalkScene", true, false).is_empty(), "the cutscene ends by itself")
-	check(Game.trust - t_walk > 1.0, "a walk brings trust, even past the daily limit (+%.1f)" % (Game.trust - t_walk))
+	check(Game.trust - t_walk > 0.5, "a walk brings trust, even after a lot of bonding today (+%.1f)" % (Game.trust - t_walk))
 	check(Game.bubak.weight < Game.bubak.ideal_weight() - 10.0, "a walk burns weight")
 	check(Game.walked_today() and Game.walk_problem("park") != "" and Game.stats.walks == 1, "one walk a day")
 	Game.stats.walks = Catalog.WALKS.cinema.after
@@ -1000,6 +1171,461 @@ func _run() -> void:
 	Game.walk_day = ""
 	Game.trust = keep_walk_trust
 	Game.bubak.settle_level()
+	await close_popups()
+
+	# ---- special days: Christmas and Bubák's birthday ----------------------------------
+	main.go_to("living")
+	b.teleport(Vector2(560, 600))
+	b.start("idle", null, b.position)
+	var year: int = Time.get_date_dict_from_system().year
+	Game.presents = []
+	Game.birthday = "03-14"
+	Game.debug_date = "07-01"
+	main.update_special_day()
+	check(main.xmas_tree == null and main.present == null and Game.special_day() == "", "an ordinary day: no tree, no present")
+	Game.debug_date = "12-24"
+	main.update_special_day()
+	await close_popups()
+	check(main.xmas_tree != null and main.present != null and Game.present_waiting() == "christmas", "Christmas: a tree with a present under it")
+	await wait(0.3)
+	await shot("christmas")
+	check(main._xmas_decor.size() == 1 and main._xmas_lights.size() > 10, "a garland and fairy lights")
+	b.start("tree_gaze", main.xmas_tree, main.xmas_tree.position + Vector2(-90, 50))
+	await wait(2.0)
+	check(b.act == "tree_gaze", "he stands up to gaze at the tree")
+	b.start("idle", null, b.position)
+	var jingle_before := Game.count_item("jingle_ball")
+	main._use_item(main.present)
+	await wait(0.2)
+	check(b.act == "unwrap", "tap the present: Bubák goes to unwrap it")
+	for i in 60:
+		if b.act == "unwrap" and b.phase == 1:
+			break
+		await wait(0.1)
+	await wait(1.2)
+	await shot("christmas_unwrap")
+	for i in 60:
+		if main.present == null:
+			break
+		await wait(0.1)
+	await wait(0.2)
+	check(main.present == null and Game.count_item("jingle_ball") == jingle_before + 1 and ("christmas-%d" % year) in Game.presents,
+		"he rips it open: a jingle ball")
+	check(b.act == "play_ball" and b.item != null and b.item.id == "jingle_ball", "and plays with it straight away (%s)" % b.act)
+	await wait(1.0)
+	await shot("christmas_gift")
+	main.update_special_day()
+	check(main.present == null and Game.present_waiting() == "" and main.xmas_tree != null, "one Christmas present a year")
+	Game.presents.erase("christmas-%d" % year)
+	check(Game._gift_for("christmas") != "jingle_ball", "next year: something he hasn't got yet (%s)" % Game._gift_for("christmas"))
+	Game.presents.append("christmas-%d" % year)
+	await close_popups()
+	# his birthday
+	var head_before: String = Game.wearing.get("head", "")
+	Game.debug_date = Game.birthday
+	main.update_special_day()
+	await close_popups()
+	check(main.xmas_tree == null and main._xmas_lights.is_empty() and main.present != null and main.present.tex_name == "present_bday",
+		"his birthday: a present for him (Christmas packed away)")
+	Game.bubak.trust_today = 0.0
+	var t_bday: float = Game.trust
+	b.teleport(Vector2(560, 600))
+	main._use_item(main.present)
+	for i in 80:
+		if main.present == null:
+			break
+		await wait(0.1)
+	await wait(0.4)
+	check(Game.wearing.get("head", "") == "party_hat" and "party_hat" in Game.wardrobe and Game.trust > t_bday,
+		"he unwraps a party hat, puts it on and is very happy")
+	await shot("birthday")
+	hud.open_wardrobe()
+	await wait(0.4)
+	await shot("wardrobe_party_hat")
+	hud.close_top()
+	hud._journal_tab = "Bubák"
+	hud.open_journal()
+	await wait(0.3)
+	var btext := str(hud._modal.find_children("*", "Label", true, false).map(func(l): return l.text))
+	check(tr("Birthday: %s") % HudScript.birthday_text("03-14") in btext and "14 March" in btext, "his birthday is in the journal")
+	hud.close_top()
+	Game.debug_date = ""
+	main.update_special_day()
+	if head_before == "":
+		Game.wearing.erase("head")
+	else:
+		Game.wearing.head = head_before
+	await close_popups()
+
+	# ---- daily wishes --------------------------------------------------------------------
+	await close_popups()
+	Game.wish = {}
+	Game.wish_streak = 0
+	Game.check_wish()
+	await wait(0.3)
+	check(not Game.wish.is_empty() and Game.wish_text() != "" and hud._wish_label.text != "", "a daily wish, shown under the coins (%s)" % Game.wish_short())
+	await shot("wish")
+	Game.wish = {"day": Time.get_date_string_from_system(), "kind": "treat", "arg": "carrot", "done": false, "cuddle": 0.0}
+	var coins_wish: int = Game.coins
+	Game.wish_event("treat", "apple")
+	check(not Game.wish.done, "the wrong treat doesn't grant it")
+	Game.wish_event("treat", "carrot")
+	check(Game.wish.done and Game.wish_streak == 1 and Game.coins > coins_wish, "the right treat grants the wish (+%d)" % (Game.coins - coins_wish))
+	Game.wish = {"day": Time.get_date_string_from_system(), "kind": "cuddle", "done": false, "cuddle": 0.0}
+	Game.wish_event("cuddle", "", 5.0)
+	check(not Game.wish.done, "a short cuddle isn't enough")
+	Game.wish_event("cuddle", "", 10.0)
+	check(Game.wish.done and Game.wish_streak == 2, "a long cuddle is")
+	Game.wish_streak = 6
+	Game.wish = {"day": Time.get_date_string_from_system(), "kind": "photo", "done": false, "cuddle": 0.0}
+	var petals: int = Game.inventory.get("rose_petals", 0)
+	coins_wish = Game.coins
+	Game.wish_event("photo")
+	check(Game.wish_streak == 7 and Game.coins - coins_wish > Catalog.WISH_BONUS and Game.inventory.rose_petals == petals + 2,
+		"a week of wishes: a bonus and rose petals")
+	Game.wish.day = "2000-01-01"
+	Game.wish_last_done = "2000-01-01"
+	Game.check_wish()
+	check(Game.wish_streak == 0 and Game.wish.day == Time.get_date_string_from_system(), "a missed day resets the streak")
+	await close_popups()
+
+	# ---- photo challenges, favourites, memories -------------------------------------------
+	Game.photo_challenges = {}
+	var pres := Game.record_photo("user://test_challenge.png", "binky", 0, {"hour": 22.0, "room": "living", "wear": 3, "wearing": ["party_hat"]})
+	check("binky" in pres.challenges and "fancy" in pres.challenges and "party" in pres.challenges and not "sunset" in pres.challenges,
+		"photo challenges done by a photo (%s)" % str(pres.challenges))
+	var pres2 := Game.record_photo("user://test_challenge2.png", "binky", 0, {"hour": 12.0})
+	check(pres2.challenges.is_empty(), "each challenge only once")
+	Game.favourites = {}
+	Game.fav_counts = {"toy": {}, "nap": {}, "walk": {}}
+	for i in Catalog.FAV_AT.toy:
+		Game.note_fav("toy", "tunnel")
+	check(Game.favourites.get("toy", "") == "tunnel", "playing with one toy a lot makes it his favourite")
+	check(Game.memories.any(func(m): return m.id == "fav_toy_tunnel") and Game.memories.any(func(m): return m.id == "walk1"),
+		"favourites and firsts go in the scrapbook")
+	await wait(1.0)
+	hud._journal_tab = "Memories"
+	hud.open_journal()
+	await wait(0.4)
+	var mtext := str(hud._modal.find_children("*", "Label", true, false).map(func(l): return l.text))
+	check(tr("First walk together: %s.") % tr("Park") in mtext or "First walk together" in mtext, "the Memories tab lists them")
+	await shot("journal_memories")
+	hud.close_top()
+	hud._journal_tab = "Photos"
+	hud.open_journal()
+	await wait(0.4)
+	await shot("journal_challenges")
+	hud.close_top()
+	hud._journal_tab = "Bubák"
+	hud.open_journal()
+	await wait(0.3)
+	var ftext2 := str(hud._modal.find_children("*", "Label", true, false).map(func(l): return l.text))
+	check(tr("Favourite toy: %s") % Catalog.item_name("tunnel") in ftext2, "his favourites are in the journal")
+	hud.close_top()
+
+	# ---- the veggie patch --------------------------------------------------------------------
+	Game.balcony = "open"
+	Game.coins += 1000
+	check(Game.buy("veg_patch") == "" and main.find_item("veg_patch", "balcony") != null, "buy a veggie patch for the balcony")
+	Game.garden = []
+	Game.plant(0, "carrot")
+	Game.plant(1, "dandelion")
+	Game._grow_garden(60.0)
+	check(Game.harvest(0) == 0, "not ripe yet")
+	main.go_to("balcony")
+	await wait(0.5)
+	await shot("garden_growing")
+	Game._grow_garden(Catalog.CROPS.carrot.hours * 60.0)
+	var carrots: int = Game.inventory.get("carrot", 0)
+	await wait(0.3)
+	await shot("garden_ripe")
+	main._use_item(main.find_item("veg_patch", "balcony"))
+	await wait(0.4)
+	check(hud._modal != null, "tap the patch: the garden opens")
+	await shot("garden")
+	hud.close_top()
+	check(Game.harvest(0) == Catalog.CROPS.carrot.yield and Game.inventory.carrot == carrots + Catalog.CROPS.carrot.yield,
+		"pick the carrots: into the treat bag")
+	main.go_to("living")
+	await wait(0.3)
+
+	# ---- the vet ------------------------------------------------------------------------------
+	Game.vet_last = Time.get_unix_time_from_system() - (Catalog.VET_DAYS + 1) * 86400.0
+	check(Game.vet_due(), "a check-up is due after a week")
+	var coins_vet: int = Game.coins
+	hud.open_vet()
+	await wait(0.4)
+	check(hud._modal != null and Game.coins > coins_vet and not Game.vet_due(), "the vet checks him over (+%d)" % (Game.coins - coins_vet))
+	await shot("vet")
+	hud.close_top()
+
+	# ---- greeting, the cat, a playdate -----------------------------------------------------
+	await close_popups()
+	main.go_to("living")
+	b.teleport(Vector2(400, 600))
+	b.start("idle", null, b.position)
+	await wait(0.2)
+	Game.greet_pending = true
+	await wait(0.4)
+	check(b.act == "greet", "back after a while: he comes to say hello")
+	await wait(1.0)
+	await shot("greeting")
+	await wait(2.5)
+	b.teleport(Vector2(560, 600))
+	b.start("idle", null, b.position)
+	main._cat_arrives()
+	await wait(1.5)
+	check(main._cat_t > 0 and b.act in ["thump", "hide_box", "flee"], "the neighbour's cat: Bubák thumps (%s)" % b.act)
+	await shot("window_cat")
+	main._tap(main.WINDOW.get_center(), null)
+	await wait(1.0)
+	check(main._cat_t <= 0.0 or main._cat_rise < 0.5, "tap the window: shoo")
+	await close_popups()
+	var nb: int = main.bunnies.size()
+	main._guest_arrives()
+	await wait(1.5)
+	check(main.guest != null and main.bunnies.size() == nb + 1 and main.guest.pet.nickname in Catalog.GUESTS, "a friend's bunny comes over to play")
+	await shot("guest")
+	main._guest_t = 0.0
+	await wait(1.0)
+	check(main.guest == null and main.bunnies.size() == nb, "and hops home again")
+
+	# ---- Easter, Halloween, the day you met ------------------------------------------------
+	var year2: int = Time.get_date_dict_from_system().year
+	check(Game.easter_days(2025) == ["04-19", "04-20", "04-21"] and Game.easter_days(2026) == ["04-04", "04-05", "04-06"], "Easter dates")
+	Game.presents = []
+	Game.eggs_year = 0
+	Game.debug_date = Game.easter_days(year2)[1]
+	main.update_special_day()
+	await close_popups()
+	check(main.easter_decor != null and main.eggs.size() == Catalog.EASTER_EGGS and main.present == null, "Easter: eggs hidden around the flat")
+	await shot("easter")
+	for e in main.eggs.duplicate():
+		main._use_item(e)
+		await wait(0.1)
+	await wait(0.3)
+	check(Game.eggs_left() == 0 and main.present != null and main.present.tex_name == "present_easter", "all eggs found: a present appears")
+	await close_popups()
+	b.teleport(Vector2(560, 600))
+	main._use_item(main.present)
+	for i in 80:
+		if main.present == null:
+			break
+		await wait(0.1)
+	await wait(0.3)
+	check(Game.count_item("egg_rattle") == 1, "an egg rattle for Easter")
+	Game.debug_date = "10-31"
+	main.update_special_day()
+	await close_popups()
+	check(main.pumpkin != null and main.easter_decor == null and main.present != null and main.present.tex_name == "present_halloween",
+		"Halloween: a pumpkin and a present")
+	main._debug_hour = 22.0
+	main._update_sky()
+	await wait(0.6)
+	await shot("halloween")
+	main._debug_hour = -1.0
+	b.teleport(Vector2(560, 600))
+	main._use_item(main.present)
+	for i in 80:
+		if main.present == null:
+			break
+		await wait(0.1)
+	await wait(0.3)
+	check(Game.wearing.get("head", "") == "witch_hat", "a witch hat for Halloween")
+	Game.debug_date = ""
+	main.update_special_day()
+	var created_keep: float = Game.created_at
+	Game.created_at = Time.get_unix_time_from_system() - 366 * 86400.0
+	Game.debug_date = Game._month_day(Game.created_at)   # local time, as the game counts it
+	check(Game.special_day() == "anniversary" or Game.special_day() == "birthday", "the day you met, a year on")
+	Game.debug_date = ""
+	Game.created_at = created_keep
+	Game.wearing.erase("head")
+	main.update_special_day()
+	await close_popups()
+
+	# ---- the long run: days together, makeovers, fame, souvenirs ---------------------------------
+	await close_popups()
+	check(Catalog.ITEMS.keys().filter(func(k): return Catalog.ITEMS[k].kind == "wear" and not b.WEAR_ANCHOR.has(k)).is_empty(),
+		"every accessory has a place on him")
+	Game.days_played = 6
+	Game.last_play_day = ""
+	Game.milestones_got = []
+	var coins_days: int = Game.coins
+	check(Game.lock_reason("style_mint") != "", "makeovers wait for days together")
+	Game.check_day()
+	await wait(0.4)
+	check(Game.days_played == 7 and 3 in Game.milestones_got and 7 in Game.milestones_got and Game.coins >= coins_days + 180
+		and hud._modal != null, "7 days together: milestone pop-ups and coins")
+	await shot("milestone")
+	await close_popups()
+	check(Game.lock_reason("style_mint") == "" and Game.next_milestone().days == 14, "the mint makeover opens; next surprise at 14 days")
+	Game.coins += 20000
+	check(Game.buy("style_mint") == "" and Game.room_style == "mint" and main.room_bg.texture == Catalog.tex("room_mint"), "buy a makeover")
+	hud._shop_tab = "Makeover"
+	hud.open_shop()
+	await wait(0.4)
+	await shot("shop_makeover")
+	hud.close_top()
+	await wait(0.2)
+	await shot("room_mint")
+	Game.days_played = 199
+	Game.last_play_day = ""
+	Game.check_day()
+	await close_popups()
+	check("gold_bowtie" in Game.wardrobe and "gold_crown" in Game.wardrobe and Game.count_item("statue") == 1
+		and Game.count_item("royal_cushion") == 1, "200 days: a golden bow tie, a crown, a cushion and a statue")
+	for st in ["lavender", "sunny", "starry"]:
+		check(Game.buy("style_" + st) == "", "makeover: " + st)
+	await wait(0.3)
+	await shot("room_starry")
+	check(Game.lock_reason("style_forest") != "", "the last makeover waits for a whole year")
+	Game.buy("style_cream")
+	check(Game.room_style == "cream", "switch back to a makeover you own")
+	Game.wearing.erase("head")
+	Game.wearing.erase("neck")
+	# fame
+	Game.fame = -1
+	Game.followers = 16000
+	Game._check_fame()
+	await wait(0.4)
+	check(Game.fame == 2 and Game.fame_name() == tr("Bunnyfluencer") and hud._modal != null, "followers make him famous")
+	for i in 6:   # the cover comes after the pop-ups for the steps before it
+		if hud._modal == null or str(hud._modal.find_children("*", "Label", true, false).map(func(l): return l.text)).contains("BUNNY WEEKLY"):
+			break
+		hud.close_top()
+		await wait(0.2)
+	await wait(0.3)
+	await shot("magazine")
+	check(Game.cover != "" or Game.photos.all(func(x): return x.behaviour == ""), "his best photo goes on a magazine cover")
+	await close_popups()
+	# souvenirs
+	Game.souvenirs = {}
+	var sets := 0
+	for i in 300:
+		var r := Game._find_souvenir("beach")
+		if r.get("set_done", false):
+			sets += 1
+	check(sets == 1 and Game.souvenirs.size() == 4, "a whole set of beach souvenirs, once")
+	var all_done := false
+	for place in Catalog.SOUVENIRS:
+		for i in 300:
+			if Game._find_souvenir(place).get("all_done", false):
+				all_done = true
+	check(all_done and Game.count_item("curio") == 1 and Game.goal_value({"type": "souvenirs"}) == 20, "every souvenir: the souvenir cabinet")
+	hud.open_walks()
+	await wait(0.4)
+	await shot("walks_souvenirs")
+	hud.close_top()
+	# a save from before Days together gets credit for the days it shows
+	var keep_state := Game.to_dict()
+	var pre_days_save := Game.to_dict()
+	pre_days_save.erase("days_played")
+	var now_t := Time.get_unix_time_from_system()
+	pre_days_save.created_at = now_t - 5 * 86400.0
+	pre_days_save.photos = [{"file": "x", "behaviour": "binky", "likes": 1, "coins": 1, "time": now_t - 3 * 86400.0},
+		{"file": "y", "behaviour": "binky", "likes": 1, "coins": 1, "time": now_t - 3 * 86400.0 + 60}]
+	pre_days_save.memories = [{"id": "m", "time": now_t - 86400.0, "text": "x", "args": [], "file": ""}]
+	Game._apply(pre_days_save)
+	check(Game.days_played == 3, "an older save counts the days it was played (%d)" % Game.days_played)
+	Game._apply(keep_state)
+	# tapping a toy invites him over to play
+	main.go_to("living")
+	b.teleport(Vector2(600, 620))
+	b.start("idle", null, b.position)
+	var tun = main.find_item("tunnel", "living")
+	if tun:
+		main._use_item(tun)
+		check(b.act == "tunnel", "tap a toy: he comes to play with it (%s)" % b.act)
+	# everything new survives saving and loading (JSON turns numbers into floats)
+	Game.wish = {"day": Time.get_date_string_from_system(), "kind": "toy", "arg": "tunnel", "done": false, "cuddle": 3.0}
+	Game.garden = [{"crop": "carrot", "grow": 0.5}, {"crop": "", "grow": 0.0}, {"crop": "rose_petals", "grow": 1.0}]
+	Game.room_style = "mint"
+	Game.save_game()
+	var saved_keys := ["wish", "wish_streak", "photo_challenges", "memories", "fav_counts", "favourites", "garden", "eggs_found",
+		"vet_last", "days_played", "milestones_got", "fame", "cover", "souvenirs", "room_style", "styles", "presents", "birthday"]
+	var saved_vals := {}
+	for k in saved_keys:
+		saved_vals[k] = JSON.parse_string(JSON.stringify(Game.to_dict()[k]))
+	Game.load_game()
+	var changed_keys := saved_keys.filter(func(k): return str(JSON.parse_string(JSON.stringify(Game.to_dict()[k]))) != str(saved_vals[k]))
+	check(changed_keys.is_empty(), "new progress survives save and load (differs: %s)" % str(changed_keys))
+	var roses_had: int = Game.inventory.get("rose_petals", 0)
+	Game.wish_event("toy", "tunnel")
+	Game.note_fav("walk", "park")
+	Game._find_souvenir("park")
+	Game._grow_garden(10.0)
+	check(Game.wish.done and Game.harvest(2) == 2 and Game.inventory.rose_petals == roses_had + 2 and Game.wish_short() != ""
+		and not Game.next_milestone().is_empty() and Game.days_played > 0, "and keeps working after loading")
+	Game.room_style = "cream"
+	# ---- the same things through the real buttons ------------------------------------------
+	await close_popups()
+	var nt: int = hud._toasts.get_child_count()
+	var tap_wish := InputEventMouseButton.new()
+	tap_wish.button_index = MOUSE_BUTTON_LEFT
+	tap_wish.pressed = true
+	hud._wish_label.get_parent().get_parent().gui_input.emit(tap_wish)
+	await wait(0.1)
+	check(hud._toasts.get_child_count() > nt or hud._toasts.get_child_count() == 3, "tap the wish bubble: it explains the wish")
+	hud._shop_tab = "Makeover"
+	hud.open_shop()
+	await wait(0.3)
+	var use_btns: Array = _buttons(tr("Use"))
+	if not use_btns.is_empty():
+		var style_before := Game.room_style
+		use_btns[0].pressed.emit()
+		await wait(0.2)
+		check(Game.room_style != style_before, "Shop > Makeover > Use switches the flat's look")
+	hud.close_top()
+	Game.room_style = "cream"
+	Game.style_changed.emit()
+	Game.garden = []
+	Game.watered.erase("garden")
+	hud.open_garden()
+	await wait(0.3)
+	_buttons(tr("Water"))[0].pressed.emit()
+	await wait(0.2)
+	_buttons(tr("Carrots"))[0].pressed.emit()
+	await wait(0.2)
+	check(Game.is_watered("garden") and Game.garden[0].crop == "carrot", "garden buttons: water, then plant carrots")
+	Game._grow_garden(Catalog.CROPS.carrot.hours * 60.0)
+	hud.close_top()
+	hud.open_garden()
+	await wait(0.3)
+	var carrots2: int = Game.inventory.get("carrot", 0)
+	_buttons(tr("Pick"))[0].pressed.emit()
+	await wait(0.2)
+	check(Game.inventory.carrot == carrots2 + Catalog.CROPS.carrot.yield and Game.garden[0].crop == "", "the Pick button harvests")
+	hud.close_top()
+	Game.vet_last = 1.0
+	hud._journal_tab = "Bubák"
+	hud.open_journal()
+	await wait(0.3)
+	_buttons(tr("Check-up at the vet"))[0].pressed.emit()
+	await wait(0.3)
+	check(hud._modal != null and not Game.vet_due() and _buttons(tr("Thank you, doctor!")).size() == 1, "Journal > Bubák > vet button")
+	hud.close_top()
+	await close_popups()
+	# midnight passes while playing: a new wish, another day together, a new walk
+	var yesterday := Time.get_date_string_from_unix_time(int(Time.get_unix_time_from_system()) - 86400)
+	Game.wish = {"day": yesterday, "kind": "cuddle", "done": true, "cuddle": 20.0}
+	Game.wish_last_done = yesterday
+	Game.wish_streak = 3
+	Game.last_play_day = yesterday
+	Game.walk_day = yesterday
+	var days_before := Game.days_played
+	main._sky_t = 0.0
+	await wait(0.4)
+	check(Game.wish.day == Time.get_date_string_from_system() and not Game.wish.done and Game.wish_streak == 3
+		and Game.days_played == days_before + 1 and not Game.walked_today(), "midnight: a new wish (streak kept), a new day together, a new walk")
+	await close_popups()
+
+	# long goals unlock one after another	# long goals unlock one after another
+	var g30: Dictionary = Catalog.GOALS.filter(func(x): return x.id == "days30")[0]
+	Game.goals_claimed.erase("days7")
+	check(not Game.goal_visible(g30), "the 30-day goal waits for the 7-day one")
+	Game.claim_goal("days7")
+	check(Game.goal_visible(g30), "and shows up once it's claimed")
 	await close_popups()
 
 	# ---- a mate for Bubák ---------------------------------------------------------
@@ -1034,6 +1660,38 @@ func _run() -> void:
 	check(main.bunnies.size() == 2 and main.mate_bunny.pet == Game.mate, "the new friend is in the flat")
 	check(hud._need_bars.size() == 2 and hud._mate_trust != null, "second row of needs and a trust card")
 	await shot("mate_home")
+	hud._journal_tab = "Friend"
+	hud.open_journal()
+	await wait(0.3)
+	var ftext := str(hud._modal.find_children("*", "Label", true, false).map(func(l): return l.text))
+	var fbuttons: Array = hud._modal.find_children("*", "Button", true, false).map(func(x): return x.text)
+	check("Caramel" in fbuttons and tr("Friendship with Bubák: %d%%") % int(Game.bond) in ftext and "kg" in ftext,
+		"the friend has a page in the journal")
+	await shot("journal_friend")
+	hud.close_top()
+	# the friend dresses up too; there's one of each accessory
+	if not "beanie" in Game.wardrobe:
+		Game.wardrobe.append("beanie")
+	Game.wearing.head = "beanie"
+	Game.toggle_wear("beanie", Game.mate)
+	check(Game.mate_wearing.get("head", "") == "beanie" and not "beanie" in Game.wearing.values(),
+		"the friend can wear an accessory, and it comes off Bubák")
+	await wait(0.3)
+	check(main.mate_bunny.wear_sprites["head"].visible, "the friend shows the accessory in the room")
+	hud.open_wardrobe()
+	await wait(0.3)
+	var wbuttons: Array = hud._modal.find_children("*", "Button", true, false).filter(func(x): return x.text == "Caramel")
+	check(wbuttons.size() == 1, "the wardrobe can switch to the friend")
+	if wbuttons.size() == 1:
+		wbuttons[0].pressed.emit()
+		await wait(0.3)
+	check(hud._wardrobe_stage.who == Game.mate, "the wardrobe mirror shows the friend")
+	await shot("wardrobe_friend")
+	hud.close_top()
+	await reload_scene()
+	hud = main.hud
+	b = main.bunny
+	check(Game.mate_wearing.get("head", "") == "beanie", "the friend's outfit is saved")
 	# each rabbit has its own needs and trust
 	var mb = main.mate_bunny
 	Game.mate.trust = 62.0   # Bonded: never shies away from petting
@@ -1045,6 +1703,7 @@ func _run() -> void:
 	mb.start("idle", null, mb.position)
 	b.teleport(Vector2(300, 640))
 	await wait(0.2)
+	Game.mate.trust_today = 0.0
 	var mate_trust: float = Game.mate.trust
 	var bubak_trust: float = Game.trust
 	var mp: Vector2 = mb.position + Vector2(0, -40)
@@ -1052,7 +1711,7 @@ func _run() -> void:
 	await wait(2.5)
 	press(mp, false)
 	await wait(0.2)
-	check(Game.mate.trust > mate_trust + 0.2 and Game.trust - bubak_trust < 0.2, "petting the friend raises the friend's trust (%.1f -> %.1f)" % [mate_trust, Game.mate.trust])
+	check(Game.mate.trust > mate_trust + 0.1 and Game.trust - bubak_trust < 0.2, "petting the friend raises the friend's trust (%.1f -> %.1f)" % [mate_trust, Game.mate.trust])
 	# best friends snuggle
 	Game.bond = 80.0
 	b.teleport(Vector2(600, 620))
@@ -1071,6 +1730,833 @@ func _run() -> void:
 	Game.mate.trust = 0.0
 	Game.load_game()
 	check(Game.mate != null and Game.mate.id == "caramel" and Game.mate.trust > 30, "the friend is saved and loaded")
+
+	# ---- the late game --------------------------------------------------------------------
+	# Foster bunnies: once Bubák has a friend, the rescue asks you to foster shy rabbits
+	await close_popups()
+	Game.foster = null
+	Game.fosters_done = []
+	Game.foster_next = ""
+	Game.foster_offer_day = ""
+	Game._check_foster()
+	await wait(0.3)
+	var lt_take: Array = _buttons("Take them in")
+	check(Game.foster_available() and lt_take.size() == 1, "with a friend at home, the rescue asks you to foster a bunny")
+	await shot("foster_offer")
+	if lt_take.size() == 1:
+		await press_reload(lt_take[0])
+	hud = main.hud
+	b = main.bunny
+	check(Game.foster != null and Game.foster.id == "pip" and main.foster_bunny != null and main.bunnies.size() == 3
+		and Game.foster.quirk() == "hider" and hud._foster_bar != null, "Pip moves in as a foster bunny, with a quirk and a card")
+	await wait(0.5)
+	await shot("foster_home")
+	var lt_fb = main.foster_bunny
+	# a picky eater only warms up to gourmet treats
+	Game.foster.id = "tofu"
+	Game.foster.trust_today = 0.0
+	Game.inventory["carrot"] = Game.inventory.get("carrot", 0) + 1
+	Game.inventory["dried_apple"] = Game.inventory.get("dried_apple", 0) + 1
+	lt_fb.teleport(Vector2(700, 630))
+	lt_fb.start("idle", null, lt_fb.position)
+	var lt_t0: float = Game.foster.trust
+	main.treat_selected = "carrot"
+	main._offer_treat(Vector2(760, 640), lt_fb)
+	for i in 50:
+		await wait(0.1)
+		if lt_fb.act == "eat_hand":
+			break
+	var lt_cheap: float = Game.foster.trust - lt_t0
+	await wait(0.4)
+	lt_fb.start("idle", null, lt_fb.position)
+	lt_t0 = Game.foster.trust
+	main.treat_selected = "dried_apple"
+	main._offer_treat(Vector2(760, 640), lt_fb)
+	for i in 50:
+		await wait(0.1)
+		if lt_fb.act == "eat_hand":
+			break
+	check(lt_cheap == 0.0 and Game.foster.trust > lt_t0, "a picky foster only warms up to gourmet treats (+%.1f, then +%.1f)" % [lt_cheap, Game.foster.trust - lt_t0])
+	# a nipper nips if the cuddle goes on too long
+	Game.foster.id = "bramble"
+	Game.foster.trust = 15.0   # Curious: he lets you start a cuddle most of the time
+	var lt_petted := false
+	for i in 20:   # a nervous bunny may still run off when you reach for him
+		lt_fb.start("idle", null, lt_fb.position)
+		lt_fb._pet_fatigue = 0.0
+		lt_petted = lt_fb.on_pet_start()
+		if lt_petted:
+			break
+	lt_t0 = Game.foster.trust
+	var lt_held: bool = lt_fb.on_pet_hold(3.0)
+	check(lt_petted and not lt_held and Game.foster.trust < lt_t0 and lt_fb.act == "flee", "a nipper nips when the cuddle goes on too long")
+	Game.foster.id = "pip"
+	# ready for a home: a family adopts them
+	Game.foster.trust = Catalog.level_at(Catalog.FOSTER_GOAL) + 0.5
+	Game.foster.settle_level()
+	await wait(1.3)
+	var lt_bye: Array = _buttons("Say goodbye")
+	check(lt_bye.size() == 1, "once the foster bunny trusts you, a family wants to adopt them")
+	await shot("foster_adopted")
+	var lt_coins: int = Game.coins
+	if lt_bye.size() == 1:
+		await press_reload(lt_bye[0])
+	hud = main.hud
+	b = main.bunny
+	check(Game.foster == null and Game.fosters_done.size() == 1 and Game.coins >= lt_coins + Catalog.FOSTER_REWARD
+		and main.foster_bunny == null and not Game.foster_available() and Game.next_foster() == "tofu"
+		and Game.memories.any(func(m): return m.id == "foster_1"), "they go to a new home: a reward, a memory, and the next one comes tomorrow")
+	Game.foster_next = ""
+	Game.take_foster()
+	Game.save_game()
+	Game.foster = null
+	Game.load_game()
+	check(Game.foster != null and Game.foster.id == "tofu", "the foster bunny is saved and loaded")
+	hud._journal_tab = "Friend"
+	hud.open_journal()
+	await wait(0.4)
+	await shot("journal_foster")
+	await close_popups()
+	Game.foster = null
+
+	# Keeping the bond: from Bonded up, days away cost trust (never a level), only while life goes on
+	var lt_life: bool = Game.life_goes_on
+	var lt_trust: float = Game.bubak.trust
+	Game.life_goes_on = true
+	Game.bubak.trust = 80.0
+	Game.bubak.settle_level()
+	var lt_missed: Array = []
+	var lt_on_miss := func(loss: float, days: int): lt_missed.append([loss, days])
+	Game.bond_missed.connect(lt_on_miss)
+	Game.last_play_day = Time.get_date_string_from_unix_time(int(Time.get_unix_time_from_system()) - 3 * 86400)
+	Game.check_day()
+	var lt_after: float = Game.bubak.trust
+	Game.life_goes_on = false
+	Game.bubak.trust = 90.0
+	Game.last_play_day = Time.get_date_string_from_unix_time(int(Time.get_unix_time_from_system()) - 3 * 86400)
+	Game.check_day()
+	Game.bond_missed.disconnect(lt_on_miss)
+	check(is_equal_approx(lt_after, Catalog.level_at(5)) and lt_missed.size() == 1 and lt_missed[0][1] == 2 and Game.bubak.trust == 90.0,
+		"Bonded: two days away cost trust, but never the level; not when time stops (%.1f, %s, %.1f)" % [lt_after, lt_missed, Game.bubak.trust])
+	Game.life_goes_on = lt_life
+	Game.bubak.trust = lt_trust
+	Game.bubak.settle_level()
+	await close_popups()
+
+	# Show league: the month's season ends with a place and a prize
+	Game.club_stage = 3
+	Game.league_season = "2020-01"
+	Game.league_points = 2000
+	Game.league_history = []
+	var lt_lc: int = Game.coins
+	Game._check_league()
+	await wait(0.3)
+	check(Game.league_history.size() == 1 and Game.league_history[0].place == 1 and Game.league_season == Game.season_now()
+		and Game.league_points == 0 and Game.coins >= lt_lc + Catalog.LEAGUE_PRIZES[0].coins and _buttons("Hooray!").size() == 1,
+		"the league season ends with the month: 1st place pays out")
+	await shot("league_end")
+	await close_popups()
+	var lt_res := Game.finish_show(1, "looks", 1)
+	check(Game.league_points == 20 and lt_res.league == 20, "a Regional win is worth 20 league points")
+	check(Game.rival_points("pepik", "2026-10", 10) == Game.rival_points("pepik", "2026-10", 10) and Game.rival_points("pepik", "2026-10", 20) > Game.rival_points("pepik", "2026-10", 5),
+		"rivals collect league points day by day, the same every time you look")
+	hud.open_club("League")
+	await wait(0.3)
+	await shot("club_league")
+	check(hud._modal != null and Game.league_table().size() == Game.active_rivals().size() + 1, "Club > League shows the standings")
+	await close_popups()
+
+	# The weekly judge and your own trick routine
+	for t in Catalog.TRICK_ORDER:
+		Game.tricks[t] = Catalog.TRICK_STARS[-1]
+	Game.routine = ["spin", "", "come", "stand", "hoop"]
+	check(Game.show_routine() == ["spin", "come", "stand", "hoop"], "the routine follows your order, up to 4 tricks")
+	var lt_like: String = Game.judge_like()
+	var lt_other: String = Catalog.SHOW_CATS.keys().filter(func(c): return c != Catalog.JUDGE_LIKES[lt_like].cat)[0]
+	check(Catalog.JUDGE_LIKES.has(lt_like) and not Game.judge_pleased(lt_other, {"routine": Game.show_routine(), "faults": 0}),
+		"this week's judge loves %s, and only in their category" % lt_like)
+	hud.open_club("Shows")
+	await wait(0.3)
+	await shot("club_shows_judge")
+	await close_popups()
+
+	# Agility: practise on the course, then a show
+	Game.coins += 2000
+	if Game.count_item("hurdles") == 0:
+		Game.buy("hurdles")
+	Game.agility = 0.0
+	Game.focus = float(Game.focus_max())
+	hud.open_club("Agility")
+	await wait(0.3)
+	var lt_run = hud.club_panel
+	var lt_go: Array = _buttons("Start a run")
+	if lt_go.size() == 1:
+		lt_go[0].pressed.emit()
+	await wait(1.2)
+	await auto_jump(lt_run, "agility_practice")
+	await wait(1.2)
+	check(lt_run.clears >= 3 and Game.agility > 0.0, "agility practice: he clears the bars (%d of %d) and gets better (%.1f)" % [lt_run.clears, lt_run.clears + lt_run.faults, Game.agility])
+	# jumping non-stop doesn't work: a jump over nothing needs a breather
+	lt_run.start()
+	while lt_run.running():
+		lt_run.jump()
+		await get_tree().process_frame
+	check(lt_run.clears <= 3, "spamming Jump doesn't clear the course (%d of %d)" % [lt_run.clears, lt_run.clears + lt_run.faults])
+	await close_popups()
+	Game.show_ready_at = {}
+	var lt_lp: int = Game.league_points
+	hud._enter_show(0, "agility")
+	var lt_ring = hud.club_panel
+	for i in 40:
+		await wait(0.1)
+		if lt_ring._run_node and lt_ring._run_node.running():
+			break
+	if lt_ring._run_node:
+		await auto_jump(lt_ring._run_node)
+	for i in 80:
+		await wait(0.1)
+		if lt_ring._button.text == "Continue":
+			break
+	await shot("agility_show")
+	check(lt_ring._button.text == "Continue" and Game.league_points > lt_lp, "an Agility show: a run, a result and league points")
+	await close_popups()
+
+	# Rare moments at the top levels
+	Game.bubak.trust = 100.0
+	Game.bubak.settle_level()
+	var lt_licked := false
+	for i in 12:
+		b.start("idle", null, b.position)
+		b._pet_fatigue = 0.0
+		if b.on_pet_start():
+			b.on_pet_hold(3.2)
+			lt_licked = b.data.get("lick", false)
+			if lt_licked:
+				check(b.current_behaviour() == "hand_lick", "while he licks your hand, photos catch it")
+			b.on_pet_hold(2.0)
+			var lt_nap: bool = b.data.get("dozed", false) and b.current_behaviour() == "trust_nap"
+			b.on_pet_end()
+			if lt_licked:
+				check(lt_nap, "at Inseparable he falls asleep in your hand")
+				break
+	check(lt_licked and Game.seen.has("hand_lick") and Game.seen.has("trust_nap"), "Best buds and up: he licks your hand; Inseparable: he dozes off")
+	b.teleport(Vector2(640, 620))
+	b.start("circle", null, Vector2(640, 640))
+	for i in 40:
+		await wait(0.1)
+		if b.act == "circle" and b.phase == 1:
+			break
+	await wait(0.6)
+	await shot("circle")
+	check(Game.seen.has("circle"), "Bonded and up: he runs circles around your feet")
+	Game.bubak.trust = lt_trust
+	Game.bubak.settle_level()
+
+	# Bubák merch: opens with fame
+	await close_popups()
+	Game.followers = maxi(Game.followers, 6000)
+	Game._check_fame()   # any new fame title first, so its pop-up isn't in the way
+	await close_popups()
+	Game.merch = {}
+	Game.merch_told = false
+	Game.merch_pending = 0.0
+	Game.merch_earned = 0
+	await wait(1.3)
+	var lt_see: Array = _buttons("Let's see!")
+	check(lt_see.size() == 1, "fame brings fans who want Bubák merch")
+	if lt_see.size() == 1:
+		lt_see[0].pressed.emit()
+	await wait(0.4)
+	var lt_order: Array = _buttons("Order 30 (120)")
+	check(lt_order.size() == 1 and _buttons("Order 15 (1200)").is_empty(), "the merch screen lists the products; the plush waits for more fame")
+	if lt_order.size() == 1:
+		lt_order[0].pressed.emit()
+	await wait(0.4)
+	await shot("merch")
+	var lt_m: Dictionary = Game.merch_of("stickers")
+	check(int(lt_m.stock) == 30 and lt_m.photo != "", "ordering stickers puts your best photo on them")
+	Game._sell_merch(10.0)
+	check(int(lt_m.sold) > 0 and Game.merch_pending > 0, "merch sells by the hour (%d sold)" % int(lt_m.sold))
+	hud.open_merch()
+	await wait(0.3)
+	var lt_coll: Array = _buttons("Collect")
+	var lt_mc: int = Game.coins
+	if lt_coll.size() == 1:
+		lt_coll[0].pressed.emit()
+	await wait(0.3)
+	check(Game.coins > lt_mc and Game.merch_earned > 0, "collecting merch sales pays out")
+	check(Game.merch_design("stickers") != "", "a new design needs a newer photo")
+	await close_popups()
+	Game.work_ready_at = 0
+	hud.open_work()
+	await wait(0.3)
+	check(hud._modal != null and hud._modal.find_children("*", "Label", true, false).any(func(l): return l.text == "Bubák merch"),
+		"the laptop has a Bubák merch card")
+	await shot("work_menu_merch")
+	await close_popups()
+	# Wear and tear: toys get worn with use, and in the end he loves them to pieces
+	Game.coins += 500
+	var lt_box: Node2D = main.find_item("box")
+	if lt_box == null:
+		Game.buy("box")
+		await wait(0.3)
+		lt_box = main.find_item("box")
+	var lt_entry: Dictionary = Game.placed.filter(func(e): return e.uid == lt_box.uid)[0]
+	lt_entry.wear = int(Catalog.WEAR_USES.box * 0.7)
+	Game.wear_item(lt_box.uid)
+	await wait(0.1)
+	check(Game.wear_of(lt_entry) > 0.7 and lt_box.modulate != Color.WHITE, "a well-used toy looks worn (%d%%)" % int(Game.wear_of(lt_entry) * 100))
+	lt_entry.wear = Catalog.WEAR_USES.box - 1
+	var lt_broken: int = Game.stats.get("broken", 0)
+	b.teleport(lt_box.use_point(b.position))
+	b.start("hide_box", lt_box)
+	for i in 200:
+		await wait(0.1)
+		if main.find_item("box") == null:
+			break
+	await wait(0.3)
+	check(main.find_item("box") == null and Game.count_item("box") == 0 and Game.stats.get("broken", 0) == lt_broken + 1
+		and Game.lock_reason("box") == "", "after one last game he loves the cardboard castle to pieces: buy a new one")
+	await shot("toy_broken")
+	check(not Catalog.WEAR_USES.has("jingle_ball") and not Catalog.WEAR_USES.has("royal_cushion"), "presents and rewards never wear out")
+	await close_popups()
+
+	# ---- coming back for more ---------------------------------------------------------
+	# Today's tasks: three a day, the same all day; done ones pay, all three give a sticker
+	Game.daily = {}
+	Game.check_daily()
+	var nw_tasks: Array = Game.daily_tasks().map(func(t): return t.id)
+	Game.daily = {}
+	Game.check_daily()
+	check(nw_tasks.size() == 3 and Game.daily_tasks().map(func(t): return t.id) == nw_tasks, "three daily tasks, the same ones all day (%s)" % [nw_tasks])
+	Game.stickers = ["2000-01-01", "2000-01-02", "2000-01-03", "2000-01-04", "2000-01-05", "2000-01-06"]
+	var nw_coins: int = Game.coins
+	for t in Game.daily_tasks():
+		var info: Dictionary = Game._daily_task(t.id)
+		Game.stats[info.stat] = int(Game.stats.get(info.stat, 0)) + info.n
+	Game._check_daily()
+	check(Game.daily.done.size() == 3 and Time.get_date_string_from_system() in Game.stickers
+		and Game.coins == nw_coins + 3 * Catalog.DAILY_COINS + Catalog.DAILY_ALL + Catalog.STICKER_PAGE_COINS,
+		"all three tasks done: coins, a sticker, and a full sticker page (+%d)" % (Game.coins - nw_coins))
+	Game._check_daily()
+	check(Game.stickers.size() == 7, "one sticker a day")
+	hud.open_journal()
+	await wait(0.4)
+	await shot("journal_daily")
+	await close_popups()
+
+	# Seasons: autumn brings a leaf pile on the balcony, and the season's find
+	Game.season_finds = []
+	Game.debug_date = "10-15"
+	main.update_season()
+	check(Game.season() == "autumn" and main.leaf_pile != null, "autumn: a leaf pile on the balcony")
+	main.go_to("balcony")
+	await wait(0.4)
+	b.teleport(main.leaf_pile.position + Vector2(-120, 10))
+	b.start("leaf_pile", main.leaf_pile, main.leaf_pile.position + Vector2(-60, 4))
+	await wait(1.5)
+	await shot("season_leaf_pile")
+	check(Game.seen.has("leaf_pile") and "scarf" in Game.wardrobe and Game.season_key() in Game.season_finds, "a dive into the leaves: autumn's find, a scarf")
+	await wait(0.5)
+	await shot("season_find_popup")
+	await close_popups()
+	var nw_wardrobe: int = Game.wardrobe.size()
+	Game.season_moment("leaf_pile")
+	check(Game.wardrobe.size() == nw_wardrobe, "one find a season")
+	Game.debug_date = "01-10"
+	check(Game.season() == "winter" and Game.season_key() == "winter-%d" % (Time.get_date_dict_from_system().year - 1), "January is last year's winter")
+	main.update_season()
+	main._snowing = true
+	main._snow_floor.visible = true
+	b.start("snow_sniff", null, b.position)
+	await wait(1.8)
+	await shot("season_snow")
+	check("snowflake" in Game.wardrobe, "first snow: a snowflake clip")
+	await close_popups()
+	Game.debug_date = "07-20"
+	main.update_season()
+	main.go_to("living")
+	b.teleport(Vector2(640, 600))
+	b.start("melt", null, b.position)
+	await wait(0.5)
+	check(b.current_behaviour() == "melt" and "straw_hat" in Game.wardrobe, "a hot day: a bunny puddle, and a straw hat")
+	await close_popups()
+	Game.debug_date = "04-20"
+	main.update_season()
+	check(main.leaf_pile == null, "no leaves in spring")
+	Game.debug_date = ""
+	main.update_season()
+	quiet()
+	Game.toggle_wear("scarf")
+	await wait(0.2)
+	await shot("wearing_scarf")
+
+	# The dig box: finds, map pieces, and a treasure buried in the living room
+	Game.coins += 500
+	if Game.count_item("digbox") == 0:
+		Game.buy("digbox")
+	Game.treasure = {}
+	Game.map_pieces = Catalog.MAP_PIECES - 1
+	var nw_digs := 0
+	while Game.treasure.is_empty() and nw_digs < 600:
+		Game.dig_find()
+		nw_digs += 1
+	check(not Game.treasure.is_empty() and Game.map_pieces == 0 and Game.finds.has("map"), "digging turns things up, and the last map piece (%d digs, %d kinds)" % [nw_digs, Game.finds.size()])
+	await wait(0.3)
+	await shot("treasure_map")
+	check(hud._modal != null, "the whole map shows where to dig")
+	await close_popups()
+	nw_coins = Game.coins
+	main.go_to("living")
+	await wait(0.4)
+	await tap(Game.treasure_spot())
+	await wait(0.5)
+	check(Game.treasure.is_empty() and Game.coins >= nw_coins + Catalog.TREASURE_COINS and Game.count_item("treasure_chest") == 1,
+		"tapping the X digs up the treasure, chest and all")
+	await shot("treasure_found")
+	await close_popups()
+
+	# Postcards from adoptive families, and the Hall of Fame
+	var nw_t: float = Time.get_unix_time_from_system() - 31 * 86400.0
+	Game.fosters_done = Game.fosters_done.filter(func(f): return f.id != "tofu")   # an earlier foster check may have sent one home already
+	Game.fosters_done.append({"id": "tofu", "time": nw_t, "level": 4})
+	Game.postcards = []
+	Game._check_letters()
+	var nw_cards: int = Game.postcards.size()   # counted now: the game's own check may send the month-later one while we wait
+	await wait(0.3)
+	check(nw_cards == 1 and Game.postcards[0].id == "tofu" and hud._modal != null,
+		"a postcard arrives a few days after a foster went home (%s, modal %s)" % [Game.postcards.map(func(c): return c.id), hud._modal != null])
+	await shot("postcard")
+	await close_popups()
+	Game._check_letters()
+	Game._check_letters()
+	check(Game.postcards.size() >= 2 and Game.postcards.filter(func(c): return c.id == "tofu").size() == 2, "and another a month later, then no more")
+	await close_popups()
+	check(Game.hall_of_fame().any(func(h): return h.id == "tofu" and h.level == 4) and Game.goal_value({"type": "hall_gold"}) >= 1,
+		"a foster who left Cuddly is in the Hall of Fame in gold")
+
+	# Personality: only the two strongest traits grow all the way
+	Game.traits = {}
+	Game.trait_told = {}
+	var nw_window := Game.agility_window()
+	Game.add_trait("athlete", 500)
+	Game.add_trait("showoff", 450)
+	Game.add_trait("explorer", 420)
+	check(Game.trait_level("athlete") == 3 and Game.trait_level("showoff") == 3 and Game.trait_level("explorer") == 1,
+		"personality: the two strongest traits reach level 3, the third is held at 1")
+	check(Game.agility_window() > nw_window, "an athletic bunny has more hang time")
+	await close_popups()
+	b.teleport(Vector2(256, 502))
+	b.start("parkour", null, Vector2(250, 500))
+	await wait(2.5)
+	await shot("parkour")
+	check(Game.seen.has("parkour"), "an athlete does sofa parkour")
+	await wait(2.0)
+	var nw_posed := false
+	for i in 8:
+		b.start("idle", null, b.position)
+		b.act_t = 30
+		main.set_mode("photo")
+		nw_posed = b.act == "pose"
+		main.set_mode("")
+		if nw_posed:
+			break
+	check(nw_posed, "a little star poses when the camera comes out")
+
+	# The photo album
+	var nw_album := Game.album_count()
+	Game.album.erase("pose")
+	for nw_other in main.bunnies:   # he's the one in the middle of the shot
+		if nw_other != b:
+			nw_other.teleport(Vector2(1150, 680))
+	main.go_to("living")
+	b.teleport(Vector2(640, 600))
+	b.start("pose", null, b.position)
+	main.set_mode("photo")
+	await wait(0.3)
+	main.take_photo()
+	await wait(1.0)
+	main.set_mode("")
+	await close_popups()
+	check(Game.album.has("pose") and Game.album_count() >= nw_album, "a photo fills its album slot")
+	var nw_pages: int = Game.album_pages.size()
+	for sl in Catalog.ALBUM_PAGES[5].slots:
+		if not Game.album.has(sl):
+			Game.album[sl] = {"file": Game.album.pose.file, "likes": 1}
+	Game.album_pages.erase(5)
+	Game._check_album()
+	check(5 in Game.album_pages and Game.album_pages.size() == nw_pages + 1, "a full album page pays out")
+	hud._journal_tab = "Album"
+	hud.open_journal()
+	await wait(0.4)
+	await shot("journal_album")
+	hud._journal_tab = "Bubák"
+	hud.open_journal()
+	await wait(0.4)
+	await shot("journal_bubak_traits")
+	await close_popups()
+
+	# Vaccination: once a year; overdue means no shows or walks
+	Game.vacc_at = Time.get_unix_time_from_system() - 400 * 86400.0
+	Game.show_ready_at = {}
+	check(Game.vaccine_overdue() and Game.show_problem(0, "looks").contains("vaccination") and Game.walk_problem("park").contains("vaccination"),
+		"an overdue vaccination: no shows or walks")
+	hud.open_vet()
+	await wait(0.3)
+	await shot("vet_vaccine")
+	check(not Game.vaccine_due() and Game.show_problem(0, "looks") == "", "vaccinated: shows are open again")
+	await close_popups()
+
+	# Visitors and weather: a storm, the neighbours' child, hide and seek
+	main.go_to("living")
+	b.teleport(Vector2(640, 600))
+	b.start("idle", null, b.position)
+	main.start_storm()
+	await wait(1.5)
+	check(main.storm_t > 0 and b.act == "storm_hide", "a thunderstorm: Bubák hides, trembling")
+	await shot("storm")
+	Game.bubak.trust_today = 0.0
+	b.teleport(b.target)
+	b.phase = 1
+	var nw_trust: float = Game.trust
+	if b.on_pet_start():
+		b.on_pet_hold(2.5)
+		b.on_pet_end()
+	check(b.calmed and Game.trust > nw_trust, "comforting him in the storm builds trust")
+	main.storm_t = 0.2
+	await wait(0.6)
+	check(main.storm_t <= 0 and b.act != "storm_hide", "the storm passes")
+	await close_popups()
+	Game.kid_day = ""
+	main._kid_visits()
+	await wait(0.3)
+	await shot("kid_visit")
+	var nw_yes: Array = _buttons("Come in, gently!")
+	var nw_fol: int = Game.followers
+	if nw_yes.size() == 1:
+		nw_yes[0].pressed.emit()
+	await wait(0.3)
+	check(Game.kid_day == Time.get_date_string_from_system() and Game.followers == nw_fol + 30, "a visit from next door goes well with a trusting bunny")
+	await close_popups()
+	b.start("idle", null, Vector2(640, 600))
+	b.teleport(Vector2(640, 600))
+	main._hide_and_seek()
+	await wait(0.5)
+	check(b.act == "hide_seek" and not b.pivot.visible and main._peek != null, "hide and seek: only his ears show")
+	await shot("hide_and_seek")
+	await tap(b.position + Vector2(0, -30))
+	await wait(0.3)
+	check(b.act != "hide_seek" and b.pivot.visible and main._peek == null and Game.seen.has("peekaboo"), "found him! (act %s, shown %s, ears %s, hit %s, modal %s)" % [
+		b.act, b.pivot.visible, main._peek != null, main._hit(b.position + Vector2(0, -30)), hud._modal != null])
+	await close_popups()
+
+	# The bigger veggie patch and golden seeds
+	Game.coins += 2000
+	Game.balcony = "open"
+	if Game.count_item("veg_patch") == 0:
+		Game.buy("veg_patch")
+	check(Game.buy("garden_beds") == "" and Game.garden_beds().size() == 5, "the bigger veggie patch: five beds")
+	Game.inventory.golden_seed = 1
+	Game.garden[4] = {"crop": "", "grow": 0.0}
+	Game.plant(4, "golden_carrot")
+	Game.garden[4].grow = 1.0
+	var nw_gc: int = Game.inventory.get("golden_carrot", 0)
+	Game.harvest(4)
+	check(Game.inventory.golden_seed == (1 if Game.seed_found else 0) and Game.inventory.golden_carrot == nw_gc + 1, "a golden seed grows a golden carrot")
+	main.go_to("balcony")
+	await wait(0.4)
+	Game.garden[1] = {"crop": "carrot", "grow": 0.4}
+	Game.garden[2] = {"crop": "rose_petals", "grow": 1.0}
+	hud.open_garden()
+	await wait(0.3)
+	await shot("garden_five")
+	check(hud._modal.get_child(0).get_child(0).get_rect().end.y <= main.get_viewport().get_visible_rect().size.y + 1,
+		"the five-bed patch fits on the screen")
+	await close_popups()
+	main.go_to("living")
+
+	# The daily agility course: timed, a best time, and a ghost of it the next time
+	Game.agility_daily = {}
+	Game.focus = float(Game.focus_max())
+	hud.open_club("Agility")
+	await wait(0.3)
+	var nw_run = hud.club_panel
+	var nw_daily: Array = _buttons("Daily course")
+	if nw_daily.size() == 1:
+		nw_daily[0].pressed.emit()
+	await wait(0.5)
+	check(nw_run.timed and nw_run.bars == 8 and nw_run._bars.any(func(o): return o.type != "bar"), "the daily course: 8 obstacles, not just bars")
+	await auto_jump(nw_run, "", 40.0)
+	await wait(1.0)
+	var nw_best: float = Game.daily_best()
+	check(nw_best > 0.0 and Game.daily_ghost().size() > 10 and Game.stats.get("agility_days", 0) >= 1,
+		"a daily run sets today's best (%.1f s, %d of %d clean)" % [nw_best, nw_run.clears, nw_run.bars])
+	check(nw_run.clears >= 6, "the autopilot gets round tunnels and weave poles too (%d of %d)" % [nw_run.clears, nw_run.bars])
+	if nw_daily.size() == 1:
+		nw_daily[0].pressed.emit()
+	await wait(2.5)
+	check(not nw_run.ghost.is_empty(), "the second run races today's ghost")
+	await shot("agility_daily_ghost")
+	await auto_jump(nw_run, "", 40.0)
+	await wait(1.0)
+	await shot("agility_daily_done")
+	await close_popups()
+
+	# ---- the top of the game ----------------------------------------------------------------
+	# Advanced tricks: two moments to reward, and a master's certificate
+	Game.tricks["stand"] = 0.0
+	check(Game.trick_lock("bow") != "", "an advanced trick needs the basic one first")
+	Game.tricks["stand"] = float(Catalog.TRICK_STARS[2])
+	Game.tricks["come"] = float(Catalog.TRICK_STARS[2])
+	Game.tricks["spin"] = float(Catalog.TRICK_STARS[2])
+	check(Game.trick_lock("bow") == "" and Game.trick_chance("bow") < Game.trick_chance("stand"), "then it can be taught, and goes wrong more often")
+	Game.focus = float(Game.focus_max())
+	hud.open_club("Training")
+	await wait(0.4)
+	await shot("training_advanced")
+	var tp_stage: StageBunny = hud.club_panel._stage
+	var tp_res := [""]
+	tp_stage.attempt_done.connect(func(r): tp_res[0] = r, CONNECT_ONE_SHOT)
+	tp_stage.attempt("bow", 1.0)
+	var tp_hits := 0
+	for i in 120:
+		await wait(0.05)
+		if tp_stage.in_window():
+			tp_stage.reward()
+			tp_hits += 1
+		if tp_res[0] != "":
+			break
+	check(tp_res[0] == "good" and tp_hits == 2, "a bow: both moments rewarded in time is perfect (%s, %d treats)" % [tp_res[0], tp_hits])
+	tp_res[0] = ""
+	tp_stage.attempt_done.connect(func(r): tp_res[0] = r, CONNECT_ONE_SHOT)
+	tp_stage.attempt("high_five", 1.0)
+	var tp_once := false
+	for i in 120:
+		await wait(0.05)
+		if tp_stage.in_window() and not tp_once:
+			tp_stage.reward()
+			tp_once = true
+		if tp_res[0] != "":
+			break
+	await shot("trick_high_five")
+	check(tp_res[0] == "late", "only one of the two moments rewarded: not perfect (%s)" % tp_res[0])
+	await close_popups()
+	var tp_coins: int = Game.coins
+	Game.tricks["bow"] = float(Catalog.TRICK_STARS[2]) - 1.0
+	Game.train("bow", "good")
+	await wait(0.3)
+	check("bow" in Game.certificates and Game.coins >= tp_coins + Catalog.CERTIFICATE_COINS, "three stars on an advanced trick: a master's certificate")
+	await shot("certificate")
+	await close_popups()
+
+	# Rivals keep up: they get better as Bubák wins, and a newcomer turns up after the National title
+	var tp_base: float = Catalog.RIVALS.baron.tricks
+	Game.trophies.append({"tier": 2, "cat": "looks", "place": 1, "time": Time.get_unix_time_from_system()})
+	Game.trophies.append({"tier": 2, "cat": "photo", "place": 1, "time": Time.get_unix_time_from_system()})
+	check(Game.rival_skill("baron", "tricks") > tp_base and Game.rival_growth() <= Catalog.RIVAL_GROWTH_MAX, "rivals train harder as Bubák wins (+%.1f)" % Game.rival_growth())
+	Game.newcomer_told = false
+	Game._check_rivals()
+	await wait(0.3)
+	check("velvet" in Game.active_rivals() and Game.newcomer_told, "a national champion: a new rival from abroad")
+	await shot("newcomer")
+	await close_popups()
+	check(Game.league_table().size() == Catalog.RIVALS.size() + 1 and Catalog.LEAGUE_PRIZES.size() >= Game.league_table().size(), "the newcomer joins the league too")
+	# a duel: one on one with a rival Bubák beat
+	Game.duel = {}
+	var tp_offered := false
+	for i in 40:
+		if Game.offer_duel(["pepik"], 0, "looks"):
+			tp_offered = true
+			break
+	check(tp_offered and Game.duel.rival == "pepik", "a beaten rival asks for a rematch")
+	await close_popups()
+	hud.open_club("Shows")
+	await wait(0.4)
+	await shot("duel_card")
+	await close_popups()
+	var tp_duels: int = Game.stats.get("duels", 0)
+	hud._enter_special("duel", 0, "looks")
+	var tp_ring = hud.club_panel
+	for i in 160:
+		await wait(0.1)
+		if tp_ring._button.text == "Continue":
+			break
+	await shot("duel_result")
+	check(Game.stats.get("duels", 0) == tp_duels + 1 and Game.duel.is_empty() and tp_ring._rivals.size() == 1, "a duel: one rival, one result")
+	await close_popups()
+
+	# The Bunny Games: qualify, then four rounds, one a day
+	Game.debug_date = "06-25"
+	Game.games = {}
+	Game._check_league()
+	Game.league_points = 0
+	check(Game.games_on() and Game.games_problem("looks").begins_with("Qualifying"), "the Games are on, but you need to qualify")
+	Game.league_points = Catalog.GAMES_QUALIFY
+	hud.open_club("League")
+	await wait(0.4)
+	for tp_sc in hud._modal.find_children("*", "ScrollContainer", true, false):
+		tp_sc.scroll_vertical = 100000
+	await wait(0.2)
+	await shot("games_panel")
+	await close_popups()
+	hud._enter_special("games", 2, "looks")
+	tp_ring = hud.club_panel
+	for i in 200:
+		await wait(0.1)
+		if tp_ring._button.text == "Continue":
+			break
+	await shot("games_round")
+	check(Game.games.rounds.has("looks") and Game.games_problem("tricks").begins_with("One round"), "a round of the Games, then one a day")
+	await close_popups()
+	var tp_hist: int = Game.games_history.size()
+	var tp_apples: int = Game.inventory.get("best_apples", 0)
+	for cat in ["tricks", "agility", "photo"]:
+		Game.games.last_day = ""
+		Game.games_round(cat, 95.0)
+	await wait(0.3)
+	check(Game.games.done and Game.games_history.size() == tp_hist + 1, "all four rounds: the final standings (%s.)" % Game.games_history[-1].place)
+	check(Game.inventory.get("best_apples", 0) - tp_apples == (Catalog.GAMES_APPLES if Game.games_history[-1].place == 1 else 0),
+		"a Games win brings the special dried apples, and only a win")
+	if Game.games_history[-1].place == 1:
+		check("best_apples" in Game.treats_in_inventory(), "the special dried apples are with the treats")
+	await shot("games_result")
+	await close_popups()
+	# a month's Games left half-done are scored when the month turns, and the next month has its own
+	Game.debug_date = "07-27"
+	Game.league_points = Catalog.GAMES_QUALIFY
+	check(Game.games_on() and Game.games_problem("looks") == "" and not Game.games.done, "next month: new Games")
+	Game.games_round("looks", 90.0)
+	tp_hist = Game.games_history.size()
+	Game.debug_date = "08-02"
+	Game._check_games()
+	await wait(0.3)
+	check(Game.games_history.size() == tp_hist + 1 and Game.games_history[-1].month.ends_with("-07") and not Game.games_on(),
+		"an unfinished Games is scored when the month ends")
+	await close_popups()
+	Game.debug_date = ""
+
+	# Challenge weeks
+	Game.challenge = {}
+	Game.challenge_week = -1
+	check(Game.challenge_offers().size() == 2 and Game.challenge_offers()[0] != Game.challenge_offers()[1], "two challenges to pick from each week")
+	Game.start_challenge("no_sweets")
+	check(Game.challenge_offers().is_empty(), "one challenge a week")
+	Game.challenge_event("treat", "parsley")
+	check(not Game.challenge.is_empty(), "parsley is fine in a no sweets week")
+	Game.challenge_event("treat", "carrot")
+	await wait(0.2)
+	check(Game.challenge.is_empty() and not Game.challenge_last.ok, "a carrot ends the no sweets week")
+	Game.start_challenge("budget")
+	check(is_equal_approx(Game.work_pay_mult(), (1.0 + 0.15 * Game.career_level() + 0.25 * Game.tier("monitor") + 0.25 * Game.tier("headphones")) * 0.5), "budget week: work pays half")
+	Game.challenge.start = Time.get_unix_time_from_system() - 8 * 86400.0
+	tp_coins = Game.coins
+	Game._check_challenge()
+	check(Game.challenge_last.ok and Game.coins == tp_coins + Catalog.CHALLENGES.budget.reward, "made it through the week: the reward")
+	Game.challenge_week = -1
+	Game.start_challenge("showtime")
+	hud._journal_tab = "Goals"
+	hud.open_journal()
+	await wait(0.4)
+	await shot("journal_challenge_ladder")
+	await close_popups()
+	Game.challenge = {}
+
+	# The seasonal ladder: ten steps, then the season's decoration
+	Game.ladder = {}
+	var tp_gift: String = Catalog.LADDERS[Game.season()].gift
+	var tp_had: int = Game.count_item(tp_gift)
+	for i in 10:
+		var st := Game.ladder_step()
+		Game.stats[st.stat] = int(Game.stats.get(st.stat, 0)) + st.n
+		Game._check_ladder()
+	await wait(0.3)
+	check(Game.ladder_step().is_empty() and Game.count_item(tp_gift) == mini(tp_had + 1, 1), "ten steps up the ladder: %s" % tp_gift)
+	await close_popups()
+
+	# The advent calendar
+	Game.debug_date = "12-05"
+	Game.advent = {}
+	main.update_special_day()
+	await wait(0.3)
+	check(main.advent_cal != null, "December: an advent calendar on the wall")
+	await close_popups()
+	main._use_item(main.advent_cal)
+	await wait(0.3)
+	await shot("advent")
+	tp_coins = Game.coins
+	var tp_door := Game.open_advent()
+	check(tp_door.day == 5 and Game.coins >= tp_coins and Game.open_advent().is_empty(), "today's door opens once")
+	await close_popups()
+	Game.advent.opened = range(1, 24)
+	Game.debug_date = "12-24"
+	var tp_last := Game.open_advent()
+	check(tp_last.gift == "santa_hat" and tp_last.all and "santa_hat" in Game.wardrobe and Game.count_item("snow_globe") == 1,
+		"the 24th door: a Santa hat, and a snow globe for opening them all")
+	Game.debug_date = ""
+	main.update_special_day()
+	await close_popups()
+
+	# Bubák's book
+	Game.book_written = []
+	Game.book_published = false
+	Game.write_chapter("meet")
+	hud.open_book(0)
+	await wait(0.3)
+	await shot("book_page")
+	await close_popups()
+	check(Game.publish_book() != "" and not Game.merch_unlocked("book"), "the book needs every chapter first")
+	Game.book_written = Catalog.BOOK.map(func(c): return c.id)
+	Game.coins += Catalog.BOOK_COST
+	var tp_fans: int = Game.followers
+	check(Game.publish_book() == "" and Game.book_published and Game.merch_unlocked("book") and Game.followers == tp_fans + Catalog.BOOK_FANS
+		and Game.count_item("bubak_book") == 1, "publishing the book: fans, merch and a copy for the flat")
+	await close_popups()
+
+	# Journal screens in Czech
+	_lang("cs")
+	hud = main.hud
+	for nw_tab in ["Goals", "Album", "Bubák", "Friend"]:
+		hud._journal_tab = nw_tab
+		hud.open_journal()
+		await wait(0.4)
+		await shot("cs_journal_" + nw_tab.to_lower())
+		for nw_sc in hud._modal.find_children("*", "ScrollContainer", true, false):
+			nw_sc.scroll_vertical = 100000
+		await wait(0.2)
+		await shot("cs_journal_" + nw_tab.to_lower() + "_end")
+		await close_popups()
+	hud._postcard_popup(Game.postcards[0])
+	await wait(0.3)
+	await shot("cs_postcard")
+	await close_popups()
+	hud.kid_popup("Ema")
+	await wait(0.3)
+	await shot("cs_kid")
+	await close_popups()
+	_lang("en")
+	hud = main.hud
+	hud._journal_tab = "Goals"
+
+	# the late-game screens in Czech (longer words: do they fit?)
+	_lang("cs")
+	hud = main.hud
+	for lt_tab in ["Shows", "Agility", "League"]:
+		hud.open_club(lt_tab)
+		await wait(0.4)
+		await shot("cs_club_" + lt_tab.to_lower())
+		await close_popups()
+	hud.open_merch()
+	await wait(0.4)
+	await shot("cs_merch")
+	await close_popups()
+	Game.foster_next = ""
+	Game.foster_offer_day = ""
+	hud._foster_offer_popup(Game.next_foster())
+	await wait(0.4)
+	await shot("cs_foster_offer")
+	await close_popups()
+	_lang("en")
+	hud = main.hud
 
 	Game.new_game()
 	check(Game.club_stage == 0 and Game.trophies.is_empty() and Game.coins == 40 and Game.mate == null, "start a new game")

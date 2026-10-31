@@ -21,6 +21,11 @@ const SKY_KEYS := [   # hour, sky top, sky bottom, room tint
 	[24.0, "#1d2347", "#3b3f72", "#7c80ad"],
 ]
 const DECOR := ["plant", "lamp", "bed", "rug"]
+## Christmas: baubles on the tree (in its art's pixels), and the garland over the window
+## (top-left corner; its bulbs follow the swags drawn by gen_art.py garland()).
+const TREE_BAUBLES := [Vector2(92, 104), Vector2(128, 96), Vector2(78, 160), Vector2(112, 176), Vector2(146, 154),
+	Vector2(64, 214), Vector2(98, 230), Vector2(138, 222), Vector2(172, 208)]
+const GARLAND_AT := Vector2(688, 82)
 
 var world: Node2D
 var floor_layer: Node2D
@@ -32,6 +37,7 @@ var hud_layer: CanvasLayer
 var hud: Control
 var bunny: Node2D        # Bubák
 var mate_bunny: Node2D = null
+var foster_bunny: Node2D = null
 var bunnies: Array = []  # Bubák, and his friend once adopted
 var held: Node2D = null  # the bunny picked up for a selfie
 var _pet_bunny: Node2D = null
@@ -49,6 +55,32 @@ var _feeder_t := 6.0
 var _laptop_t := 1.0
 var chair: Node2D
 var shelf: Node2D        # trophy shelf on the wall, appears with the first ribbon
+var xmas_tree: Node2D = null   # over Christmas
+var present: Node2D = null     # a wrapped present on a special day
+var room_bg: Sprite2D          # wallpaper and floor (Shop > Makeover)
+var pumpkin: Node2D = null     # Halloween
+var easter_decor: Node2D = null   # a vase of willow and painted eggs
+var eggs: Array = []           # Easter eggs still hidden around the flat
+var guest: Node2D = null       # a friend's bunny over for a playdate
+var _visit_t := 200.0          # till the next chance of a visitor
+var _guest_t := 0.0            # how long the guest stays
+var _cat_t := 0.0              # the neighbour's cat at the window (seconds left)
+var _cat_rise := 0.0
+var _crops: Array = []         # sprites on the veggie patch
+var storm_t := 0.0             # a thunderstorm: seconds left
+var _thunder_t := 0.0
+var _flash_t := 0.0
+var _storm_day := ""
+var leaf_pile: Node2D = null   # autumn, on the balcony
+var advent_cal: Node2D = null  # December: the advent calendar on the wall
+var _snow_floor: Node2D = null # snow on the balcony on snowy winter days
+var _peek: Sprite2D = null     # Bubák's ears sticking out during hide and seek
+var _season := ""
+var _snowing := false
+var _heat := false
+var sofa: Node2D
+var _xmas_decor: Array = []    # the garland over the window
+var _xmas_lights: Array = []   # [glow sprite, size] twinkling on the tree and the garland
 var view := "living"     # which room the camera shows
 var clock: Node2D
 var glow: Node2D         # additive lights, drawn above the night tint
@@ -119,6 +151,13 @@ func _ready() -> void:
 			_demo.call_deferred()
 		elif arg.begins_with("--lang="):   # screenshots in another language, settings untouched
 			TranslationServer.set_locale(arg.get_slice("=", 1))
+		elif arg.begins_with("--save="):   # play a copy of a save file, e.g. to check an older save still loads
+			Game.save_path = arg.get_slice("=", 1)
+			if not Game.load_game():
+				Game.new_game()   # no such file: a fresh game in it
+			Game._settle()
+		elif arg.begins_with("--date="):   # try a special day: --date=12-24
+			Game.debug_date = arg.get_slice("=", 1)
 		elif arg.begins_with("--view="):
 			go_to.call_deferred(arg.get_slice("=", 1))
 	RenderingServer.set_default_clear_color(Color("#f7e6d0"))
@@ -129,8 +168,9 @@ func _ready() -> void:
 	sky = Node2D.new()
 	sky.draw.connect(_draw_sky)
 	add_child(sky)
-	var bg := Sprite2D.new()
-	bg.texture = Catalog.tex("room")
+	room_bg = Sprite2D.new()
+	var bg := room_bg
+	bg.texture = Catalog.tex(_room_tex())
 	bg.centered = false
 	bg.position = Vector2(-240, -160)
 	add_child(bg)
@@ -154,7 +194,8 @@ func _ready() -> void:
 	tint = CanvasModulate.new()
 	add_child(tint)
 
-	fixed.append(_make_item("sofa", 0, Vector2(410, 478), "sofa", 0.78))
+	sofa = _make_item("sofa", 0, Vector2(410, 478), "sofa", 0.78)
+	fixed.append(sofa)
 	door = _make_item("door", 0, Vector2(95, 438), "door_locked", 1.0)
 	fixed.append(door)
 	balcony_door = _make_item("balcony_door", 0, Vector2(BX + 1150, 438), "balcony_door", 1.0)
@@ -195,6 +236,8 @@ func _ready() -> void:
 		mate_bunny = _add_bunny(Game.mate, Vector2(500, 630))
 		bunny.partner = mate_bunny
 		mate_bunny.partner = bunny
+	if Game.foster:
+		foster_bunny = _add_bunny(Game.foster, Vector2(860, 640))
 
 	_build_lighting()
 	hud_layer = CanvasLayer.new()
@@ -208,15 +251,35 @@ func _ready() -> void:
 		b.message.connect(hud.toast)
 		b.cable_alert.connect(_on_cable_alert.bind(b))
 	Game.item_added.connect(_spawn_placed)
+	Game.item_worn.connect(_show_wear)
+	Game.item_broken.connect(_on_item_broken)
 	Game.item_removed.connect(_on_item_removed)
 	Game.balcony_milestone.connect(hud.on_balcony_milestone)
 	if not Game.welcome.is_connected(_on_welcome):
 		Game.welcome.connect(_on_welcome)
+	_snow_floor = Node2D.new()
+	_snow_floor.draw.connect(_draw_snow_floor)
+	floor_layer.add_child(_snow_floor)
+	update_season()
 	_update_sky()
+	update_special_day(true)
 	if Game.welcome_text != "":
 		hud.show_welcome.call_deferred(Game.welcome_text)
 		Game.welcome_text = ""
 	Game.check_sponsor.call_deferred()
+	Game.check_wish.call_deferred()
+	Game.check_day.call_deferred()
+	Game.check_daily.call_deferred()
+	if Game.vaccine_due():
+		hud.toast_when_free.call_deferred(tr("Bubák's yearly vaccination is due: Journal > Bubák > the vet.") if not Game.vaccine_overdue()
+			else tr("Bubák's vaccination is overdue: no shows, walks or playdates until he's had it (Journal > Bubák)."), "vet")
+	elif Game.vet_due():
+		hud.toast_when_free.call_deferred(tr("Bubák's weekly check-up at the vet is due: Journal > Bubák."), "vet")
+	Game.style_changed.connect(func():
+		room_bg.texture = Catalog.tex(_room_tex())
+		spawn_fx("star", Vector2(640, 300)))
+	Game.memory_added.connect(_on_memory)
+	_visit_t = randf_range(Catalog.VISIT_EVERY[0], Catalog.VISIT_EVERY[1])
 
 
 func _process(delta: float) -> void:
@@ -240,6 +303,11 @@ func _process(delta: float) -> void:
 			Game.inventory[hand_treat] = Game.inventory.get(hand_treat, 0) + 1
 			hud.toast(tr("No bunny came this time. The treat went back in the bag."))
 			_remove_hand()
+	if Game.greet_pending and hud._modal == null and hud._pending.is_empty() and mode == "":
+		Game.greet_pending = false
+		_greet()
+	_visitors(delta)
+	_storm(delta)
 	_fur_t -= delta
 	if _fur_t <= 0:   # molting: he leaves tufts of fur around
 		_fur_t = randf_range(70, 110)
@@ -260,6 +328,11 @@ func _process(delta: float) -> void:
 		_sky_t = 10.0
 		_update_sky()
 		Game.check_sponsor()   # a new day may have started while playing
+		Game.check_wish()
+		Game.check_day()
+		Game.check_daily()
+		update_special_day()
+		update_season()
 
 
 func _update_care_items() -> void:
@@ -283,6 +356,7 @@ func _update_care_items() -> void:
 	if feeder:
 		feeder.set_texture("bird_feeder" if Game.seeds > 0 else "bird_feeder_empty")
 	sunspot.visible = is_daytime()
+	_update_crops()
 
 
 ## Texture name of a care item at its current upgrade tier, e.g. "bowl_t2".
@@ -306,6 +380,18 @@ func _make_item(id: String, uid: int, pos: Vector2, tex := "", s := -1.0) -> Nod
 
 
 ## Put away in the toy chest: off the floor, and whoever was using it finds something else to do.
+## A worn toy looks faded and scuffed.
+func _show_wear(uid: int, wear: float) -> void:
+	var it: Node2D = items.get(uid)
+	if it:
+		it.modulate = Color.WHITE.lerp(Color(0.78, 0.72, 0.66), clampf((wear - 0.3) / 0.7, 0.0, 1.0))
+
+
+func _on_item_broken(id: String) -> void:
+	Sfx.play("rip")
+	hud.toast(tr("Bubák loved the %s to pieces! Get a new one in the Shop.") % Catalog.item_name(id).to_lower(), Catalog.ITEMS[id].icon, true)
+
+
 func _on_item_removed(uid: int) -> void:
 	var it: Node2D = items.get(uid)
 	if it == null:
@@ -321,6 +407,7 @@ func _on_item_removed(uid: int) -> void:
 func _spawn_placed(e: Dictionary) -> void:
 	var it := _make_item(e.id, e.uid, Vector2(e.x, e.y))
 	items[e.uid] = it
+	_show_wear(e.uid, Game.wear_of(e))
 	if not is_node_ready():
 		return
 	it.wiggle(2.0)
@@ -336,7 +423,7 @@ func find_item(id: String, room := "") -> Node2D:
 
 
 func random_furniture(room := "living") -> Node2D:
-	var pool: Array = fixed.filter(func(f): return not f in [cable, door, balcony_door, sunspot, chair, shelf, closet])
+	var pool: Array = fixed.filter(func(f): return not f in [cable, door, balcony_door, sunspot, chair, shelf, closet, present])
 	for it in items.values():
 		if not Catalog.ITEMS[it.id].get("flat", false):
 			pool.append(it)
@@ -654,6 +741,14 @@ func _bunny_rect(b: Node2D) -> Rect2:
 
 
 func _tap(wp: Vector2, t) -> void:
+	if mode == "" and view == "living" and not Game.treasure.is_empty() and not t in bunnies \
+			and wp.distance_to(Game.treasure_spot()) < Catalog.TREASURE_RADIUS:
+		_dig_treasure(wp)
+		return
+	if _cat_t > 0 and mode == "" and WINDOW.has_point(wp) and not t in bunnies:
+		_cat_t = minf(_cat_t, 0.6)
+		hud.toast(tr("Shoo! The cat strolls off along the windowsill."))
+		return
 	match mode:
 		"photo", "move", "selfie":
 			return
@@ -686,6 +781,35 @@ func _use_item(it: Node2D) -> void:
 	it.wiggle()
 	var above: Vector2 = it.position + Vector2(0, -it.size().y - 10)
 	match it.id:
+		"xmas_tree":
+			Sfx.play("jingle")
+			spawn_fx("star", above + Vector2(0, 30))
+		"pumpkin":
+			Sfx.play("surprise")
+			spawn_fx("text", above, tr("Boo!"))
+		"easter_decor":
+			Sfx.play("chime")
+			spawn_fx("star", above + Vector2(0, 30))
+		"egg":
+			_find_egg(it)
+		"veg_patch":
+			hud.open_garden()
+		"advent_calendar":
+			Sfx.play("jingle")
+			hud.open_advent()
+		"leaf_pile":
+			Sfx.play("rip")
+			for i in 6:
+				spawn_fx("paper", above + Vector2(randf_range(-40, 40), 30), ["#d9822b", "#c8562e", "#e8b04a"].pick_random())
+		"present":
+			if it.has_meta("opening"):
+				return
+			if bunny.room_id != "living" or bunny.act == "held":
+				hud.toast(tr("Bubák isn't here. The present can wait!"))
+				return
+			Sfx.play("jingle")
+			it.set_meta("opening", true)
+			bunny.start("unwrap", it)
 		"bowl":
 			if Game.bowl >= [3, 5, 8][Game.tier("bowl") - 1]:
 				hud.toast(tr("The bowl is full."))
@@ -788,7 +912,9 @@ func _use_item(it: Node2D) -> void:
 			hud.toast([tr("Comfy. Bubák is not allowed up here. (He disagrees.)"),
 				tr("You find a hay stalk between the cushions. How?"),
 				tr("The sofa has suspicious nibble marks on one leg.")].pick_random())
-		"ball":
+		"ball", "jingle_ball", "egg_rattle":
+			if it.id == "jingle_ball":
+				Sfx.play("jingle")
 			var dest: Vector2 = it.position + Vector2(randf_range(-160, 160), randf_range(-60, 60))
 			var f := Game.floor_of(Game.room_at(it.position))
 			dest = Vector2(clampf(dest.x, f.position.x, f.end.x), clampf(dest.y, f.position.y, f.end.y))
@@ -800,6 +926,13 @@ func _use_item(it: Node2D) -> void:
 			var b := bunny_near(it.position)
 			if b and b.pet.needs.fun < 90 and b.act in ["idle", "wander", "loaf", "groom"]:
 				b.start("play_ball", it)
+		_:
+			# any other toy: he hops over to play with it, if he's not busy
+			var use: String = Catalog.ITEMS.get(it.id, {}).get("use", "")
+			var tb := bunny_near(it.position)
+			if tb and use in tb.TOY_ACTS and tb.act in ["idle", "wander", "loaf", "groom", "sunbathe", "chill"]:
+				tb.start(use, it)
+				tb.emote("!")
 
 
 # ---- treats ------------------------------------------------------------------
@@ -888,6 +1021,9 @@ func set_mode(m: String) -> void:
 		held.put_down()
 	mode = m
 	hud.on_mode_changed(m)
+	if m == "photo":
+		for b in bunnies:
+			b.on_camera()
 
 
 # ---- effects -----------------------------------------------------------------
@@ -910,6 +1046,24 @@ func spawn_fx(kind: String, pos: Vector2, text := "") -> void:
 		pt.tween_property(p, "position", pos + Vector2(randf_range(-14, 14), -8), 0.45)
 		pt.tween_property(p, "modulate:a", 0.0, 0.45)
 		pt.chain().tween_callback(p.queue_free)
+		return
+	if kind in ["paper", "confetti"]:   # wrapping paper scraps, party confetti
+		var c := Polygon2D.new()
+		var w := randf_range(6, 12) if kind == "paper" else randf_range(4, 7)
+		c.polygon = PackedVector2Array([Vector2(-w, -w * 0.6), Vector2(w, -w * 0.8), Vector2(w * 0.8, w * 0.6), Vector2(-w * 0.9, w * 0.7)])
+		c.color = Color(text if text != "" else ["#e8505b", "#f3cf7a", "#7fb0d8", "#e98fae", "#9cc5a1", "#d8a7d0"].pick_random())
+		c.position = pos
+		c.rotation = randf() * TAU
+		fx.add_child(c)
+		var up := randf_range(50, 120)
+		var to := pos + Vector2(randf_range(-90, 90), randf_range(10, 40))
+		var ct := c.create_tween().set_parallel()
+		ct.tween_property(c, "position:x", to.x, 0.9)
+		ct.tween_property(c, "position:y", pos.y - up, 0.3).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
+		ct.chain().tween_property(c, "position:y", to.y, 0.6).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+		ct.parallel().tween_property(c, "rotation", c.rotation + randf_range(-6, 6), 0.9)
+		ct.chain().tween_property(c, "modulate:a", 0.0, 0.4)
+		ct.chain().tween_callback(c.queue_free)
 		return
 	if kind == "dirt":   # sand flying out of the dig box
 		var d := Sprite2D.new()
@@ -951,6 +1105,185 @@ func spawn_fx(kind: String, pos: Vector2, text := "") -> void:
 	t.chain().tween_callback(n.queue_free)
 
 
+# ---- special days -------------------------------------------------------------------
+
+## The Christmas tree and a wrapped present come and go with the date.
+func update_special_day(greet := false) -> void:
+	if Game.is_christmas() != (xmas_tree != null):
+		if xmas_tree:
+			fixed.erase(xmas_tree)
+			xmas_tree.queue_free()
+			xmas_tree = null
+			for n in _xmas_decor:
+				n.queue_free()
+			for l in _xmas_lights:
+				l[0].queue_free()
+			_xmas_decor = []
+			_xmas_lights = []
+		else:
+			Game.tree_pos = _tree_spot()
+			xmas_tree = _make_item("xmas_tree", 0, Game.tree_pos, "xmas_tree", 0.85)
+			fixed.append(xmas_tree)
+			_deck_the_halls()
+	if Game.is_halloween() != (pumpkin != null):
+		if pumpkin:
+			fixed.erase(pumpkin)
+			pumpkin.queue_free()
+			pumpkin = null
+		else:
+			Game.tree_pos = _tree_spot()
+			pumpkin = _make_item("pumpkin", 0, Game.tree_pos, "pumpkin", 0.8)
+			fixed.append(pumpkin)
+			var g := _glow_sprite(Color(1.0, 0.6, 0.2), 1.4)
+			g.position = Game.tree_pos + Vector2(0, -40)
+			_xmas_lights.append([g, 1.4])
+			pumpkin.tree_exiting.connect(func():
+				_xmas_lights = _xmas_lights.filter(func(l): return l[0] != g)
+				g.queue_free())
+	if Game.is_easter() != (easter_decor != null):
+		if easter_decor:
+			fixed.erase(easter_decor)
+			easter_decor.queue_free()
+			easter_decor = null
+			for e in eggs:
+				fixed.erase(e)
+				e.queue_free()
+			eggs = []
+		else:
+			Game.tree_pos = _tree_spot()
+			easter_decor = _make_item("easter_decor", 0, Game.tree_pos, "easter_decor", 0.85)
+			fixed.append(easter_decor)
+			var spots: Array = Catalog.EGG_SPOTS.duplicate()
+			spots.shuffle()
+			spots.sort_custom(func(a, b): return _room_around(a) > _room_around(b))   # not hidden behind furniture
+			for i in Game.eggs_left():
+				var e := _make_item("egg", 0, spots[i], "egg_%d" % (i % 3), 0.55)
+				fixed.append(e)
+				eggs.append(e)
+			if Game.eggs_left() > 0:
+				hud.toast_when_free(tr("Happy Easter! %d painted eggs are hidden around the flat. Can you find them?") % Game.eggs_left(), "star", true)
+	if Game.advent_on() != (advent_cal != null):
+		if advent_cal:
+			fixed.erase(advent_cal)
+			advent_cal.queue_free()
+			advent_cal = null
+		else:
+			advent_cal = _make_item("advent_calendar", 0, Vector2(560, 300), "advent_calendar", 0.7)
+			advent_cal.shadow = false
+			fixed.append(advent_cal)
+	if advent_cal and greet and not int(Game.today().right(2)) in Game.advent_opened():
+		hud.toast_when_free(tr("Today's door of the advent calendar is waiting. Tap the calendar on the wall!"), "gift", true)
+	var ev := Game.present_waiting()
+	if present and (ev == "" or present.tex_name != Catalog.EVENTS[ev].present) and not present.has_meta("opening"):
+		fixed.erase(present)
+		present.queue_free()
+		present = null
+	if ev != "" and present == null:
+		var at: Vector2 = Game.tree_pos + Vector2(72, 26) if ev in ["christmas", "easter", "halloween"] else Catalog.BIRTHDAY_POS
+		present = _make_item("present", 0, at, Catalog.EVENTS[ev].present, 0.62)
+		fixed.append(present)
+		greet = true
+	if greet and present:
+		match ev:
+			"birthday":
+				hud.toast_when_free(tr("Happy birthday, Bubák! There's a present waiting. Tap it!"), "heart", true)
+			"anniversary":
+				hud.toast_when_free(tr("You met Bubák on this day! There's a present for him. Tap it!"), "heart", true)
+			"easter":
+				hud.toast_when_free(tr("All the eggs found! And look: a present for Bubák. Tap it!"), "star", true)
+			"halloween":
+				hud.toast_when_free(tr("Happy Halloween! There's a present by the pumpkin. Tap it!"), "star", true)
+			_:
+				hud.toast_when_free(tr("Merry Christmas! There's a present for Bubák under the tree. Tap it!"), "star", true)
+
+
+## How far a spot is from the nearest piece of furniture in the living room.
+func _room_around(p: Vector2) -> float:
+	var nearest := 400.0
+	for it in items.values() + fixed:
+		if it is Placeable and it.visible and Game.room_at(it.position) == "living" and not it.id in ["egg", "door", "cable"]:
+			nearest = minf(nearest, it.rect().grow(10).get_center().distance_to(p) - it.size().length() * 0.35)
+	return nearest
+
+
+## Along the back wall, where it's least in the way of the furniture.
+func _tree_spot() -> Vector2:
+	var best: Vector2 = Catalog.TREE_SPOTS[0]
+	var room_left := -1.0
+	for spot in Catalog.TREE_SPOTS:
+		var nearest := INF
+		for it in items.values():
+			if Game.room_at(it.position) == "living" and not Catalog.ITEMS[it.id].get("flat", false):
+				nearest = minf(nearest, absf(it.position.x - spot.x) + 0.5 * absf(it.position.y - spot.y))
+		if nearest > room_left + 30:   # the first spots are the nicest, so only move for real room
+			best = spot
+			room_left = nearest
+	return best
+
+
+## Christmas decorations: a garland over the window, and fairy lights that twinkle (most at night).
+func _deck_the_halls() -> void:
+	var garland := Sprite2D.new()
+	garland.texture = Catalog.tex("garland")
+	garland.centered = false
+	garland.position = GARLAND_AT
+	floor_layer.add_child(garland)
+	_xmas_decor.append(garland)
+	var colors := [Color("#f3cf7a"), Color("#e8505b"), Color("#7fb0d8"), Color("#9cc5a1")]
+	var i := 0
+	for b in TREE_BAUBLES:
+		var g := _glow_sprite(colors[i % 4], 0.3)
+		g.position = Game.tree_pos + (b - Vector2(110, 296)) * 0.85
+		_xmas_lights.append([g, 0.3])
+		i += 1
+	var star := _glow_sprite(Color(1.0, 0.85, 0.4), 1.0)
+	star.position = Game.tree_pos + (Vector2(110, 30) - Vector2(110, 296)) * 0.85
+	_xmas_lights.append([star, 1.0])
+	for x in [[14.0, 170.0], [170.0, 326.0]]:
+		for t in [0.2, 0.4, 0.6, 0.8]:
+			var xm: float = (x[0] + x[1]) / 2.0
+			var p := Vector2(pow(1 - t, 2) * x[0] + 2 * (1 - t) * t * xm + t * t * x[1], pow(1 - t, 2) * 14 + 2 * (1 - t) * t * 58 + t * t * 14)
+			var g := _glow_sprite(colors[i % 4], 0.3)
+			g.position = GARLAND_AT + Vector2(12, 11) + p
+			_xmas_lights.append([g, 0.3])
+			i += 1
+
+
+## Bubák has torn the paper off: out comes the gift. Returns false if there was nothing to open.
+func open_present(b: Node2D) -> bool:
+	if present == null:
+		return false
+	var at: Vector2 = present.position
+	fixed.erase(present)
+	present.queue_free()
+	present = null
+	for i in 14:
+		spawn_fx("confetti", at + Vector2(randf_range(-30, 30), -30))
+	var f: Rect2 = Game.floor_of("living")
+	var res := Game.open_present((at + Vector2(80, 14)).clamp(f.position + Vector2(40, 20), f.end - Vector2(40, 10)))
+	if res.is_empty():
+		return false
+	var item: Dictionary = Catalog.ITEMS[res.id]
+	var gift := tr(item.name)
+	match res.event:
+		"birthday":
+			Sfx.play("fanfare")
+			hud.toast(tr("Happy birthday, Bubák! In the present: %s. Pure joy!") % gift, "heart", true)
+		"christmas":
+			Sfx.play("sparkle")
+			hud.toast(tr("The paper is in shreds! Inside: %s. Merry Christmas!") % gift, "star", true)
+		_:
+			Sfx.play("sparkle")
+			hud.toast(tr("The paper is in shreds! Inside: %s.") % gift, "star", true)
+	for i in 4:
+		spawn_fx("heart", b.position + Vector2(randf_range(-30, 30), -80))
+	if item.kind == "toy" and items.has(res.uid):
+		b.start(item.use, items[res.uid])
+	else:
+		b.start("binky", null, b.position)
+	return true
+
+
 func shake() -> void:
 	_shake = 9.0
 
@@ -977,6 +1310,8 @@ func _update_sky() -> void:
 	_night = 1.0 - _daylight(h)
 	if (find_item("lamp") or find_item("lantern")) and _night > 0.05:
 		c = c.lerp(Color("#f7dcc0"), 0.3 * _night)
+	if storm_t > 0:
+		c = c.darkened(0.28)
 	tint.color = c
 	sky.queue_redraw()
 	beam.queue_redraw()
@@ -1095,6 +1430,8 @@ func _update_lights() -> void:
 	laptop_glow.modulate.a = night * 0.4
 	for i in _bulbs.size():
 		_bulbs[i].modulate.a = night * (0.75 + 0.25 * sin(t * 2.0 + i * 1.7))
+	for i in _xmas_lights.size():   # fairy lights: a soft glow by day, twinkling by night
+		_xmas_lights[i][0].modulate.a = (0.3 + 0.7 * night) * (0.55 + 0.45 * sin(t * 2.6 + i * 2.3))
 	# lamps and lanterns: a halo around the shade and a warm pool on the floor
 	var alive := {}
 	for it in items.values():
@@ -1158,6 +1495,36 @@ func _draw_sky_in(r: Rect2, scale: float) -> void:
 	var bottom: Color = _sky_colors[1]
 	sky.draw_polygon(PackedVector2Array([r.position, Vector2(r.end.x, r.position.y), r.end,
 		Vector2(r.position.x, r.end.y)]), PackedColorArray([top, top, bottom, bottom]))
+	if scale == 1.0 and _cat_rise > 0:   # the neighbour's cat on the windowsill
+		var ct: Texture2D = Catalog.tex("window_cat")
+		sky.draw_texture(ct, Vector2(r.position.x + 40, r.end.y - ct.get_height() * _cat_rise + 6))
+	if pumpkin and _night > 0.3:   # Halloween night: bats flitting past
+		var now := Time.get_ticks_msec() / 1000.0
+		for i in 3:
+			var x := fposmod(now * (60 + i * 25) + i * 300, r.size.x + 120) - 60
+			var y := r.size.y * (0.25 + 0.15 * i) + sin(now * 3 + i) * 12
+			var flap := 6.0 * sin(now * 14 + i * 2)
+			var c := r.position + Vector2(x, y)
+			var bat := Color("#2c2433")
+			sky.draw_colored_polygon(PackedVector2Array([c, c + Vector2(-14, -6 - flap), c + Vector2(-6, 4)]), bat)
+			sky.draw_colored_polygon(PackedVector2Array([c, c + Vector2(6, 4), c + Vector2(14, -6 - flap)]), bat)
+			sky.draw_circle(c + Vector2(0, 1), 3.5, bat)
+	if storm_t > 0:   # a thunderstorm: dark clouds, rain, lightning
+		_draw_storm(r, scale)
+		return
+	_draw_season(r, scale)
+	if _snowing:   # a snowy day (always over Christmas)
+		var now := Time.get_ticks_msec() / 1000.0
+		var rs := RandomNumberGenerator.new()
+		rs.seed = 11
+		for i in int(36 * scale):
+			var sx := rs.randf() * r.size.x
+			var fall := rs.randf_range(16, 38)
+			var y := fposmod(rs.randf() * r.size.y + now * fall, r.size.y)
+			var x := fposmod(sx + sin(now * 0.8 + i) * 10.0, r.size.x)
+			sky.draw_circle(r.position + Vector2(x, y), rs.randf_range(1.6, 3.2) * minf(scale, 1.5), Color(1, 1, 1, 0.92))
+		for k in 8:   # snow piled up along the bottom
+			sky.draw_circle(r.position + Vector2(r.size.x * k / 7.0, r.size.y + 4), r.size.x / 7.0, Color("#f4f8ff"))
 	if _night > 0.2:
 		var rnd := RandomNumberGenerator.new()
 		rnd.seed = 7
@@ -1191,8 +1558,34 @@ func take_photo() -> void:
 	for it in items.values():
 		if subject and it.id in DECOR and it.position.distance_to(subject.position) < 260:
 			decor += 1
+	var ctx := {"room": subject.room_id if subject else view, "hour": hour(), "subject": subject.pet.id if subject else "",
+		"tree": xmas_tree != null and subject != null and subject.position.distance_to(xmas_tree.position) < 320}
+	if subject:
+		ctx.wear = Game.wearing_of(subject.pet).size()
+		ctx.wearing = Game.wearing_of(subject.pet).values()
+	var sub: Image = await _capture(subject)
+	if sub == null:
+		return
+	var file := Game.photo_dir + "p_%d.png" % int(Time.get_unix_time_from_system() * 1000)
+	sub.save_png(file)
+	var res := Game.record_photo(file, behaviour, decor, ctx)
+	res.shy = shy
+	hud.show_photo_result(sub, res)
+	if subject and not shy:
+		subject.on_flash()
+
+
+func _room_tex() -> String:
+	return "room" if Game.room_style == "cream" else "room_" + Game.room_style
+
+
+## The shot around a bunny (or the middle of the screen), without the HUD: 480 x 360.
+## Returns null if the scene was replaced meanwhile (a save loaded, test play started).
+func _capture(subject: Node2D) -> Image:
 	hud_layer.visible = false
 	await RenderingServer.frame_post_draw
+	if not is_inside_tree():
+		return null
 	var img := get_viewport().get_texture().get_image()
 	hud_layer.visible = true
 	var vis := get_viewport().get_visible_rect().size
@@ -1204,13 +1597,369 @@ func take_photo() -> void:
 	var top_left := Vector2(clampf(center.x - crop.x / 2, 0, vis.x - crop.x), clampf(center.y - crop.y / 2, 0, vis.y - crop.y))
 	var sub := img.get_region(Rect2i(Vector2i(top_left * k), Vector2i(crop * k)))
 	sub.resize(480, 360, Image.INTERPOLATE_LANCZOS)
-	var file := Game.PHOTO_DIR + "p_%d.png" % int(Time.get_unix_time_from_system() * 1000)
-	sub.save_png(file)
-	var res := Game.record_photo(file, behaviour, decor)
-	res.shy = shy
-	hud.show_photo_result(sub, res)
-	if subject and not shy:
-		subject.on_flash()
+	return sub
+
+
+## A new memory for the scrapbook: a snapshot of the moment, if Bubák is in view.
+func _on_memory(e: Dictionary, snap: bool) -> void:
+	if not snap:
+		return
+	await get_tree().create_timer(0.5).timeout
+	if not is_inside_tree() or hud._modal != null or mode != "" or bunny.room_id != view or bunny.hidden_inside:
+		return
+	var img: Image = await _capture(bunny)
+	if img == null:
+		return
+	var file := Game.photo_dir + "m_%d.png" % int(Time.get_unix_time_from_system() * 1000)
+	img.save_png(file)
+	e.file = file
+	Game.save_game()
+
+
+# ---- greetings and visitors -------------------------------------------------------
+
+## Back after a while: whoever's in view comes over to say hello.
+func _greet() -> void:
+	var delay := 0.0
+	for b in bunnies:
+		if b == guest or b.room_id != view or b.act == "held" or b.hidden_inside:
+			continue
+		if b.pet.trust_level() < 1:
+			b.emote("!")   # still shy: just a look
+			continue
+		if delay > 0:
+			await get_tree().create_timer(delay).timeout
+			if not is_inside_tree() or not is_instance_valid(b):
+				return
+		b.greet()
+		delay = 0.7
+
+
+func _visitors(delta: float) -> void:
+	if _cat_t > 0:
+		_cat_t -= delta
+		_cat_rise = minf(1.0, _cat_rise + delta * 1.5) if _cat_t > 0.6 else maxf(0.0, _cat_rise - delta * 1.8)
+	if guest:
+		_guest_t -= delta
+		if _guest_t <= 0:
+			_guest_leaves()
+	_visit_t -= delta
+	if _visit_t > 0 or mode != "" or hud._modal != null:
+		return
+	_visit_t = randf_range(Catalog.VISIT_EVERY[0], Catalog.VISIT_EVERY[1])
+	var today := Time.get_date_string_from_system()
+	var opts := [[0.9, Callable()]]   # [weight, what happens]; mostly nothing
+	if guest == null and Game.trust_level() >= 2 and Game.guest_day != today and not Game.vaccine_overdue():
+		opts.append([1.0, _guest_arrives])
+	if _cat_t <= 0:
+		opts.append([0.6, _cat_arrives])
+	if storm_t <= 0 and _storm_day != today:
+		opts.append([0.45 if _season == "summer" else 0.2, start_storm])
+	if Game.kid_day != today and Game.trust_level() >= 1:
+		opts.append([0.35, _kid_visits])
+	if Game.trust_level() >= 2 and view == "living" and bunny.room_id == "living" and bunny.phase == 1 \
+			and bunny.act in ["idle", "loaf", "groom", "wander", "chin"] and bunny.pet.mood() > 55 and storm_t <= 0:
+		opts.append([0.5, _hide_and_seek])
+	var total := 0.0
+	for o in opts:
+		total += o[0]
+	var r := randf() * total
+	for o in opts:
+		r -= o[0]
+		if r <= 0:
+			if o[1].is_valid():
+				o[1].call()
+			return
+
+
+## A thunderstorm rolls in: the bunnies hide, trembling, till you comfort them.
+func start_storm() -> void:
+	storm_t = Catalog.STORM_LENGTH
+	_thunder_t = 1.2
+	_storm_day = Time.get_date_string_from_system()
+	Game.stats.storms = Game.stats.get("storms", 0) + 1
+	for b in bunnies:
+		b.calmed = false
+		if b == guest or b.petting or b.act in ["held", "door", "eat_hand", "approach_hand", "hide_seek"]:
+			continue
+		b._end_current()
+		b._choose_next()
+	_update_sky()
+	hud.toast(tr("A thunderstorm! The bunnies are scared. Hold your finger on them to comfort them."), "storm")
+	Game.remember("storm1", "The first thunderstorm. Bubák hid, trembling, until you came.", [], false)
+
+
+func _storm(delta: float) -> void:
+	if storm_t <= 0:
+		return
+	storm_t -= delta
+	_thunder_t -= delta
+	if _flash_t > 0:
+		_flash_t -= delta
+		if _flash_t <= 0:
+			_update_sky()
+	if _thunder_t <= 0:
+		_thunder_t = randf_range(7, 13)
+		_flash_t = 0.18
+		tint.color = Color(1.2, 1.2, 1.25)
+		get_tree().create_timer(0.45).timeout.connect(func():
+			if is_inside_tree() and storm_t > 0:
+				Sfx.play("thunder")
+				shake())
+	if storm_t <= 0:
+		storm_t = 0
+		_update_sky()
+		for b in bunnies:
+			if b.act == "storm_hide":
+				b.start("idle", null, b.position)
+		hud.toast(tr("The storm has passed. The sun peeks out again."))
+
+
+func _draw_storm(r: Rect2, scale: float) -> void:
+	sky.draw_rect(r, Color("#2f3442", 0.72))
+	var now := Time.get_ticks_msec() / 1000.0
+	for cl in [[Vector2(110, 60), 1.2], [Vector2(320, 40), 1.4], [Vector2(520, 70), 1.1], [Vector2(230, 110), 0.9]]:
+		var c: Vector2 = r.position + cl[0] * Vector2(scale, 1.0)
+		var sz: float = cl[1] * minf(scale, 1.6)
+		for o in [Vector2(-30, 6), Vector2(0, -10), Vector2(30, 6), Vector2(14, 12)]:
+			sky.draw_circle(c + o * sz, 26 * sz, Color("#5b6275"))
+	var rs := RandomNumberGenerator.new()
+	rs.seed = 5
+	for i in int(40 * scale):
+		var x := rs.randf() * r.size.x
+		var y := fposmod(rs.randf() * r.size.y + now * rs.randf_range(380, 520), r.size.y)
+		var p := r.position + Vector2(x, y)
+		sky.draw_line(p, p + Vector2(-5, 16), Color(0.8, 0.86, 1.0, 0.55), 2.0)
+	if _flash_t > 0:
+		sky.draw_rect(r, Color(1, 1, 1, 0.75))
+		var x0 := r.position.x + r.size.x * 0.6
+		var pts := PackedVector2Array([Vector2(x0, r.position.y), Vector2(x0 - 20, r.position.y + r.size.y * 0.3),
+			Vector2(x0 + 6, r.position.y + r.size.y * 0.35), Vector2(x0 - 14, r.position.y + r.size.y * 0.7)])
+		sky.draw_polyline(pts, Color("#fff6c0"), 4.0)
+
+
+## Falling blossom in spring, leaves in autumn; a big hazy sun in a heatwave.
+func _draw_season(r: Rect2, scale: float) -> void:
+	var now := Time.get_ticks_msec() / 1000.0
+	if _heat and _night < 0.2:
+		var sun := r.position + Vector2(70, 70 + (140 if scale > 1 else 0)) * Vector2(scale, 1)
+		sky.draw_circle(sun, 48 * minf(scale, 1.6), Color(1, 0.85, 0.4, 0.35))
+	if not _season in ["spring", "autumn"] or _night > 0.6:
+		return
+	var rs := RandomNumberGenerator.new()
+	rs.seed = 3
+	var cols: Array = ["#f6c1d0", "#fbe0e8", "#f2a7bd"] if _season == "spring" else ["#d9822b", "#c8562e", "#e8b04a", "#9a5b2e"]
+	for i in int(10 * scale):
+		var fall := rs.randf_range(14, 30)
+		var y := fposmod(rs.randf() * r.size.y + now * fall, r.size.y)
+		var x := fposmod(rs.randf() * r.size.x + now * 12.0 + sin(now * 1.3 + i) * 18.0, r.size.x)
+		var p := r.position + Vector2(x, y)
+		var a := now * 2.0 + i
+		var sz := (4.0 if _season == "spring" else 7.0) * minf(scale, 1.5)
+		var pts := PackedVector2Array()
+		for k in 4:
+			var ang := a + k * PI / 2.0
+			pts.append(p + Vector2(cos(ang), sin(ang)) * (sz if k % 2 == 0 else sz * 0.45))
+		sky.draw_colored_polygon(pts, Color(cols[i % cols.size()]))
+
+
+## The season's look: a leaf pile on the balcony in autumn, snow on the floor on snowy days.
+func update_season() -> void:
+	_season = Game.season()
+	_snowing = Game.snowing()
+	_heat = Game.heatwave()
+	var autumn := _season == "autumn"
+	if autumn != (leaf_pile != null):
+		if leaf_pile:
+			fixed.erase(leaf_pile)
+			leaf_pile.queue_free()
+			leaf_pile = null
+		else:
+			leaf_pile = _make_item("leaf_pile", 0, Vector2(BX + 900, 640), "leaf_pile", 0.9)
+			fixed.append(leaf_pile)
+	_snow_floor.visible = _snowing
+	_snow_floor.queue_redraw()
+
+
+func _draw_snow_floor() -> void:
+	var f := Game.BALCONY_FLOOR
+	var rs := RandomNumberGenerator.new()
+	rs.seed = 21
+	for i in 34:   # soft drifts
+		var p := Vector2(rs.randf_range(f.position.x, f.end.x), rs.randf_range(f.position.y + 10, f.end.y))
+		var r := rs.randf_range(50, 110)
+		_snow_floor.draw_texture_rect(Catalog.soft_circle(), Rect2(p - Vector2(r, r * 0.3), Vector2(r * 2, r * 0.6)), false, Color(1, 1, 1, 0.95))
+
+
+## The neighbours' child rings the bell, hoping to meet Bubák.
+func _kid_visits() -> void:
+	if hud._modal != null:
+		return
+	Game.kid_day = Time.get_date_string_from_system()
+	Game.save_game()
+	Sfx.play("notify")
+	hud.kid_popup(Catalog.KIDS.pick_random())
+
+
+## How the visit went (see Game.kid_visit): he hops over for a pat, or hides.
+func kid_reaction(res: Dictionary) -> void:
+	if bunny.room_id != view or bunny.act in ["held", "hide_seek"]:
+		return
+	if res.happy:
+		bunny.start("binky", null, bunny.position)
+		spawn_fx("heart", bunny.position + Vector2(0, -120))
+	else:
+		bunny.start("thump", null, bunny.position)
+
+
+## Bubák hides behind something in the living room. Only his ears give him away.
+func _hide_and_seek() -> void:
+	var spots: Array = [sofa]
+	for c in items.values():
+		if c.visible and Game.room_at(c.position) == "living" and not Catalog.ITEMS.get(c.id, {}).get("flat", false) \
+				and c.size().y > 60 and c.size().x > 60:
+			spots.append(c)
+	var it: Node2D = spots.pick_random()
+	var side := -1.0 if randf() < 0.5 else 1.0
+	var spot: Vector2 = it.position + Vector2(side * (it.size().x * 0.5 - 8.0), -10.0)
+	spot = Vector2(clampf(spot.x, Game.FLOOR.position.x + 20, Game.FLOOR.end.x - 20), clampf(spot.y, Game.FLOOR.position.y, Game.FLOOR.end.y))
+	bunny.teleport(spot)
+	bunny.start("hide_seek", null, spot)
+	hud.toast(tr("Bubák wants to play hide and seek! He's hiding somewhere in the room. Can you find him?"), "heart")
+
+
+func show_peek_ears(b: Node2D, on: bool) -> void:
+	if _peek:
+		_peek.queue_free()
+		_peek = null
+	if not on:
+		return
+	_peek = Sprite2D.new()
+	_peek.texture = Catalog.tex("peek_ears")
+	_peek.offset = Vector2(0, -_peek.texture.get_height() * 0.5 - 70.0 * b.scale_factor())
+	_peek.scale = Vector2.ONE * b.scale_factor() * 1.1
+	_peek.position = b.position
+	world.add_child(_peek)
+	var t := _peek.create_tween().set_loops()
+	t.tween_interval(randf_range(1.5, 3.0))
+	t.tween_property(_peek, "rotation", 0.12, 0.12)
+	t.tween_property(_peek, "rotation", -0.08, 0.12)
+	t.tween_property(_peek, "rotation", 0.0, 0.12)
+
+
+## Dug up right where the X is on the map.
+func _dig_treasure(at: Vector2) -> void:
+	var res := Game.dig_treasure()
+	if res.is_empty():
+		return
+	Sfx.play("fanfare")
+	for i in 14:
+		spawn_fx("confetti", at + Vector2(0, -20))
+	for i in 5:
+		spawn_fx("dirt", at)
+	hud.treasure_popup(res)
+
+
+## The neighbour's cat peeks in at the window. Bubák is not amused.
+func _cat_arrives() -> void:
+	_cat_t = 14.0
+	_cat_rise = 0.0
+	if bunny.room_id == "living" and bunny.act != "held" and not bunny.hidden_inside:
+		bunny.start("thump", null, bunny.position)
+	if view == "living":
+		Sfx.play("huh")
+		hud.toast(tr("The neighbour's cat is peeking in at the window! Bubák is not amused. Tap the window to shoo it."))
+	Game.remember("cat1", "The neighbour's cat came to stare. Bubák thumped at it!", [], false)
+
+
+## A friend drops by with their bunny for a playdate.
+func _guest_arrives() -> void:
+	var breeds: Array = Catalog.MATES.keys().filter(func(id): return Game.mate == null or id != Game.mate.id)
+	var p := Pet.new()
+	p.id = breeds.pick_random()
+	p.nickname = Catalog.GUESTS.pick_random()
+	p.trust = 45.0
+	p.needs = Game.needs.duplicate()
+	guest = _add_bunny(p, Vector2(240, 640))
+	guest.message.connect(hud.toast)
+	guest.modulate.a = 0.0
+	guest.create_tween().tween_property(guest, "modulate:a", 1.0, 0.6)
+	_guest_t = Catalog.GUEST_STAY
+	Game.guest_day = Time.get_date_string_from_system()
+	hud.toast(tr("Knock knock! A friend dropped by with their bunny, %s. Playdate!") % p.nickname, "heart", true)
+	guest.emote("heart")
+	if bunny.room_id == "living" and bunny.act != "held":
+		bunny.start("zoomies", null, bunny._random_point())
+		bunny.data.laps = 4
+		bunny.speed = 380.0
+	Game.remember("guest1", "%s came over for a playdate.", [p.nickname])
+
+
+func _guest_leaves() -> void:
+	if held == guest:
+		_guest_t = 5.0   # still being cuddled for a selfie
+		return
+	var g := guest
+	guest = null
+	bunnies.erase(g)
+	g.set_process(false)
+	var t := g.create_tween()
+	t.tween_property(g, "modulate:a", 0.0, 0.6)
+	t.tween_callback(g.queue_free)
+	Game.bubak.add_need("fun", 30)
+	Game.bubak.add_trust(1.0, false)
+	Game.stats.guests = Game.stats.get("guests", 0) + 1
+	hud.toast(tr("%s hops home. What a playdate! Bubák had a great time.") % g.pet.nickname, "heart")
+
+
+# ---- Easter, the garden ------------------------------------------------------------
+
+func _find_egg(e: Node2D) -> void:
+	eggs.erase(e)
+	fixed.erase(e)
+	Sfx.play("star")
+	for i in 6:
+		spawn_fx("confetti", e.position + Vector2(0, -20))
+	e.queue_free()
+	var left := Game.find_egg()
+	if left > 0:
+		hud.toast(tr_n("An egg! %d more to find.", "An egg! %d more to find.", left) % left, "star")
+	else:
+		update_special_day(true)
+
+
+## Sprouts and ripe veggies on the patch's three beds.
+func _update_crops() -> void:
+	var patch := find_item("veg_patch")
+	if patch == null:
+		_crops = []
+		return
+	if _crops.is_empty() or not is_instance_valid(_crops[0]):
+		_crops = []
+		for i in Game.garden_bed_count():
+			var s := Sprite2D.new()
+			s.centered = true
+			patch.add_child(s)
+			_crops.append(s)
+	var beds := Game.garden_beds()
+	if _crops.size() != beds.size():   # the patch just got bigger
+		for c in _crops:
+			c.queue_free()
+		_crops = []
+		_update_crops()
+		return
+	var sz: Vector2 = patch.size()
+	for i in _crops.size():
+		var b: Dictionary = beds[i]
+		var s: Sprite2D = _crops[i]
+		s.visible = b.crop != ""
+		if not s.visible:
+			continue
+		var ripe: bool = b.grow >= 1.0
+		s.texture = Catalog.tex("crop_" + b.crop if ripe else "crop_sprout")
+		s.scale = Vector2.ONE * (0.8 if ripe else 0.35 + 0.45 * float(b.grow))
+		var n := _crops.size()
+		s.position = Vector2((i - (n - 1) / 2.0) * sz.x * 0.6 / (n - 1), -sz.y * 0.55 - s.texture.get_height() * s.scale.y * 0.4)
 
 
 # ---- lifecycle ------------------------------------------------------------------

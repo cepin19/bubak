@@ -11,6 +11,7 @@ var pivot: Control           # at his feet; moved, flipped and lifted for tricks
 var body: TextureRect
 var hoop: TextureRect
 var pose := ""
+var who: Pet = null          # whose colours and outfit (null = Bubák)
 var home := Vector2.ZERO
 var _blink_t := 3.0
 var _tw: Tween
@@ -55,7 +56,7 @@ func set_pose(p: String) -> void:
 
 ## Shows what he has on (call again after the outfit changes).
 func dress() -> void:
-	compose(body, pose, "", Game.wearing)
+	compose(body, pose, who.skin() if who else "", Game.wearing_of(who))
 
 
 ## Builds a bunny in `holder` (a TextureRect sized like the 220x200 pose sprite) from layers:
@@ -145,6 +146,10 @@ func _draw() -> void:
 func _start() -> Tween:
 	if _tw and _tw.is_valid():
 		_tw.kill()
+	for p in _props:   # the ball, the hand, your feet: gone until a trick needs them
+		if is_instance_valid(p):
+			p.queue_free()
+	_props = []
 	pivot.position = home
 	pivot.scale = Vector2.ONE
 	pivot.rotation = 0
@@ -164,11 +169,26 @@ func _hop(t: Tween, from: Vector2, to: Vector2, height: float, dur: float, facin
 	t.tween_property(pivot, "scale", Vector2(facing, 1.0), 0.14).set_trans(Tween.TRANS_BACK)
 
 
-## Does a trick. Returns [peak, length] in seconds: the moment to reward him, and when he's done.
-## After the peak he holds his finished pose for a moment, waiting for the treat.
+## Does a trick. Returns [peaks, length] in seconds: the moments to reward him (one, or two for an
+## advanced trick), and when he's done. After each peak he holds the pose for a moment.
 func perform(trick: String) -> Array:
-	var r := _perform(trick)
-	return [r[0], r[0] + WINDOW.y + 0.3]
+	var r: Array = _perform(trick)
+	var peaks: Array = r.filter(func(x): return x > 0.0) if r.size() > 1 and r[1] > 0.0 else [r[0]]
+	return [peaks, peaks[-1] + _window(peaks.size()).y + 0.3]
+
+
+## When a reward counts, around a peak: tighter for the two moments of an advanced trick.
+func _window(peaks: int) -> Vector2:
+	return WINDOW if peaks <= 1 else WINDOW2
+
+
+## A prop for a trick (removed when the next one starts).
+func _prop(c: Control) -> Control:
+	c.mouse_filter = MOUSE_FILTER_IGNORE
+	add_child(c)
+	move_child(c, 0)
+	_props.append(c)
+	return c
 
 
 func _perform(trick: String) -> Array:
@@ -215,6 +235,65 @@ func _perform(trick: String) -> Array:
 				hoop.visible = false)
 			t.tween_property(self, "modulate:a", 1.0, 0.15)
 			return [0.75, 0]
+		"bow":   # down on his front paws... and back up
+			t.tween_callback(set_pose.bind("stand"))
+			t.tween_interval(0.3)
+			t.tween_callback(set_pose.bind("eat"))
+			t.tween_property(pivot, "rotation", 0.18, 0.2)
+			t.tween_interval(1.3)
+			t.tween_property(pivot, "rotation", 0.0, 0.15)
+			t.tween_callback(set_pose.bind("stand"))
+			t.tween_interval(1.2)
+			t.tween_callback(set_pose.bind("sit"))
+			return [0.6, 2.05]
+		"high_five":   # up he goes, and a paw against your hand
+			var hand := _prop(UI.icon_rect("hand", 70 * k))
+			hand.position = Vector2(size.x + 10, home.y - 190 * k)
+			hand.rotation = -0.5
+			t.tween_callback(set_pose.bind("stand"))
+			t.tween_interval(1.3)
+			t.tween_property(hand, "position:x", home.x + 60 * k, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			t.tween_property(pivot, "position:y", home.y - 12 * k, 0.1)
+			t.tween_callback(pop_text.bind(tr("five!"), Color("#e0901c")))
+			t.tween_property(pivot, "position:y", home.y, 0.12)
+			t.tween_interval(1.0)
+			t.tween_property(hand, "position:x", size.x + 10, 0.3)
+			t.tween_callback(set_pose.bind("sit"))
+			return [0.35, 1.75]
+		"fetch":   # the ball rolls off; after it, and back with it
+			var ball := _prop(UI.icon_rect("ball", 44 * k))
+			var start := home + Vector2(40 * k, -44 * k)
+			var far := home + Vector2(size.x * 0.34, -44 * k)
+			ball.position = start
+			t.tween_property(ball, "position", far, 0.6).set_ease(Tween.EASE_OUT)
+			t.parallel().tween_property(ball, "rotation", TAU, 0.6)
+			_hop(t, home, home + Vector2(size.x * 0.2, 0), 24 * k, 0.3)
+			_hop(t, home + Vector2(size.x * 0.2, 0), home + Vector2(size.x * 0.3, 0), 18 * k, 0.26)
+			t.tween_callback(set_pose.bind("eat"))
+			t.tween_interval(1.0)
+			t.tween_callback(func(): pivot.scale.x = -1)
+			_hop(t, home + Vector2(size.x * 0.3, 0), home + Vector2(size.x * 0.1, 0), 18 * k, 0.4, -1.0)
+			t.parallel().tween_property(ball, "position", start + Vector2(size.x * 0.02, 0), 0.6)
+			_hop(t, home + Vector2(size.x * 0.1, 0), home, 18 * k, 0.3, -1.0)
+			t.tween_callback(func(): pivot.scale.x = 1)
+			t.tween_interval(1.2)
+			return [1.25, 3.05]
+		"slalom":   # in and out between your feet, there and back
+			for i in 2:
+				var foot := _prop(ColorRect.new())
+				foot.color = Color("#5b78a8")
+				foot.size = Vector2(26 * k, 150 * k)
+				foot.position = home + Vector2(size.x * (0.08 + 0.18 * i), -150 * k)
+			var xs := [0.0, 0.17, 0.26, 0.4]
+			for i in 3:
+				_hop(t, home + Vector2(size.x * xs[i], 6 * k * (1 if i % 2 == 0 else -1)), home + Vector2(size.x * xs[i + 1], 6 * k * (-1 if i % 2 == 0 else 1)), 16 * k, 0.26)
+			t.tween_interval(1.0)
+			t.tween_callback(func(): pivot.scale.x = -1)
+			for i in range(3, 0, -1):
+				_hop(t, home + Vector2(size.x * xs[i], 0), home + Vector2(size.x * xs[i - 1], 0), 16 * k, 0.26, -1.0)
+			t.tween_callback(func(): pivot.scale.x = 1)
+			t.tween_interval(1.2)
+			return [1.05, 3.1]
 	return [0.0, 0.0]
 
 
@@ -250,22 +329,26 @@ func fumble() -> float:
 ##   ignored - got distracted and wasn't rewarded (that's correct)
 signal attempt_done(result: String)
 const WINDOW := Vector2(-0.2, 1.5)   # around the peak: when a treat counts as well timed
+const WINDOW2 := Vector2(-0.15, 0.95)   # the same for each of an advanced trick's two moments
 var _try := {}
 var _tries := 0
+var _props: Array = []
 
 
 func attempt(trick: String, chance: float) -> void:
 	var ok := randf() < chance
-	var r: Array = perform(trick) if ok else [-1.0, fumble()]
+	var r: Array = perform(trick) if ok else [[-1.0], fumble()]
 	_tries += 1
-	_try = {"ok": ok, "t0": _now(), "peak": r[0], "result": "", "n": _tries}
+	_try = {"ok": ok, "t0": _now(), "peaks": r[0], "hits": [], "mistap": false, "result": "", "n": _tries}
 	if ok:   # he's done it: make it obvious, it's time for the treat
-		get_tree().create_timer(maxf(0.0, r[0] + WINDOW.x)).timeout.connect(_now_cue.bind(_tries))
+		var w := _window(r[0].size())
+		for i in r[0].size():
+			get_tree().create_timer(maxf(0.0, r[0][i] + w.x)).timeout.connect(_now_cue.bind(_tries, i))
 	get_tree().create_timer(r[1] + 0.15).timeout.connect(_attempt_end)
 
 
-func _now_cue(n: int) -> void:
-	if _try.get("n", -1) != n or _try.result != "":
+func _now_cue(n: int, peak := 0) -> void:
+	if _try.get("n", -1) != n or _try.result != "" or peak in _try.hits:
 		return
 	Sfx.play("sparkle")
 	for i in 3:
@@ -282,17 +365,32 @@ func _now_cue(n: int) -> void:
 	add_child(l)
 	var t := l.create_tween()
 	t.tween_property(l, "scale", Vector2.ONE, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	t.tween_interval(WINDOW.y - WINDOW.x - 0.55)
+	var w := _window(_try.peaks.size())
+	t.tween_interval(maxf(0.2, w.y - w.x - 0.55))
 	t.tween_property(l, "modulate:a", 0.0, 0.3)
 	t.tween_callback(l.queue_free)
 
 
+## The peak whose reward window is open now (-1 if none).
+func _open_peak() -> int:
+	if _try.is_empty() or not _try.ok or _try.result != "":
+		return -1
+	var dt: float = _now() - _try.t0
+	var w := _window(_try.peaks.size())
+	for i in _try.peaks.size():
+		if not i in _try.hits and dt >= _try.peaks[i] + w.x and dt <= _try.peaks[i] + w.y:
+			return i
+	return -1
+
+
 ## How much of the reward window is left (1 = just opened, 0 = closed or not open).
 func window_left() -> float:
-	if not in_window():
+	var i := _open_peak()
+	if i < 0:
 		return 0.0
-	var dt: float = _now() - _try.t0 - (_try.peak + WINDOW.x)
-	return clampf(1.0 - dt / (WINDOW.y - WINDOW.x), 0.0, 1.0)
+	var w := _window(_try.peaks.size())
+	var dt: float = _now() - _try.t0 - (_try.peaks[i] + w.x)
+	return clampf(1.0 - dt / (w.y - w.x), 0.0, 1.0)
 
 
 func attempting() -> bool:
@@ -300,26 +398,30 @@ func attempting() -> bool:
 
 
 func in_window() -> bool:
-	if _try.is_empty() or not _try.ok or _try.result != "":
-		return false
-	var dt: float = _now() - _try.t0
-	return dt >= _try.peak + WINDOW.x and dt <= _try.peak + WINDOW.y
+	return _open_peak() >= 0
 
 
-## The player pressed Reward. Returns the result (or "" if there's nothing to reward).
+## The player pressed Reward. Returns the result (or "" if there's nothing to reward, or more to come).
 func reward() -> String:
 	if _try.is_empty() or _try.result != "":
 		return ""
 	if not _try.ok:
 		_try.result = "wrong"
 		pop_text("?")
-	elif in_window():
-		_try.result = "good"
+		return _try.result
+	var i := _open_peak()
+	if i >= 0:
+		_try.hits.append(i)
 		pop_icon("heart")
-		pop_icon("heart")
-	else:
-		_try.result = "late"
-		pop_icon("heart")
+		if _try.hits.size() >= _try.peaks.size():
+			_try.result = "late" if _try.mistap else "good"
+			pop_icon("heart")
+		return _try.result
+	if _try.peaks.size() > 1:   # an advanced trick: a treat at the wrong moment, but it isn't over yet
+		_try.mistap = true
+		return ""
+	_try.result = "late"
+	pop_icon("heart")
 	return _try.result
 
 
@@ -328,7 +430,10 @@ func _attempt_end() -> void:
 		return
 	var res: String = _try.result
 	if res == "":
-		res = "missed" if _try.ok else "ignored"
+		if _try.ok:
+			res = "late" if not _try.hits.is_empty() or _try.mistap else "missed"
+		else:
+			res = "ignored"
 	_try = {}
 	attempt_done.emit(res)
 
