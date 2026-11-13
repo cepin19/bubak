@@ -41,7 +41,7 @@ signal rival_arrived(rival: String)          # the newcomer turns up
 signal games_ended(result: Dictionary)
 signal challenge_ended(id: String, ok: bool)
 signal ladder_step_done(step: int, done: bool)
-signal certificate(trick: String)             # an advanced trick mastered
+signal certificate(id: String, who: String)             # an advanced trick mastered
 
 const SAVE_PATH := "user://save.json"
 const SETTINGS_PATH := "user://settings.cfg"
@@ -959,9 +959,9 @@ func _check_club() -> void:
 	var stage := club_stage
 	if stage == 0 and trust_level() >= Catalog.CLUB_TRAINING_TRUST and cozy_level() >= Catalog.CLUB_TRAINING_COZY:
 		stage = 1
-	elif stage == 1 and trick_stars_total() >= Catalog.CLUB_GROOMING_STARS:
+	elif stage == 1 and _best_of_pets(trick_stars_total) >= Catalog.CLUB_GROOMING_STARS:
 		stage = 2
-	elif stage == 2 and trick_stars_total() >= Catalog.CLUB_SHOWS_STARS and stats.get("grooms", 0) >= 1:
+	elif stage == 2 and _best_of_pets(trick_stars_total) >= Catalog.CLUB_SHOWS_STARS and stats.get("grooms", 0) >= 1:
 		stage = 3
 	if stage == club_stage:
 		return
@@ -1043,8 +1043,9 @@ func train(id: String, result: String) -> int:
 		if performer == bubak:
 			remember("cert_" + id, "A master's certificate: %s!", [Catalog.TRICKS[id].name])
 		else:
-			remember("cert_%s_%s" % [id, performer.id], "%s earned a master's certificate: %s!", [performer.display_name(), Catalog.TRICKS[id].name])
-		certificate.emit.call_deferred(id)
+			var key := "cert_%s_%s" % [id, performer.id]
+			remember(key, "%s earned a master's certificate: %s!", [performer.display_name(), Catalog.TRICKS[id].name])
+		certificate.emit.call_deferred(id, performer.display_name())
 	add_trait("showoff", 0.5)
 	performer.add_need("fun", 2)
 	save_game()
@@ -2607,11 +2608,11 @@ func add_trait(id: String, points: float, p: Pet = null) -> void:
 	var told: Dictionary = skill(who, "trait_told")
 	if lvl > int(told.get(id, 0)):
 		told[id] = lvl
+		var key := "trait_%s_%d" % [id, lvl] + ("" if who == bubak else "_" + who.id)
 		if who == bubak:
-			remember("trait_%s_%d" % [id, lvl], "A new side of Bubák: %s (level %s).", [Catalog.TRAITS[id].name, str(lvl)], lvl == 3)
+			remember(key, "A new side of Bubák: %s (level %s).", [Catalog.TRAITS[id].name, str(lvl)], lvl == 3)
 		else:
-			remember("trait_%s_%d_%s" % [id, lvl, who.id], "A new side of %s: %s (level %s).",
-				[who.display_name(), Catalog.TRAITS[id].name, str(lvl)], lvl == 3)
+			remember(key, "A new side of %s: %s (level %s).", [who.display_name(), Catalog.TRAITS[id].name, str(lvl)], lvl == 3)
 		trait_up.emit(id, lvl, who.display_name())
 
 

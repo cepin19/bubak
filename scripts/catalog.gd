@@ -1081,13 +1081,13 @@ const MENTOR_RATE := 1.3
 ## has levels at TRAIT_AT points, but only his two strongest traits can go past level 1.
 const TRAITS := {
 	"athlete": {"name": "Athletic", "icon": "trait_athlete", "behaviour": "parkour",
-		"desc": "From agility, walks and exercise toys. More hang time on the course, and he gets restless without exercise."},
+		"desc": "From agility, walks and exercise toys. More hang time on the course, and restless without exercise."},
 	"cuddler": {"name": "Lap bunny", "icon": "trait_cuddler", "behaviour": "puddle",
-		"desc": "From cuddles and snuggles. Petting makes him happier, and he melts in your hands."},
+		"desc": "From cuddles and snuggles. Petting brings more joy, and a long cuddle turns into a floppy puddle."},
 	"showoff": {"name": "Little star", "icon": "trait_showoff", "behaviour": "pose",
-		"desc": "From shows, photos and tricks. More likes on his photos and points at shows, and he poses for the camera."},
+		"desc": "From shows, photos and tricks. More likes on photos and points at shows, and a pose for every camera."},
 	"explorer": {"name": "Explorer", "icon": "trait_explorer", "behaviour": "inspect",
-		"desc": "From walks, the balcony and digging. He finds more on walks and in the dig box."},
+		"desc": "From walks, the balcony and digging. More finds on walks and in the dig box."},
 }
 const TRAIT_ORDER := ["athlete", "cuddler", "showoff", "explorer"]
 const TRAIT_AT := [40.0, 160.0, 400.0]

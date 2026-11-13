@@ -1970,25 +1970,25 @@ msgstr ""
 msgid "Athletic"
 msgstr ""
 
-msgid "From agility, walks and exercise toys. More hang time on the course, and he gets restless without exercise."
+msgid "From agility, walks and exercise toys. More hang time on the course, and restless without exercise."
 msgstr ""
 
 msgid "Lap bunny"
 msgstr ""
 
-msgid "From cuddles and snuggles. Petting makes him happier, and he melts in your hands."
+msgid "From cuddles and snuggles. Petting brings more joy, and a long cuddle turns into a floppy puddle."
 msgstr ""
 
 msgid "Little star"
 msgstr ""
 
-msgid "From shows, photos and tricks. More likes on his photos and points at shows, and he poses for the camera."
+msgid "From shows, photos and tricks. More likes on photos and points at shows, and a pose for every camera."
 msgstr ""
 
 msgid "Explorer"
 msgstr ""
 
-msgid "From walks, the balcony and digging. He finds more on walks and in the dig box."
+msgid "From walks, the balcony and digging. More finds on walks and in the dig box."
 msgstr ""
 
 msgid "Everyday"
@@ -2171,7 +2171,7 @@ msgstr ""
 msgid "Needs %s with %d stars"
 msgstr ""
 
-msgid "Bubák kicked and squirmed away. He needs to trust you more for this.\n(Trust went down.)"
+msgid "%s kicks and squirms away: a nail trim needs more trust than this.\n(Trust went down.)"
 msgstr ""
 
 msgid "%s is back to a healthy weight. Well done!"
@@ -2195,7 +2195,7 @@ msgstr ""
 msgid "Next show in %s"
 msgstr ""
 
-msgid "He doesn't know any tricks yet."
+msgid "%s doesn't know any tricks yet."
 msgstr ""
 
 msgid "Take some photos first."
@@ -2204,7 +2204,7 @@ msgstr ""
 msgid "Needs Hop hurdles (Shop) to practise on."
 msgstr ""
 
-msgid "He needs his yearly vaccination first (Journal > Bubák)."
+msgid "First the yearly vaccination at the vet (Journal > Bubák)."
 msgstr ""
 
 msgid "%d h %d min"
@@ -2297,7 +2297,7 @@ msgstr ""
 msgid "You need a harness and leash (Shop > Club)."
 msgstr ""
 
-msgid "You've been out today already. Bubák is still dreaming about it. Next walk tomorrow!"
+msgid "%s has been out today already and is still dreaming about it. Next walk tomorrow!"
 msgstr ""
 
 msgid "Needs Bubák at trust %s and Cozy level %d"
@@ -2376,6 +2376,9 @@ msgid "First photo posted: %s."
 msgstr ""
 
 msgid "A master's certificate: %s!"
+msgstr ""
+
+msgid "%s earned a master's certificate: %s!"
 msgstr ""
 
 msgid "First ribbon at a show!"
@@ -2474,6 +2477,9 @@ msgstr ""
 msgid "A new side of Bubák: %s (level %s)."
 msgstr ""
 
+msgid "A new side of %s: %s (level %s)."
+msgstr ""
+
 msgid "A full page in the photo album: %s."
 msgstr ""
 
@@ -2484,6 +2490,9 @@ msgid "A new rival: %s, a champion from abroad."
 msgstr ""
 
 msgid "Bubák won a duel against %s!"
+msgstr ""
+
+msgid "%s won a duel against %s!"
 msgstr ""
 
 msgid "Bubák won the Bunny Games %s!"
@@ -2519,19 +2528,19 @@ msgstr ""
 msgid "Trim nails"
 msgstr ""
 
-msgid "He's molting! Loose fur everywhere: brush him often for a few days."
+msgid "Molting season! Loose fur everywhere: brush often for a few days."
 msgstr ""
 
 msgid "You'll need a Soft brush first. It's in the Shop, on the Club tab."
 msgstr ""
 
-msgid "His coat is already gleaming. Come back in a while."
+msgid "%s's coat is already gleaming. Come back in a while."
 msgstr ""
 
-msgid "Swipe over the loose fur to brush it out, before he runs out of patience."
+msgid "Swipe over the loose fur to brush it out, before %s runs out of patience."
 msgstr ""
 
-msgid "All brushed! His coat is soft and glossy."
+msgid "All brushed! The coat is soft and glossy."
 msgstr ""
 
 msgid "snip snip"
@@ -2540,7 +2549,7 @@ msgstr ""
 msgid "Neat little nails. The judges will approve."
 msgstr ""
 
-msgid "Bubák has had enough and hops off. Good job anyway!"
+msgid "%s has had enough and hops off. Good job anyway!"
 msgstr ""
 
 msgid "Bubák's trust can't grow any more today. More tomorrow!"
@@ -2567,10 +2576,10 @@ msgstr ""
 msgid "A whole page of %d stickers: +%d coins and two hay cookies!"
 msgstr ""
 
-msgid "Bubák's personality is growing: %s, level %d!"
+msgid "%s's personality is growing: %s, level %d!"
 msgstr ""
 
-msgid "Watch out for something new he does now."
+msgid "Watch out for something new from %s now."
 msgstr ""
 
 msgid "%s demands a rematch! A one-on-one duel: Club > Shows, within %d days."
@@ -2984,7 +2993,16 @@ msgstr ""
 msgid "Gets used to people at an easy pace."
 msgstr ""
 
+msgid "%s's nails are very long: fewer binkies, and skidding on the floor. Time for the clippers!"
+msgstr ""
+
+msgid "%s's coat is scruffy and matted. A good brushing will fix it."
+msgstr ""
+
 msgid "Pet and play with %s too to build trust. The two bunnies grow closer just by living happily together."
+msgstr ""
+
+msgid "In the Club and on walks, the buttons at the top switch between Bubák and %s."
 msgstr ""
 
 msgid "Today's tasks"
@@ -3002,10 +3020,10 @@ msgstr ""
 msgid "Your best photo of each moment goes in its slot. A full page: +%d coins. The whole album: +%d."
 msgstr ""
 
-msgid "He becomes what you do together. Only his two strongest traits can grow all the way."
+msgid "A bunny becomes what you do together. Only the two strongest traits can grow all the way."
 msgstr ""
 
-msgid "(held back by his stronger traits)"
+msgid "(held back by stronger traits)"
 msgstr ""
 
 msgid "Dug up in the dig box"
@@ -3137,7 +3155,10 @@ msgstr ""
 msgid "Thank you, doctor!"
 msgstr ""
 
-msgid "Where shall we go today? A walk makes Bubák happy and brings you closer."
+msgid "Who's going?"
+msgstr ""
+
+msgid "Where shall we go today? A walk makes %s happy and brings you closer."
 msgstr ""
 
 msgid "Visited"
@@ -3149,13 +3170,13 @@ msgstr ""
 msgid "Go!"
 msgstr ""
 
-msgid "Walk with Bubák"
+msgid "Walk with %s"
 msgstr ""
 
-msgid "%s: back home again. Bubák is beaming!"
+msgid "%s: back home again. %s is beaming!"
 msgstr ""
 
-msgid "Bubák brought back another %s. Swapped for 10 coins."
+msgid "%s brought back another %s. Swapped for 10 coins."
 msgstr ""
 
 msgid "A souvenir from the walk: %s! (Walk > souvenirs)"
@@ -3311,13 +3332,13 @@ msgstr ""
 msgid "Tricks routine:"
 msgstr ""
 
-msgid "Tap a slot to pick a trick. Longer routines and perfect tricks in a row score more. Leave it empty and he picks three himself."
+msgid "Tap a slot to pick a trick. Longer routines and perfect tricks in a row score more. Leave it empty and three get picked for the show."
 msgstr ""
 
 msgid "Agility: %d/100"
 msgstr ""
 
-msgid "Bars: jump in the gold zone. Double bars: the zone is shorter. Tunnels: don't jump, he runs through. Weave poles: tap as each pole reaches him. Each run uses a try of focus."
+msgid "Bars: jump in the gold zone. Double bars: the zone is shorter. Tunnels: don't jump, just run through. Weave poles: tap as each pole comes up. Each run uses a try of focus."
 msgstr ""
 
 msgid "Start a run"
@@ -3329,10 +3350,10 @@ msgstr ""
 msgid "Jump!"
 msgstr ""
 
-msgid "He needs Hop hurdles to practise on: they're in the Shop."
+msgid "Agility needs Hop hurdles to practise on: they're in the Shop."
 msgstr ""
 
-msgid "Bubák has had enough training for now. Let him rest a bit."
+msgid "%s has had enough training for now. Time for a rest."
 msgstr ""
 
 msgid "Today's course! Beat your best time: faults add %d seconds each."
@@ -3479,7 +3500,7 @@ msgstr ""
 msgid "Master's certificate!"
 msgstr ""
 
-msgid "Bubák has mastered %s, one of the hardest tricks there is. +%d coins"
+msgid "%s has mastered %s, one of the hardest tricks there is. +%d coins"
 msgstr ""
 
 msgid "Duel: %s wants a rematch"
@@ -4115,7 +4136,7 @@ msgstr ""
 msgid "Reward!"
 msgstr ""
 
-msgid "A rematch! %s against Bubák, one on one: %s."
+msgid "A rematch! %s against %s, one on one: %s."
 msgstr ""
 
 msgid "The Bunny Games! Every rival at their very best. This round: %s."
@@ -4148,13 +4169,13 @@ msgstr ""
 msgid "No outfit today."
 msgstr ""
 
-msgid "He sits calmly for the judge."
+msgid "%s sits calmly for the judge."
 msgstr ""
 
 msgid "A little fidgety."
 msgstr ""
 
-msgid "He tries to hide behind you!"
+msgid "%s tries to hide behind you!"
 msgstr ""
 
 msgid "The judges study your photo..."
@@ -4172,16 +4193,16 @@ msgstr ""
 msgid "Perfect! That's %d in a row, the crowd is on its feet!"
 msgstr ""
 
-msgid "He did it! The reward came a little late."
+msgid "Done! The reward came a little late."
 msgstr ""
 
-msgid "He did it! But you forgot to reward him."
+msgid "Done! But you forgot the reward."
 msgstr ""
 
 msgid "Oops! Rewarding a mistake... the judge makes a note."
 msgstr ""
 
-msgid "He got distracted. Happens to the best of us."
+msgid "%s got distracted. Happens to the best of us."
 msgstr ""
 
 msgid "Ready on the start line... tap Jump for the bars, stay low for tunnels, tap each weave pole!"
@@ -4199,37 +4220,37 @@ msgstr ""
 msgid "The judges add up the scores..."
 msgstr ""
 
-msgid "1st place! Bubák wins the %s!"
+msgid "1st place! %s wins the %s!"
 msgstr ""
 
-msgid "%s place! A ribbon for Bubák."
+msgid "%s place! A ribbon for %s."
 msgstr ""
 
 msgid "4th place. No ribbon this time."
 msgstr ""
 
-msgid "Tip: brush him, trim his nails and dress him up."
+msgid "Tip: brush, trim the nails and dress up for the judges."
 msgstr ""
 
-msgid "Tip: practise to earn more stars, and reward him right on time."
+msgid "Tip: practise to earn more stars, and reward right on time."
 msgstr ""
 
 msgid "Tip: photos of rare moments get the most likes."
 msgstr ""
 
-msgid "Tip: practise in the Club's Agility tab; he gets more hang time."
+msgid "Tip: practise in the Club's Agility tab for more hang time."
 msgstr ""
 
 msgid "+%d league points"
 msgstr ""
 
-msgid "The %s is now open to Bubák!"
+msgid "The %s is open now!"
 msgstr ""
 
 msgid "Continue"
 msgstr ""
 
-msgid "Bubák wins the duel! +%d coins, +%d followers"
+msgid "%s wins the duel! +%d coins, +%d followers"
 msgstr ""
 
 msgid "%s wins the rematch this time. Next time!"
@@ -4259,7 +4280,7 @@ msgstr ""
 msgid "Pick a trick to practise."
 msgstr ""
 
-msgid "Pick a trick. When Bubák pulls it off, a star pops up: tap Reward before the bar runs out! Don't reward him if he gets distracted."
+msgid "Pick a trick. When %s pulls it off, a star pops up: tap Reward before the bar runs out! No reward for getting distracted."
 msgstr ""
 
 msgid "master's certificate"
@@ -4274,22 +4295,22 @@ msgstr ""
 msgid "Teach"
 msgstr ""
 
-msgid "\"Bubák... %s!\""
+msgid "\"%s... %s!\""
 msgstr ""
 
 msgid "Two moments to reward this time!"
 msgstr ""
 
-msgid "Perfect timing! He's getting it."
+msgid "Perfect timing! %s is getting it."
 msgstr ""
 
-msgid "A bit off. He's not sure what the treat was for."
+msgid "A bit off. %s isn't sure what the treat was for."
 msgstr ""
 
-msgid "He did it, but you missed the moment to reward him."
+msgid "The trick worked, but you missed the moment for the reward."
 msgstr ""
 
-msgid "Oops! That rewarded him for getting distracted."
+msgid "Oops! That rewarded getting distracted."
 msgstr ""
 
 msgid "Right call: no treat for getting distracted."
@@ -4298,7 +4319,7 @@ msgstr ""
 msgid "%s: %d of 3 stars!"
 msgstr ""
 
-msgid "Bubák has mastered %s!"
+msgid "%s has mastered %s!"
 msgstr ""
 
 msgid "+1 in %s"
@@ -4322,10 +4343,10 @@ msgstr ""
 msgid "Time to head home."
 msgstr ""
 
-msgid "He sniffs every single flower."
+msgid "%s sniffs every single flower."
 msgstr ""
 
-msgid "A butterfly! It lands right on his nose."
+msgid "A butterfly! It lands right on %s's nose."
 msgstr ""
 
 msgid "...and off it goes. After it!"
@@ -4334,7 +4355,7 @@ msgstr ""
 msgid "Phew. A little nap under the tree."
 msgstr ""
 
-msgid "So much grass! He does a binky..."
+msgid "So much grass! %s does a binky..."
 msgstr ""
 
 msgid "...and another one!"
@@ -4349,10 +4370,10 @@ msgstr ""
 msgid "Full and happy. Flop!"
 msgstr ""
 
-msgid "He digs a very serious hole."
+msgid "%s digs a very serious hole."
 msgstr ""
 
-msgid "Look what he found: a seashell!"
+msgid "Look what turned up: a seashell!"
 msgstr ""
 
 msgid "Here comes a wave! Nope, nope, nope."
@@ -4361,7 +4382,7 @@ msgstr ""
 msgid "A crab! They have a long, serious stare."
 msgstr ""
 
-msgid "A seagull eyes him up. THUMP! Off you go."
+msgid "A seagull eyes %s up. THUMP! Off you go."
 msgstr ""
 
 msgid "Then they watch the sun go down together."
@@ -4370,16 +4391,16 @@ msgstr ""
 msgid "A pigeon joins the walk."
 msgstr ""
 
-msgid "A café stop. The waiter brings him a carrot!"
+msgid "A café stop. The waiter brings %s a carrot!"
 msgstr ""
 
 msgid "Everyone on the street stops to say hi."
 msgstr ""
 
-msgid "He shows off a trick for them!"
+msgid "%s shows off a trick for them!"
 msgstr ""
 
-msgid "Applause! Some of them already follow him online."
+msgid "Applause! Some of them already follow %s online."
 msgstr ""
 
 msgid "Popcorn and a film about carrots."
@@ -4397,7 +4418,7 @@ msgstr ""
 msgid "The End"
 msgstr ""
 
-msgid "...and he's asleep before the credits."
+msgid "...and %s is asleep before the credits."
 msgstr ""
 
 msgid "Next promotion: %d/%d XP"

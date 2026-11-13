@@ -11,7 +11,7 @@ var pivot: Control           # at his feet; moved, flipped and lifted for tricks
 var body: TextureRect
 var hoop: TextureRect
 var pose := ""
-var who: Pet = null          # whose colours and outfit (null = Bubák)
+var who: Pet = null          # whose colours and outfit (null = whoever is performing)
 var home := Vector2.ZERO
 var _blink_t := 3.0
 var _tw: Tween
@@ -56,7 +56,8 @@ func set_pose(p: String) -> void:
 
 ## Shows what he has on (call again after the outfit changes).
 func dress() -> void:
-	compose(body, pose, who.skin() if who else "", Game.wearing_of(who))
+	var p: Pet = who if who else Game.performer
+	compose(body, pose, p.skin(), Game.wearing_of(p))
 
 
 ## Builds a bunny in `holder` (a TextureRect sized like the 220x200 pose sprite) from layers:

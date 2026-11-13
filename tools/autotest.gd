@@ -2512,6 +2512,141 @@ func _run() -> void:
 		and Game.count_item("bubak_book") == 1, "publishing the book: fans, merch and a copy for the flat")
 	await close_popups()
 
+	# ---- the friend does it all too --------------------------------------------------------
+	# Bubák's friend trains, grooms, shows, runs agility, walks and grows a personality of their own
+	await close_popups()
+	var fr: Pet = Game.mate
+	check(fr != null and Game.performer == Game.bubak, "a friend at home, and Bubák performs by default")
+	fr.trust = 62.0
+	fr.settle_level()
+	var fr_b_stars: int = Game.trick_stars_total()
+	var fr_b_coat: float = Game.coat
+	var fr_b_nails: float = Game.nails
+	var fr_b_agility: float = Game.agility
+	var fr_b_traits: Dictionary = Game.traits.duplicate()
+	hud._club_pet = null
+	hud.open_club("Training")
+	await wait(0.3)
+	var fr_pick: Array = _buttons(fr.display_name())
+	check(fr_pick.size() == 1, "the club has a button for the friend")
+	if fr_pick.size() == 1:
+		fr_pick[0].pressed.emit()
+		await wait(0.3)
+	var fr_stage: StageBunny = hud.club_panel._stage
+	check(Game.performer == fr and Game.trick_stars_total() == 0 and fr_stage.body.texture == Catalog.tex("bunny_%s_body_%s" % [fr_stage.pose, fr.id]),
+		"the friend's turn: no tricks yet, and the friend on the stage (%s, %d stars)" % [Game.performer.id, Game.trick_stars_total()])
+	await shot("club_friend_training")
+	Game.focus = float(Game.focus_max())
+	for i in 20:
+		if Game.trick_stars("come") >= 2:
+			break
+		Game.train("come", "good")
+	check(Game.trick_stars("come") >= 2 and Game.trick_stars("come", fr) == Game.trick_stars("come"),
+		"the friend learns a trick (%d stars)" % Game.trick_stars("come"))
+	check(Game.for_pet(Game.bubak, Game.trick_stars_total) == fr_b_stars, "Bubák's own tricks stay as they were")
+	var fr_d := Game.to_dict()
+	check(int(fr_d.mate_skills.tricks.size()) > 0 and absf(float(fr_d.coat) - fr_b_coat) < 1.0, "saving mid-session keeps each rabbit's skills apart (%s, %s / %s)" % [
+		fr_d.mate_skills.tricks, fr_d.coat, fr_b_coat])
+	# grooming
+	hud._club_tab = "Grooming"
+	hud.open_club()
+	await wait(0.3)
+	check(Game.performer == fr, "the club remembers who was picked")
+	await shot("club_friend_grooming")
+	Game.coat = 30.0
+	Game.nails = 80.0
+	Game.finish_grooming(40.0)
+	check(Game.trim_nails() == "" and Game.nails < 0.5 and absf(Game.coat - 70.0) < 1.0, "the friend gets brushed and the nails trimmed")
+	check(absf(float(Game.skill(Game.bubak, "coat")) - fr_b_coat) < 1.0 and absf(float(Game.skill(Game.bubak, "nails")) - fr_b_nails) < 1.0,
+		"Bubák's coat and nails are his own (%s/%s, %s/%s)" % [Game.skill(Game.bubak, "coat"), fr_b_coat, Game.skill(Game.bubak, "nails"), fr_b_nails])
+	# agility
+	var fr_ag: float = Game.practice_agility(6)
+	check(fr_ag > 0.0 and is_equal_approx(float(Game.skill(Game.bubak, "agility")), fr_b_agility), "agility practice for the friend only")
+	check(Game.trait_points("athlete") > 0.0 and Game.skill(Game.bubak, "traits").get("athlete", 0.0) == fr_b_traits.get("athlete", 0.0),
+		"the friend's personality grows from it, not Bubák's")
+	# a show: the friend's name in the ring, the ribbon is the friend's, and the wait is the friend's
+	Game.coins += 500
+	var fr_trophies: int = Game.trophies.size()
+	hud._enter_show(0, "looks")
+	var fr_ring = hud.club_panel
+	await wait(0.4)
+	var fr_ring_text := str(hud._modal.find_children("*", "Label", true, false).map(func(l): return l.text))
+	check(fr.display_name() in fr_ring_text and not "Bubák" in fr_ring_text, "the friend's name at the judges' table (%s)" % fr_ring_text.left(300))
+	await shot("show_friend")
+	for i in 200:
+		await wait(0.1)
+		if fr_ring._button.text == "Continue":
+			break
+	check(Game.show_wait(0) > 0 and Game.for_pet(Game.bubak, func(): return Game.show_wait(0)) <= 0,
+		"the friend's show wait doesn't hold Bubák back")
+	if Game.trophies.size() > fr_trophies:
+		check(Game.trophies[-1].get("pet", "") == fr.id, "the friend's ribbon is marked as the friend's")
+	await close_popups()
+	check(Game.performer == Game.bubak, "closing the club brings Bubák back")
+	# traits from the room, while Bubák performs
+	var fr_told: int = int(Game.skill(fr, "trait_told").get("explorer", 0))
+	Game.add_trait("explorer", 200.0, fr)
+	check(Game.trait_level("explorer", fr) > fr_told and Game.trait_level("explorer", fr) >= 1, "the friend's personality grows at home too")
+	await close_popups()
+	# a walk with the friend
+	Game.walk_day = "2000-01-01"
+	hud.open_walks()
+	await wait(0.3)
+	check(Game.performer == fr and _buttons("Go!").size() > 0, "walks: the friend picked last time goes")
+	await shot("walks_friend")
+	var fr_wt: float = fr.trust
+	var fr_btrust: float = Game.trust
+	hud.close_top()
+	hud.play_walk("park", true, 6.0, fr)
+	await wait(1.0)
+	check(Game.performer == fr and hud.find_children("*", "WalkScene", true, false).size() == 1, "the friend on the walk")
+	await shot("walk_friend")
+	for i in 200:
+		if hud.find_children("*", "WalkScene", true, false).is_empty():
+			break
+		await wait(0.1)
+	check(Game.performer == Game.bubak and str(Game.skill(fr, "walk_day")) == Time.get_date_string_from_system() and Game.walk_day == "2000-01-01",
+		"the friend's walk counts for the friend")
+	check(fr.trust > fr_wt and is_equal_approx(Game.trust, fr_btrust), "the walk builds the friend's trust")
+	await close_popups()
+	# the friend's page in the journal
+	hud._journal_tab = "Friend"
+	hud.open_journal()
+	await wait(0.3)
+	var fr_jt := str(hud._modal.find_children("*", "Label", true, false).map(func(l): return l.text))
+	check(tr("Trick stars: %d of %d") % [Game.for_pet(fr, Game.trick_stars_total), Catalog.TRICKS.size() * 3] in fr_jt and tr("Personality") in fr_jt,
+		"the friend's page shows their tricks and personality")
+	await shot("journal_friend_club")
+	await close_popups()
+	# goals count whoever does better, and everything is saved
+	check(Game.goal_value({"type": "stars"}) >= Game.for_pet(fr, Game.trick_stars_total), "goals count the friend's stars too")
+	var fr_stars: int = Game.for_pet(fr, Game.trick_stars_total)
+	await reload_scene()
+	hud = main.hud
+	b = main.bunny
+	fr = Game.mate
+	check(Game.for_pet(fr, Game.trick_stars_total) == fr_stars and float(Game.skill(fr, "coat")) > 60.0
+		and Game.trait_level("explorer", fr) >= 1 and Game.for_pet(Game.bubak, Game.trick_stars_total) == fr_b_stars,
+		"after loading: each rabbit's skills are still their own")
+	# the friend's personality shows in the room: a show-off poses for the camera
+	Game.add_trait("showoff", 500.0, fr)
+	Game.add_trait("cuddler", 450.0, fr)
+	var fr_mb = main.mate_bunny
+	fr_mb.teleport(Vector2(760, 610))
+	fr_mb.start("idle", null, fr_mb.position)
+	await wait(0.1)
+	main.set_mode("photo")
+	for i in 10:   # 6 times in 10 they strike a pose
+		if fr_mb.act == "pose":
+			break
+		fr_mb.start("idle", null, fr_mb.position)
+		await wait(0.05)
+		fr_mb.on_camera()
+	await wait(0.1)
+	check(Game.trait_level("showoff", fr) >= 3 and fr_mb.act == "pose", "the friend, a little star now, poses for the camera (%s)" % fr_mb.act)
+	main.set_mode("")
+	await close_popups()
+
 	# Journal screens in Czech
 	_lang("cs")
 	hud = main.hud

@@ -1,6 +1,6 @@
 class_name WalkScene
 extends Control
-## A walk with Bubák on his leash: a cutscene with no buttons, about half a minute long. He hops in
+## A walk with Bubák (or his friend) on the leash: a cutscene with no buttons, about half a minute long. He hops in
 ## on his harness, has a string of little adventures that depend on the place, and hops off home.
 ## The place scrolls by while he travels. Emits finished when it's over (and then frees itself).
 
@@ -24,6 +24,11 @@ var _caption_box: PanelContainer
 var _fade: ColorRect
 var _hand := Vector2.ZERO
 var _fx: Array = []     # [node, update callable(node, delta)]: things that move on their own
+
+
+## Whoever is out on the walk.
+func _n() -> String:
+	return Game.performer.display_name()
 
 
 func _ready() -> void:
@@ -261,7 +266,7 @@ func _run() -> void:
 
 func _park() -> void:
 	var b := _bunny
-	_say(tr("He sniffs every single flower."))
+	_say(tr("%s sniffs every single flower.") % _n())
 	b.set_pose("eat")
 	await _wait(1.4)
 	b.set_pose("sit")
@@ -275,7 +280,7 @@ func _park() -> void:
 	var ft := fly.create_tween()
 	ft.tween_property(fly, "position", land - Vector2(fly.size.x / 2, fly.size.y), 2.2 / speed).set_trans(Tween.TRANS_SINE)
 	_fx.append([fly, func(n: Control, _d: float): n.scale.y = 0.6 + 0.4 * absf(sin(Time.get_ticks_msec() / 70.0))])
-	_say(tr("A butterfly! It lands right on his nose."))
+	_say(tr("A butterfly! It lands right on %s's nose.") % _n())
 	await ft.finished
 	b.pop_text("!")
 	Sfx.play("surprise")
@@ -302,7 +307,7 @@ func _park() -> void:
 
 func _field() -> void:
 	var b := _bunny
-	_say(tr("So much grass! He does a binky..."))
+	_say(tr("So much grass! %s does a binky...") % _n())
 	await _binky()
 	await _wait(0.4)
 	_say(tr("...and another one!"))
@@ -334,7 +339,7 @@ func _field() -> void:
 
 func _beach() -> void:
 	var b := _bunny
-	_say(tr("He digs a very serious hole."))
+	_say(tr("%s digs a very serious hole.") % _n())
 	b.set_pose("eat")
 	for i in 9:
 		_sand()
@@ -345,7 +350,7 @@ func _beach() -> void:
 	shell.scale = Vector2(0.2, 0.2)
 	shell.create_tween().tween_property(shell, "scale", Vector2.ONE, 0.3 / speed).set_trans(Tween.TRANS_BACK)
 	Sfx.play("sparkle")
-	_say(tr("Look what he found: a seashell!"))
+	_say(tr("Look what turned up: a seashell!"))
 	_face(-1)
 	b.set_pose("eat")
 	await _wait(1.6)
@@ -388,7 +393,7 @@ func _beach() -> void:
 	var gt := gull.create_tween()
 	gt.tween_property(gull, "position:y", _feet().y - gull.size.y, 1.2 / speed).set_trans(Tween.TRANS_SINE)
 	Sfx.play("chirp", 0.7)
-	_say(tr("A seagull eyes him up. THUMP! Off you go."))
+	_say(tr("A seagull eyes %s up. THUMP! Off you go.") % _n())
 	await gt.finished
 	await _wait(0.5)
 	_thump()
@@ -425,7 +430,7 @@ func _city() -> void:
 	pgo.tween_callback(pig.queue_free)
 	await _hops(_vs.x * 0.12, 3, 0.45)
 	# café stop
-	_say(tr("A café stop. The waiter brings him a carrot!"))
+	_say(tr("A café stop. The waiter brings %s a carrot!") % _n())
 	var plate := _prop(Catalog.tex("walk_plate"), _feet() + Vector2(110 * _s, 4 * _s), 1.2)
 	plate.modulate.a = 0.0
 	plate.create_tween().tween_property(plate, "modulate:a", 1.0, 0.4 / speed)
@@ -444,14 +449,14 @@ func _city() -> void:
 		await _wait(0.5)
 		_camera_flash()
 		b.pop_icon("heart")
-	_say(tr("He shows off a trick for them!"))
+	_say(tr("%s shows off a trick for them!") % _n())
 	await _wait(0.6)
 	await _spin()
 	await _wait(0.2)
 	for i in 3:
 		b.pop_icon("star")
 	Sfx.play("streak")
-	_say(tr("Applause! Some of them already follow him online."))
+	_say(tr("Applause! Some of them already follow %s online.") % _n())
 	await _wait(2.4)
 
 
@@ -502,7 +507,7 @@ func _cinema() -> void:
 	_bg.add_child(end)
 	end.create_tween().tween_property(end, "modulate:a", 1.0, 0.8 / speed)
 	tint.create_tween().tween_property(tint, "color", Color(1.0, 0.97, 0.9, 0.85), 1.5 / speed)
-	_say(tr("...and he's asleep before the credits."))
+	_say(tr("...and %s is asleep before the credits.") % _n())
 	b.set_pose("loaf")
 	await _wait(0.8)
 	b.set_pose("sleep")

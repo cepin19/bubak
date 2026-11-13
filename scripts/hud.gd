@@ -174,7 +174,7 @@ func _ready() -> void:
 		Catalog.season_name(Game.season()).to_lower(), Catalog.item_name(Catalog.LADDERS[Game.season()].gift).to_lower()] if done
 		else tr("The %s ladder: step %d of %d done!") % [Catalog.season_name(Game.season()).to_lower(), step, Catalog.LADDERS[Game.season()].steps.size()],
 		"ladder", true))
-	Game.certificate.connect(func(id): _queue(_certificate_popup.bind(id)))
+	Game.certificate.connect(func(id, who): _queue(_certificate_popup.bind(id, who)))
 	Game.album_page_done.connect(func(i): toast_when_free(tr("A full page in the photo album: %s! +%d coins") % [
 		tr(Catalog.ALBUM_PAGES[i].name), Catalog.ALBUM_PAGE_COINS], "album", true))
 	_refresh()
@@ -966,8 +966,12 @@ func _level_up_popup(lvl: int) -> void:
 
 # ---- modals ------------------------------------------------------------------
 
-func _open_modal(title: String, content: Control, min_size := Vector2(860, 560)) -> void:
+## keep_performer: the window carries on with the rabbit picked in the club (the show ring).
+func _open_modal(title: String, content: Control, min_size := Vector2(860, 560), keep_performer := false) -> void:
+	var who := Game.performer
 	close_top()
+	if keep_performer:
+		Game.set_performer(who)
 	if main.mode == "treat" or main.mode == "move":
 		main.set_mode("")
 	var dim := ColorRect.new()
@@ -2529,7 +2533,7 @@ func _enter_special(mode: String, tier: int, cat: String) -> void:
 	ring.finished.connect(func():
 		close_top()
 		main.update_trophies())
-	_open_modal("", ring, Vector2(900, 0))
+	_open_modal("", ring, Vector2(900, 0), true)
 	club_panel = ring
 
 
@@ -2549,7 +2553,7 @@ func _enter_show(tier: int, cat: String) -> void:
 	ring.finished.connect(func():
 		close_top()
 		main.update_trophies())
-	_open_modal("", ring, Vector2(900, 0))
+	_open_modal("", ring, Vector2(900, 0), true)
 	club_panel = ring
 
 
@@ -2610,7 +2614,7 @@ func _judge_banner() -> Control:
 			b.text = Catalog.trick_name(Game.routine[i]) if Game.routine[i] != "" else "—"
 			Game.save_game())
 		rh.add_child(b)
-	v.add_child(UI.wrap_label(tr("Tap a slot to pick a trick. Longer routines and perfect tricks in a row score more. Leave it empty and he picks three himself."), 14, 780))
+	v.add_child(UI.wrap_label(tr("Tap a slot to pick a trick. Longer routines and perfect tricks in a row score more. Leave it empty and three get picked for the show."), 14, 780))
 	return card
 
 
@@ -2641,7 +2645,7 @@ func _agility_panel() -> Control:
 	run.kinds = ["bar", "bar", "oxer", "tunnel", "weave"]
 	track.add_child(run)
 	club_panel = run
-	var say := UI.wrap_label(tr("Bars: jump in the gold zone. Double bars: the zone is shorter. Tunnels: don't jump, he runs through. Weave poles: tap as each pole reaches him. Each run uses a try of focus."), 17, 820)
+	var say := UI.wrap_label(tr("Bars: jump in the gold zone. Double bars: the zone is shorter. Tunnels: don't jump, just run through. Weave poles: tap as each pole comes up. Each run uses a try of focus."), 17, 820)
 	v.add_child(say)
 	var bh := UI.hbox(14)
 	bh.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -2659,10 +2663,10 @@ func _agility_panel() -> Control:
 		if run.running():
 			return
 		if Game.count_item("hurdles") == 0:
-			say.text = tr("He needs Hop hurdles to practise on: they're in the Shop.")
+			say.text = tr("Agility needs Hop hurdles to practise on: they're in the Shop.")
 			return
 		if Game.focus < 1.0:
-			say.text = tr("Bubák has had enough training for now. Let him rest a bit.")
+			say.text = tr("%s has had enough training for now. Time for a rest.") % Game.performer.display_name()
 			return
 		Game.focus -= 1.0
 		go.disabled = true
@@ -2877,10 +2881,10 @@ func _newcomer_popup(id: String) -> void:
 		tr("Bring it on!"))
 
 
-func _certificate_popup(id: String) -> void:
+func _certificate_popup(id: String, who: String) -> void:
 	Sfx.play("fanfare")
-	var v := _note_popup(Catalog.TRICKS[id].icon, tr("Master's certificate!"), tr("Bubák has mastered %s, one of the hardest tricks there is. +%d coins") % [
-		Catalog.trick_name(id), Catalog.CERTIFICATE_COINS], tr("Hooray!"))
+	var v := _note_popup(Catalog.TRICKS[id].icon, tr("Master's certificate!"), tr("%s has mastered %s, one of the hardest tricks there is. +%d coins") % [
+		who, Catalog.trick_name(id), Catalog.CERTIFICATE_COINS], tr("Hooray!"))
 	v.get_child(0).custom_minimum_size = Vector2(110, 110)
 
 

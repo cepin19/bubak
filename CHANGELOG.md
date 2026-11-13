@@ -4,6 +4,28 @@ Newest first. Times are local (Europe/Prague). Entries before 2026-10-24 10:32 w
 on 2026-10-25 from the development log; their times are approximate (when the change was
 finished, ± about 15 minutes).
 
+## 2026-11-02 22:23 CET — the friend does everything Bubák does
+
+- Training, grooming (coat and nails), shows, agility, walks and personality traits now work for
+  Bubák's friend too. The Club and the Walk screen have a Bubák / friend switch at the top; the
+  choice is remembered, and closing the window always goes back to Bubák.
+- Each rabbit has their own trick stars, focus, master's certificates, coat, nails, agility skill,
+  personality, show waits, Tricks routine and daily walk. Coats dull, nails grow and focus refills
+  for both, also while the game is closed. Saved under "mate_skills"; older saves start the
+  friend from scratch.
+- Shared by the household: league points, the Bunny Games, duels, the daily agility course,
+  places and souvenirs, the vaccination (one vet visit does both) and ribbons. Each new ribbon
+  records who won it (Trophies tab, journal pages). Goals count whichever rabbit does better.
+- The stage, the judges' table, the walk cutscene and their texts use the rabbit who's performing.
+  Texts that said "he" or "Bubák" for whoever performs now use the name or neutral wording (English
+  and Czech, no gendered past tense in Czech).
+- The friend's personality works at home too: a little star poses for the camera, a lap bunny
+  melts into a puddle, an athlete gets restless and does parkour, an explorer inspects. The
+  friend's Journal page shows trick stars, coat, ribbons, certificates, nail and coat warnings
+  and the personality box. The vet checks both rabbits' nails and coats.
+- Playtest: a new section runs every feature with the friend and checks Bubák's skills stay his
+  own, mid-session saves, loading, and that the friend poses for the camera.
+
 ## 2026-10-29 13:26 CET — special dried apples for Games champions
 
 - New gift treat: **Special dried apples**, "dried from the best apples in the world". Winning

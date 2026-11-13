@@ -257,6 +257,12 @@ of the real Bubák; a `.gdignore` keeps them out of the build.)
   Pick a rabbit from the hutch and take it home. The newcomer has their own needs, trust and
   card, and a page of their own in the Journal. Happy rabbits slowly bond, and close friends
   snuggle together.
+  The friend can do everything Bubák does: a Bubák / friend switch at the top of the Club and
+  the Walk screen picks who trains, grooms, enters shows, runs agility or goes for a walk. Each
+  rabbit has their own trick stars, focus, master's certificates, coat, nails, agility skill,
+  personality, show waits and daily walk. League points, the Games, duels and ribbons are the
+  household's (each ribbon says who won it), and goals count whichever rabbit does better. The
+  friend's personality shows at home too (a little star poses for the camera, a lap bunny melts).
 - **Settings:** language, sound effects and music on/off, whether time passes while the game is closed, **game pace** (Normal,
   or Fast: the original quick game where Bubák bonds within a session or two), **named saves** (save, load, delete, start a new game) and
   **Test play**, a sandbox with everything unlocked and 10000 coins that leaves your real game
